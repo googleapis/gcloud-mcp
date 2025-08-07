@@ -21,22 +21,24 @@ The gcloud MCP Server is a [Model Context Protocol (MCP)](https://modelcontextpr
 3.  Install the dependencies:
     ```bash
     npm install
+    npm run build
     ```
-
-## Running the Server
-
-To start the server, run the following command:
-
-```bash
-npm start
-```
 
 ## Initializing with Gemini
 
 To initialize this extension with the Gemini CLI, run the following command in your project's root directory, or your user home directory:
 
 ```bash
-npm start -- --gemini-cli-init
+npm start -w gcloud-mcp -- --gemini-cli-init
+gemini
 ```
 
 This will register the extension with Gemini, making the gcloud tools available in your chat sessions.
+
+## Manually Running the Server
+
+To start the server, run the following command:
+
+```bash
+npm start -w gcloud-mcp
+```

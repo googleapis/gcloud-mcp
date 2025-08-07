@@ -24,18 +24,22 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
 const initializeGeminiCLI = () => {
-  const extensionDir = join(process.cwd(), '.gemini', 'extensions', 'gcloud-mcp');
+  // When running `npm start -w [workspace]`, npm sets the CWD to the workspace directory.
+  // INIT_CWD is an environment variable set by npm that holds the original CWD.
+  // Use the original CWD if it exists, otherwise use the process' CWD.
+  const cwd = process.env['INIT_CWD'] || process.cwd();
+  const extensionDir = join(cwd, '.gemini', 'extensions', 'gcloud-mcp');
   mkdirSync(extensionDir, { recursive: true });
   const extensionFile = join(extensionDir, 'gemini-extension.json');
   const content = {
-    name: 'gcloud-mcp',
-    version: '0.1.0-test',
+    name: pkg.name,
+    version: pkg.version,
     description: 'Enable MCP-compatible AI agents to interact with Google Cloud.',
     contextFileName: 'GEMINI.md',
     mcpServers: {
       gcloud: {
         command: 'npm',
-        args: ['start'],
+        args: ['start', '-w', 'gcloud-mcp'],
       },
     },
   };

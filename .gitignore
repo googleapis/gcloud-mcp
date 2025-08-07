@@ -7,6 +7,9 @@ node_modules
 # Build output folder
 dist
 
+# Turbo cache
+.turbo
+
 # TypeScript build info files
 *.tsbuildinfo
 

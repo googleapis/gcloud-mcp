@@ -15,6 +15,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 import prettierConfig from "eslint-config-prettier";
 import licenseHeader from 'eslint-plugin-license-header';
+import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
   {
@@ -27,6 +28,20 @@ export default tseslint.config(
       globals: {
         ...globals.node,
       },
+    },
+    plugins: {
+      import: importPlugin,
+    },
+    settings: {
+      'import/resolver': {
+        node: true,
+      },
+    },
+    rules: {
+      ...importPlugin.configs.recommended.rules,
+      ...importPlugin.configs.typescript.rules,
+      'import/no-default-export': 'warn',
+      'import/no-unresolved': 'off', // Disable for now, can be noisy with monorepos/paths
     },
   },
   {

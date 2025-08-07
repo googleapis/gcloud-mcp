@@ -18,6 +18,7 @@ import licenseHeader from 'eslint-plugin-license-header';
 import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
+  prettierConfig,
   {
     ignores: ["dist/"],
   },

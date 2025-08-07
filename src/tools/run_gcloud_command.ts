@@ -49,7 +49,7 @@ export const registerRunGcloudCommand = (server: McpServer) => {
           ],
         };
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "An unknown error ocurred."
+        const msg = e instanceof Error ? e.message : 'An unknown error ocurred.';
         return {
           content: [
             {

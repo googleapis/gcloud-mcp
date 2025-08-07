@@ -16,7 +16,8 @@
 
 import { spawn } from 'child_process';
 
-export const invoke = (args: string[]): Promise<{ code: number | null; stdout: string; stderr: string }> => new Promise((resolve, reject) => {
+export const invoke = (args: string[]): Promise<{ code: number | null; stdout: string; stderr: string }> =>
+  new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
 

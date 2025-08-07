@@ -1,7 +1,19 @@
+# gemini-cli settings
+.gemini
+
 # Local dependencies folder
 node_modules
+
 # Build output folder
 dist
 
+# TypeScript build info files
+*.tsbuildinfo
+
+# Editors
+.idea
+*.iml
+
+# OS metadata
 .DS_Store
-.gemini
+Thumbs.db

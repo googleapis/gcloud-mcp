@@ -45,12 +45,13 @@ export const registerRunGcloudCommand = (server: McpServer) => {
             },
           ],
         };
-      } catch (e: any) {
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "An unknown error ocurred."
         return {
           content: [
             {
               type: 'text',
-              text: `Unable to invoke gcloud: ${e.message}`,
+              text: msg,
             },
           ],
           isError: true,

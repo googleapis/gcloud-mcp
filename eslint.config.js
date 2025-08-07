@@ -19,19 +19,13 @@ export default tseslint.config(
   {
     ignores: ["dist/"],
   },
+  ...tseslint.configs.recommended,
   {
     files: ["**/*.ts"],
     languageOptions: {
-      parser: tseslint.parser,
-      parserOptions: {
-        project: true,
-      },
       globals: {
         ...globals.node,
       },
-    },
-    rules: {
-      ...tseslint.configs.recommended.rules,
     },
   },
   prettierConfig,

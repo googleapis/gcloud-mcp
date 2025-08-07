@@ -15,7 +15,7 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { invoke } from '../gcloud.js';
+import * as gcloud from '../gcloud.js';
 import { z } from 'zod';
 
 export const registerRunGcloudCommand = (server: McpServer) => {
@@ -30,7 +30,7 @@ export const registerRunGcloudCommand = (server: McpServer) => {
     },
     async ({ args }) => {
       try {
-        const { code, stdout, stderr } = await invoke(args);
+        const { code, stdout, stderr } = await gcloud.invoke(args);
         // If the exit status is not zero, an error occurred and the output may be
         // incomplete unless the command documentation notes otherwise. For example,
         // a command that creates multiple resources may only create a few, list them

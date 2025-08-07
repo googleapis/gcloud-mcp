@@ -16,6 +16,17 @@
 
 import { spawn } from 'child_process';
 
+export const isAvailable = (): Promise<boolean> =>
+  new Promise((resolve) => {
+    const which = spawn('which', ['gcloud']);
+    which.on('close', (code) => {
+      resolve(code === 0);
+    });
+    which.on('error', () => {
+      resolve(false);
+    });
+  });
+
 export const invoke = (args: string[]): Promise<{ code: number | null; stdout: string; stderr: string }> =>
   new Promise((resolve, reject) => {
     let stdout = '';

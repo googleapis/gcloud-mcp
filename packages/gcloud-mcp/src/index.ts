@@ -18,6 +18,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
 import { registerRunGcloudCommand } from './tools/run_gcloud_command.js';
+import * as gcloud from './gcloud.js';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import yargs from 'yargs';
@@ -59,15 +60,17 @@ const main = async () => {
     return;
   }
 
+  const isAvailable = await gcloud.isAvailable();
+  if (!isAvailable) {
+    console.log('Unable to start gcloud mcp server: gcloud executable not found.');
+  }
+
   const server = new McpServer({
     name: 'gcloud-mcp-server',
     version: pkg.version,
   });
-
   registerRunGcloudCommand(server);
-
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  await server.connect(new StdioServerTransport());
   console.log('🚀 gcloud mcp server started');
 };
 

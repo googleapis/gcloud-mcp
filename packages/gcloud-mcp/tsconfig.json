@@ -3,6 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "dist",
+    "rootDir": "."
   },
-  "include": [ "src/**/*.ts", "./package.json" ]
+  "include": [ "src/**/*.ts", "./package.json" ],
+  "exclude": [ "dist" ]
 }

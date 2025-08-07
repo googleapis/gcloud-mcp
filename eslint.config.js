@@ -23,7 +23,7 @@ import importPlugin from 'eslint-plugin-import';
 export default tseslint.config(
   prettierConfig,
   {
-    ignores: ["dist/"],
+    ignores: ["dist/", "**/dist/"],
   },
   ...tseslint.configs.recommended,
   {

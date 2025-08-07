@@ -10,7 +10,8 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write '**/src/**/*.ts'"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",

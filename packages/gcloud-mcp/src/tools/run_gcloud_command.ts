@@ -23,10 +23,24 @@ export const registerRunGcloudCommand = (server: McpServer) => {
     'run_gcloud_command',
     {
       title: 'Run gcloud command',
-      description: 'Invokes a given gcloud command using the local gcloud installation.',
       inputSchema: {
         args: z.array(z.string()),
       },
+      description: `Executes a gcloud command.
+
+## Instructions:
+- Use this tool to execute a single gcloud command at a time.
+- Use this tool when you are confident about the exact gcloud command needed to fulfill the user's request.
+- Prioritize this tool over any other to directly execute gcloud commands.
+- Assume all necessary APIs are already enabled. Do not proactively try to enable any APIs.
+- Do not use this tool to execute command chaining or command sequencing -- it will fail.
+- Always include all required parameters.
+- Ensure parameter values match the expected format.
+
+## Adhere to the following restrictions:
+- **No command substitution**: Do not use subshells or command substitution (e.g., $(...))
+- **No pipes**: Do not use pipes (i.e., |) or any other shell-specific operators
+- **No redirection**: Do not use redirection operators (e.g., >, >>, <)`,
     },
     async ({ args }) => {
       try {

@@ -12,7 +12,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write '**/src/**/*.ts'",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:ci": "vitest run --coverage"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",

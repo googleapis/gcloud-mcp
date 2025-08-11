@@ -9,9 +9,10 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --max-warnings 0",
     "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --write '**/src/**/*.ts'"
+    "format": "prettier --write '**/src/**/*.ts'",
+    "preflight": "npm ci && npm run format && npm run lint && npm run build"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",

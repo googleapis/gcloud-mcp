@@ -22,9 +22,6 @@ Key resources include:
 Prefer the use of plain JavaScript objects with accompanying TypeScript
 interface or type declarations over JavaScript class syntax.
 
-- **Seamless React Integration**: Plain objects are inherently immutable (when
-  used thoughtfully) and can be easily passed as props, simplifying data flow
-  and reducing unexpected side effects.
 - **Reduced Boilerplate**: Classes often promote the use of constructors, `this`
   binding, getters, setters, and other boilerplate that can unnecessarily bloat
   code.

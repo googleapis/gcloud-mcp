@@ -11,10 +11,12 @@
     "dev": "turbo run dev --parallel",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --write '**/src/**/*.ts'"
+    "format": "prettier --write '**/src/**/*.ts'",
+    "test": "vitest"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",
+    "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.32.0",
@@ -23,7 +25,8 @@
     "eslint-plugin-license-header": "^0.8.0",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
-    "turbo": "latest"
+    "turbo": "latest",
+    "vitest": "^3.2.4"
   },
   "packageManager": "npm@10.9.2"
 }

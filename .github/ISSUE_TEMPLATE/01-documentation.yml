@@ -1,0 +1,21 @@
+---
+name: "📕 Documentation Issue"
+description: Changes to the documentation
+title: "package: short issue description"
+labels: [documentation, needs-triage]
+assignees: []
+body:
+  - type: textarea
+    id: actualc
+    attributes:
+      label: What did you see happen?
+      description: Desscribe the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What do you think should be changed?
+    validations:
+      required: true

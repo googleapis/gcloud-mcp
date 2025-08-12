@@ -1,0 +1,66 @@
+---
+name: "🐛 Bug Report"
+description: Report a bug
+title: "package: short issue description"
+type: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us improve! 🙏 Please answer these questions and provide as much information as possible about your problem.
+  - type: textarea
+    id: description
+    attributes:
+      label: What did you do?
+      description: Describe the bug. If possible, provide a recipe for reproducing the error.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you see happen?
+      description: |
+        Please include full errors, uncaught exceptions, stack traces, and relevant logs.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to see?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Information/Context
+      description: |
+        Anything else that might be relevant for troubleshooting this bug.
+    validations:
+      required: false
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: OS
+    validations:
+      required: true
+
+  - type: dropdown
+    id: server
+    attributes:
+      label: Server
+      multiple: true
+      options:
+        - gcloud-mcp
+        - cloud-observability-mcp
+        - other
+    validations:
+      required: true
+
+  - type: input
+    id: server-version
+    attributes:
+      label: Server Version
+    validations:
+      required: false

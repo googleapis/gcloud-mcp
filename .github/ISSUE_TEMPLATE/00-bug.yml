@@ -2,7 +2,6 @@
 name: "🐛 Bug Report"
 description: Report a bug
 title: "package: short issue description"
-type: [bug]
 
 body:
   - type: markdown

@@ -32,7 +32,7 @@ export const invoke = (args: string[]): Promise<{ code: number | null; stdout: s
     let stdout = '';
     let stderr = '';
 
-    const gcloud = spawn('gcloud', args);
+    const gcloud = spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();

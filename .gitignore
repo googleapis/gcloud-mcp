@@ -20,3 +20,7 @@ dist
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Test report files
+coverage/
+packages/*/coverage/

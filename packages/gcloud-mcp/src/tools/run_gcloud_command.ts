@@ -52,7 +52,7 @@ export const registerRunGcloudCommand = (server: McpServer) => {
         // See https://cloud.google.com/sdk/docs/scripting-gcloud#best_practices
         let result = `gcloud process exited with code ${code}. stdout:\n${stdout}`;
         if (stderr) {
-          result += `\nstderr:${stderr}`;
+          result += `\nstderr:\n${stderr}`;
         }
         return {
           content: [

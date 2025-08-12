@@ -65,10 +65,24 @@ export const createRunGcloudCommand = (allowlist: string[] = [], denylist: strin
         const command = args.join(' ');
 
         if (!allowedCommands(allowlist).contains(command)) {
-          return { content: [{ type: 'text', text: 'Command not allowed.' }] };
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Command is not part of this tool's current allowlist of enabled commands.`,
+              },
+            ],
+          };
         }
         if (deniedCommands(denylist).contains(command)) {
-          return { content: [{ type: 'text', text: 'Command denied.' }] };
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Command is part of this tool's current denylist of disabled commands.`,
+              },
+            ],
+          };
         }
 
         try {
@@ -84,7 +98,7 @@ export const createRunGcloudCommand = (allowlist: string[] = [], denylist: strin
           }
           return { content: [{ type: 'text', text: result }] };
         } catch (e: unknown) {
-          const msg = e instanceof Error ? e.message : 'An unknown error ocurred.';
+          const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
           return { content: [{ type: 'text', text: msg }], isError: true };
         }
       },

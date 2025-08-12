@@ -71,7 +71,12 @@ describe('createRunGcloudCommand', () => {
 
       expect(gcloudInvoke).not.toHaveBeenCalled();
       expect(result).toEqual({
-        content: [{ type: 'text', text: 'Command not allowed.' }],
+        content: [
+          {
+            type: 'text',
+            text: `Command is not part of this tool's current allowlist of enabled commands.`,
+          },
+        ],
       });
     });
   });
@@ -86,7 +91,12 @@ describe('createRunGcloudCommand', () => {
 
       expect(gcloudInvoke).not.toHaveBeenCalled();
       expect(result).toEqual({
-        content: [{ type: 'text', text: 'Command denied.' }],
+        content: [
+          {
+            type: 'text',
+            text: `Command is part of this tool's current denylist of disabled commands.`,
+          },
+        ],
       });
     });
 
@@ -125,7 +135,12 @@ describe('createRunGcloudCommand', () => {
 
       expect(gcloudInvoke).not.toHaveBeenCalled();
       expect(result).toEqual({
-        content: [{ type: 'text', text: 'Command denied.' }],
+        content: [
+          {
+            type: 'text',
+            text: `Command is part of this tool's current denylist of disabled commands.`, // Corrected: Removed extra backticks and escaped internal backticks
+          },
+        ],
       });
     });
   });
@@ -176,7 +191,7 @@ describe('createRunGcloudCommand', () => {
 
       expect(gcloudInvoke).toHaveBeenCalledWith(['a', 'c']);
       expect(result).toEqual({
-        content: [{ type: 'text', text: 'An unknown error ocurred.' }],
+        content: [{ type: 'text', text: 'An unknown error occurred.' }],
         isError: true,
       });
     });

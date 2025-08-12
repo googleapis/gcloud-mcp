@@ -6,7 +6,7 @@ labels: [documentation, needs-triage]
 assignees: []
 body:
   - type: textarea
-    id: actualc
+    id: actual
     attributes:
       label: What did you see happen?
       description: Desscribe the issue.

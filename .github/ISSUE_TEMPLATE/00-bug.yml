@@ -17,7 +17,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: expected
+    id: actual
     attributes:
       label: What did you see happen?
       description: |

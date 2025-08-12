@@ -17,7 +17,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
-import { registerRunGcloudCommand } from './tools/run_gcloud_command.js';
+import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
 import * as gcloud from './gcloud.js';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -44,7 +44,7 @@ const main = async () => {
     name: 'gcloud-mcp-server',
     version: pkg.version,
   });
-  registerRunGcloudCommand(server);
+  createRunGcloudCommand([], []).register(server);
   await server.connect(new StdioServerTransport());
   console.log('🚀 gcloud mcp server started');
 };

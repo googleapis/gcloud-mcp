@@ -46,6 +46,9 @@ public APIs.
 - **Reduced Coupling**: Explicitly defined module boundaries through
   `import`/`export` help reduce coupling between different parts of your
   codebase.
+-**Faster Module Loading**: ESM asynchronous module loading allows for parallel
+  loading of import modules, as well as tree-shaking, giving our code more
+  efficient loading.
 
 ## Code Style and Linting
 
@@ -89,6 +92,10 @@ immutable and declarative way.
 
 We use [Vitest](https://vitest.dev/) for testing. Tests should be clear, concise,
 and focused on a single behavior.
+
+Tests should also be focused on outcomes rather than specific implementation. This
+gives testing greater confidence if an implementation is changed, but the outcome
+remains the same.
 
 ### Naming and Location
 

@@ -1,5 +1,14 @@
 # ☁️  Google Cloud MCP
 
+> [!NOTE]
+> This repository is currently in prerelease, and may see breaking changes
+> until the first stable release (v1.0). 
+> * This repository is providing a _solution_, not an officially supported 
+> Google _product_. This project is not eligible for the [Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security).
+> * This project may break when the MCP specification changes, when other 
+> SDKs change, or when other solutions or products change. 
+> * This solution is expected to be run by customers **at their own risk**.
+
 Google Cloud offers a suite of specialized
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction)
 servers that make Google Cloud products directly accessible to AI agents.
@@ -7,6 +16,8 @@ servers that make Google Cloud products directly accessible to AI agents.
 Our MCP servers work with any tool that can act as an MCP client, including
 Claude Desktop, Cline, Cursor, Gemini CLI, Gemini Code Assist, Visual Studio
 Code Copilot Editor, Windsurf, and more.
+
+![Google Cloud MCP screenshot](./doc/assets/gemini-gcloud-mcp-screenshot.png)
 
 **Available MCP Servers**
 

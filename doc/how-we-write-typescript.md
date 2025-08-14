@@ -93,7 +93,7 @@ immutable and declarative way.
 We use [Vitest](https://vitest.dev/) for testing. Tests should be clear, concise,
 and focused on a single behavior.
 
-Tests should also be focused on outcomes rather than specific implementation. This
+Tests should also be focused on outcomes rather than the specific implementation. This
 gives testing greater confidence if an implementation is changed, but the outcome
 remains the same.
 

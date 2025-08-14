@@ -24,9 +24,10 @@ Thumbs.db
 # Test report files
 coverage/
 packages/*/coverage/
-
-# Package-lock file
-**/package-lock.json
-
 junit.xml
 packages/*/junit.xml
+
+# Ignore package-lock.json files in subdirectories
+**/package-lock.json
+# But DO include the one in the root directory
+!/package-lock.json

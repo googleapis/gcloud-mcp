@@ -110,13 +110,13 @@ You can also try our other MCP servers:
 
 The permissions of the credentials used by this agent directly control which `gcloud` commands it can execute. Proper configuration of the underlying credentials is critical for secure operation.
 
-### Using High-Privilege Roles (Editor)
+### Using High-Privilege Roles (Writer)
 
-Assigning a broad role like **Editor** (`roles/editor`) to the active credentials grants it powerful permissions. This allows for **mutating actions**—such as creating new virtual machines, deleting storage buckets, or modifying IAM policies. While this enables full functionality, it carries significant risk and should be used with caution.
+Assigning a broad role like **Writer** (`roles/writer`) to the active credentials grants it powerful permissions. This allows for **mutating actions**—such as creating new virtual machines, deleting storage buckets, or modifying IAM policies. While this enables full functionality, it carries significant risk and should be used with caution.
 
-### Using Read-Only Roles (Viewer)
+### Using Read-Only Roles (Reader)
 
-For enhanced security, you can use credentials with the **Viewer** (`roles/viewer`) role. This strictly limits the agent to **non-mutating (read-only) actions**, such as listing resources or describing configurations. This is the **recommended and safest approach** if you only need the agent to inspect your Google Cloud environment.
+For enhanced security, you can use credentials with the **Reader** (`roles/reader`) role. This strictly limits the agent to **non-mutating (read-only) actions**, such as listing resources or describing configurations. This is the **recommended and safest approach** if you only need the agent to inspect your Google Cloud environment.
 
 We strongly advise adhering to the **principle of least privilege**. Always use credentials with the minimum permissions required for its intended tasks.
 

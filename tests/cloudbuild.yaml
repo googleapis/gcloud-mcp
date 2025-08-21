@@ -19,6 +19,7 @@ steps:
 
         echo "--- Building and running Go integration tests ---"
         go build -o /workspace/integration-test tests/integration/main.go
+        ls
         /workspace/integration-test
 
 options:

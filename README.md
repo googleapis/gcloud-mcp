@@ -1,3 +1,5 @@
+[![CI Pipeline Status](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml/badge.svg)](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml)
+
 # gcloud MCP Server ☁️
 
 The gcloud

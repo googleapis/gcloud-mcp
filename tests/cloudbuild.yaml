@@ -20,6 +20,8 @@ steps:
         echo "--- Building and running Go integration tests ---"
         go build -o /workspace/integration-test tests/integration/main.go
         ls
+        which gcloud-mcp
+        npx -y @google-cloud/gcloud-mcp init --agent=gemini-cli
         /workspace/integration-test
 
 options:

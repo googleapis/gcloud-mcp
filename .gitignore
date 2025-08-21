@@ -31,3 +31,7 @@ packages/*/junit.xml
 **/package-lock.json
 # But DO include the one in the root directory
 !/package-lock.json
+
+# Go workspace local files
+go.work
+go.work.sum

@@ -4,12 +4,22 @@ steps:
     args:
       - '-c'
       - |
+        set -e -o pipefail
+        echo "--- Installing Node dependencies and building ---"
         npm install
         npm install -g
         npm run build
         npm install -g @google/gemini-cli
+
+        echo "--- Initializing gcloud-mcp with Gemini CLI"
         gcloud-mcp init --agent=gemini-cli
-        gemini mcp list
+
+        echo "--- Installing Go ---"
+        apt-get update && apt-get install -y golang
+
+        echo "--- Building and running Go integration tests ---"
+        go build -o /workspace/integration-test tests/integration/main.go
+        /workspace/integration-test
 
 options:
   logging: CLOUD_LOGGING_ONLY

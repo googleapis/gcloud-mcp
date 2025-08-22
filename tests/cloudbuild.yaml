@@ -5,6 +5,16 @@ steps:
       - '-c'
       - |
         set -e -o pipefail
+
+        echo "--- Installing gcloud CLI ---"
+        apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg curl
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+        apt-get update && sudo apt-get install google-cloud-cli
+
+        echo "--- Running gcloud info ---"
+        gcloud info
+
         echo "--- Installing Node dependencies and building ---"
         npm install
         npm install -g
@@ -15,7 +25,7 @@ steps:
         gcloud-mcp init --agent=gemini-cli
 
         echo "--- Installing Go ---"
-        apt-get update && apt-get install -y golang
+        apt-get install -y golang
 
         echo "--- Building and running Go integration tests ---"
         go build -o /workspace/integration-test tests/integration/main.go

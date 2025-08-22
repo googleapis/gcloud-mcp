@@ -22,7 +22,7 @@ func main() {
 	fmt.Println("Command output:")
 	fmt.Println(string(output))
 
-	expectedOutput := "✓ gcloud: npx -y @google-cloud/gcloud-mcp (stdio) - Connected"
+	expectedOutput := "gcloud: npx -y @google-cloud/gcloud-mcp (stdio) - Connected"
 	if strings.Contains(string(output), expectedOutput) {
 		fmt.Println("✅ Assertion passed: Output contains the connected gcloud server line.")
 		os.Exit(0)

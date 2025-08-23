@@ -82,8 +82,8 @@ jobs:
       - name: Run tests
         run: npm run test:i
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc715cb4ae056b0 # v4
+      - name: Upload coverage report
+        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true

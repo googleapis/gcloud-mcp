@@ -16,6 +16,6 @@ coverage:
   status:
     project:
       default:
-        target: 0% # The target coverage percentage for the project
+        target: 50% # The target coverage percentage for the project
         threshold: 0% # Allow 0% drop from the target; any drop below target will fail
         if_ci_failed: error # Set the CI status to 'error' if coverage conditions are not met

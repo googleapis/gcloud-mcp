@@ -14,70 +14,139 @@
  * limitations under the License.
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { test, expect, vi, beforeEach } from 'vitest';
 import { initializeGeminiCLI } from './gemini_cli_init.js';
-import { vol } from 'memfs';
+import { join } from 'path';
 import pkg from '../package.json' with { type: 'json' };
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
-vi.mock('fs/promises', async () => {
-  const memfs = await vi.importActual<typeof import('memfs')>('memfs');
-  return memfs.fs.promises;
+beforeEach(() => {
+  vi.clearAllMocks();
+  delete process.env['INIT_CWD'];
 });
 
-describe('initializeGeminiCLI', () => {
-  const CWD = '/test/cwd';
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+test('initializeGeminiCLI should create directory and write files', async () => {
+  process.env['INIT_CWD'] = '/test/cwd';
+  const mockMkdir = vi.fn();
+  const mockWriteFile = vi.fn();
+  const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
 
-  beforeEach(() => {
-    process.env['INIT_CWD'] = CWD;
-    const geminiMdPath = join(__dirname, '../GEMINI-extension.md');
-    vol.fromJSON({
-      [geminiMdPath]: 'gemini md content',
-    });
+  await initializeGeminiCLI({
+    mkdir: mockMkdir,
+    writeFile: mockWriteFile,
+    readFile: mockReadFile,
   });
 
-  afterEach(() => {
-    vol.reset();
-    delete process.env['INIT_CWD'];
-    vi.restoreAllMocks();
-  });
+  const extensionDir = join(
+    '/test/cwd',
+    '.gemini',
+    'extensions',
+    'cloud-observability-mcp'
+  );
+  const extensionFile = join(extensionDir, 'gemini-extension.json');
+  const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
 
-  it('should create the extension directory', async () => {
-    await initializeGeminiCLI();
-    const expectedDir = `${CWD}/.gemini/extensions/cloud-observability-mcp`;
-    expect(vol.existsSync(expectedDir)).toBe(true);
-  });
+  // Verify directory creation
+  expect(mockMkdir).toHaveBeenCalledWith(extensionDir, { recursive: true });
 
-  it('should write the gemini-extension.json file', async () => {
-    await initializeGeminiCLI();
-    const expectedFile = `${CWD}/.gemini/extensions/cloud-observability-mcp/gemini-extension.json`;
-    expect(vol.existsSync(expectedFile)).toBe(true);
-
-    const fileContent = vol.readFileSync(expectedFile, 'utf-8');
-    const parsedContent = JSON.parse(fileContent as string);
-
-    expect(parsedContent).toEqual({
-      name: pkg.name,
-      version: pkg.version,
-      description: 'A new MCP-compatible server.',
-      contextFileName: 'GEMINI.md',
-      mcpServers: {
-        'cloud-observability-mcp': {
-          command: 'npx',
-          args: ['-y', '@google-cloud/observability-mcp'],
-        },
+  // Verify gemini-extension.json content
+  const expectedExtensionJson = {
+    name: pkg.name,
+    version: pkg.version,
+    description: 'A new MCP-compatible server.',
+    contextFileName: 'GEMINI.md',
+    mcpServers: {
+      'cloud-observability-mcp': {
+        command: 'npx',
+        args: ['-y', '@google-cloud/observability-mcp'],
       },
-    });
+    },
+  };
+  expect(mockWriteFile).toHaveBeenCalledWith(
+    extensionFile,
+    JSON.stringify(expectedExtensionJson, null, 2)
+  );
+
+  // Verify GEMINI.md reading and writing
+  expect(mockReadFile).toHaveBeenCalled();
+  expect(mockWriteFile).toHaveBeenCalledWith(
+    geminiMdDestPath,
+    'Test content for GEMINI.md'
+  );
+});
+
+test('initializeGeminiCLI should create directory and write files when process.env[init_cwd] is not set', async () => {
+  const fakecwd = '/fakecwd';
+  const spy = vi.spyOn(process, 'cwd');
+  spy.mockReturnValue(fakecwd);
+
+  const mockMkdir = vi.fn();
+  const mockWriteFile = vi.fn();
+  const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
+
+  await initializeGeminiCLI({
+    mkdir: mockMkdir,
+    writeFile: mockWriteFile,
+    readFile: mockReadFile,
   });
 
-  it('should copy the GEMINI.md file', async () => {
-    await initializeGeminiCLI();
-    const expectedFile = `${CWD}/.gemini/extensions/cloud-observability-mcp/GEMINI.md`;
-    expect(vol.existsSync(expectedFile)).toBe(true);
-    const fileContent = vol.readFileSync(expectedFile, 'utf-8');
-    expect(fileContent).toBe('gemini md content');
+  const extensionDir = join(
+    fakecwd,
+    '.gemini',
+    'extensions',
+    'cloud-observability-mcp'
+  );
+  const extensionFile = join(extensionDir, 'gemini-extension.json');
+  const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
+
+  // Verify directory creation
+  expect(mockMkdir).toHaveBeenCalledWith(extensionDir, { recursive: true });
+
+  // Verify gemini-extension.json content
+  const expectedExtensionJson = {
+    name: pkg.name,
+    version: pkg.version,
+    description: 'A new MCP-compatible server.',
+    contextFileName: 'GEMINI.md',
+    mcpServers: {
+      'cloud-observability-mcp': {
+        command: 'npx',
+        args: ['-y', '@google-cloud/observability-mcp'],
+      },
+    },
+  };
+  expect(mockWriteFile).toHaveBeenCalledWith(
+    extensionFile,
+    JSON.stringify(expectedExtensionJson, null, 2)
+  );
+
+  // Verify GEMINI.md reading and writing
+  expect(mockReadFile).toHaveBeenCalled();
+  expect(mockWriteFile).toHaveBeenCalledWith(
+    geminiMdDestPath,
+    'Test content for GEMINI.md'
+  );
+});
+
+test('initializeGeminiCLI should log error if mkdir fails', async () => {
+  const error = new Error('mkdir failed');
+  const mockMkdir = vi.fn().mockRejectedValue(error);
+  const mockWriteFile = vi.fn();
+  const mockReadFile = vi.fn();
+  const consoleErrorSpy = vi
+    .spyOn(console, 'error')
+    .mockImplementation(() => {});
+
+  await initializeGeminiCLI({
+    mkdir: mockMkdir,
+    writeFile: mockWriteFile,
+    readFile: mockReadFile,
   });
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    '❌ cloud-observability-mcp Gemini CLI extension initialized failed.',
+    error
+  );
+  expect(mockWriteFile).not.toHaveBeenCalled();
+
+  consoleErrorSpy.mockRestore();
 });

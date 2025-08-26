@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { spawn } from 'child_process';
+import * as child_process from 'child_process';
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
-    const which = spawn('which', ['gcloud']);
+    const which = child_process.spawn('which', ['gcloud']);
     which.on('close', (code) => {
       resolve(code === 0);
     });
@@ -38,7 +38,7 @@ export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
     let stdout = '';
     let stderr = '';
 
-    const gcloud = spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const gcloud = child_process.spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();

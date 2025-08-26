@@ -15,16 +15,15 @@
  */
 
 import { test, expect, beforeEach, Mock, vi } from 'vitest';
-import { spawn } from 'child_process';
+import * as child_process from 'child_process';
 import { PassThrough } from 'stream';
 import * as gcloud from './gcloud.js';
 
-vi.mock('child_process', () => {
-  const spawn = vi.fn();
-  return { spawn };
-});
+vi.mock('child_process', () => ({
+  spawn: vi.fn(),
+}));
 
-const mockedSpawn = spawn as unknown as Mock;
+const mockedSpawn = child_process.spawn as unknown as Mock;
 
 beforeEach(() => {
   vi.clearAllMocks();

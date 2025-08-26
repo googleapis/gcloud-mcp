@@ -20,7 +20,9 @@ import { fileURLToPath } from 'url';
 import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 
-export const initializeGeminiCLI = async () => {
+export const initializeGeminiCLI = async (
+  fs = { mkdir, readFile, writeFile }
+) => {
   try {
     // When running `npm start -w [workspace]`, npm sets the CWD to the workspace directory.
     // INIT_CWD is an environment variable set by npm that holds the original CWD.
@@ -31,7 +33,7 @@ export const initializeGeminiCLI = async () => {
 
     // Create directory
     const extensionDir = join(cwd, '.gemini', 'extensions', 'gcloud-mcp');
-    await mkdir(extensionDir, { recursive: true });
+    await fs.mkdir(extensionDir, { recursive: true });
 
     // Create gemini-extension.json
     const extensionFile = join(extensionDir, 'gemini-extension.json');
@@ -47,7 +49,7 @@ export const initializeGeminiCLI = async () => {
         },
       },
     };
-    await writeFile(extensionFile, JSON.stringify(extensionJson, null, 2));
+    await fs.writeFile(extensionFile, JSON.stringify(extensionJson, null, 2));
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console
     console.log(`Created: ${extensionFile}`);
@@ -55,8 +57,8 @@ export const initializeGeminiCLI = async () => {
     // Create GEMINI.md
     const geminiMdSrcPath = join(__dirname, '../../GEMINI-extension.md');
     const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
-    const geminiMdContent = await readFile(geminiMdSrcPath);
-    await writeFile(geminiMdDestPath, geminiMdContent);
+    const geminiMdContent = await fs.readFile(geminiMdSrcPath);
+    await fs.writeFile(geminiMdDestPath, geminiMdContent);
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console
     console.log(`Created: ${geminiMdDestPath}`);

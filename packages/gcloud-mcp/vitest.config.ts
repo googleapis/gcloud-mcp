@@ -19,28 +19,27 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({ //eslint-disable-line import/no-default-export
   test: {
-    include: ['**/*.{test}.?[jt]s'],
+    include: ['**/src/**/*.test.ts', '**/src/**/*.test.js'],
     exclude: ['**/node_modules/**', '**/dist/**'],
-    environment: 'jsdom',
+    environment: 'node',
     globals: true,
     reporters: ['default', 'junit'],
     silent: true,
-    outputFile: {
-      junit: 'junit.xml',
-    },
+    outputFile: { junit: 'junit.xml' },
     coverage: {
       enabled: true,
       provider: 'v8',
       reportsDirectory: './coverage',
-      include: ['src/**/*'],
+      include: ['**/src/**/*'],
       reporter: [
-        ['text', { file: 'full-text-summary.txt' }],
+        'cobertura',
         'html',
         'json',
-        'lcov',
-        'cobertura',
         ['json-summary', { outputFile: 'coverage-summary.json' }],
-      ],
+        'lcov',
+        'text',
+        ['text', { file: 'full-text-summary.txt' }],
+      ]
     },
   },
 });

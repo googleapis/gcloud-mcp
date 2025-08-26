@@ -23,7 +23,7 @@ steps:
         npm install -g @google/gemini-cli
 
         echo "--- Initializing gcloud-mcp with Gemini CLI"
-        gcloud-mcp init --agent=gemini-cli
+        npx -y --no-install @google-cloud/gcloud-mcp init --agent=gemini-cli
 
         echo "--- Installing Go ---"
         apt-get install -y golang

@@ -71,8 +71,23 @@ const main = async () => {
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 
-  // Cleanup on exit
-  process.on("SIGINT", async () => {
+  process.on('uncaughtException', async (err: unknown) => {
+    await server.close();
+    const error = err instanceof Error ? err : undefined;
+    log.error("❌ Uncaught exception.", error);
+    process.exit(1);
+  });
+  process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
+    await server.close();
+    const error = reason instanceof Error ? reason : undefined;
+    log.error(`❌ Unhandled rejection: ${promise}`, error);
+    process.exit(1);
+  });
+  process.on('SIGINT', async () => {
+    await server.close();
+    process.exit(0);
+  });
+  process.on('SIGTERM', async () => {
     await server.close();
     process.exit(0);
   });

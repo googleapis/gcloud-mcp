@@ -1,15 +1,5 @@
 # Gcloud MCP ☁️
 
-> [!NOTE]
-> This repository is currently in prerelease, and may see breaking changes
-> until the first stable release (v1.0).
->
-> - This repository is providing a _solution_, not an officially supported
->   Google _product_. This project is not eligible for the [Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security).
-> - This project may break when the MCP specification changes, when other
->   SDKs change, or when other solutions or products change.
-> - This solution is expected to be run by customers **at their own risk**.
-
 The gcloud [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro) server enables AI assistants to easily interact with the Google Cloud environment using the gcloud CLI. With the gcloud MCP you can:
 
 - **Interact with Google Cloud using natural language.** Describe the outcome you want instead of memorizing complex command syntax, flags, and arguments.
@@ -66,7 +56,7 @@ This server exposes a single tool, `run_gcloud_command`, which executes a gcloud
 
 The permissions of the gcloud MCP are directly tied to the permissions of the gcloud user. To restrict permissions and operate with the principle of least privilege, you can [authorize as a service account](https://cloud.google.com/sdk/docs/authorizing#service-account) and assign the service account a [role with limited permissions](https://cloud.google.com/iam/docs/roles-overview).
 
-By default, gcloud MCP denies commands deemed unsafe for agents. See [denylist.md](doc/denylist.md)for more information.
+By default, gcloud MCP denies commands deemed unsafe for agents. See [denylist.md](doc/denylist.md) for more information.
 
 ## 💫 Other Google Cloud MCP Servers
 

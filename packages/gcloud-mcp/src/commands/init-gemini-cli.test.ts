@@ -19,11 +19,18 @@ import { mkdir, writeFile, readFile } from 'fs/promises';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
 import { join } from 'path';
 import pkg from '../../package.json' with { type: 'json' };
+import { log } from '../utility/logger.js';
 
 vi.mock('fs/promises', () => ({
   mkdir: vi.fn(),
   writeFile: vi.fn(),
   readFile: vi.fn().mockResolvedValue('Test content for GEMINI.md'),
+}));
+
+vi.mock('../utility/logger.js', () => ({
+  log: {
+    error: vi.fn(),
+  },
 }));
 
 beforeEach(() => {
@@ -94,4 +101,17 @@ test('initializeGeminiCLI should create directory and write files when process.e
   // Verify GEMINI.md reading and writing
   expect(readFile).toHaveBeenCalled();
   expect(writeFile).toHaveBeenCalledWith(geminiMdDestPath, 'Test content for GEMINI.md');
+});
+
+test('initializeGeminiCLI should log error if mkdir fails', async () => {
+  const error = new Error('mkdir failed');
+  vi.mocked(mkdir).mockRejectedValue(error);
+
+  await initializeGeminiCLI();
+
+  expect(log.error).toHaveBeenCalledWith(
+    '❌ gcloud-mcp Gemini CLI extension initialized failed.',
+    error
+  );
+  expect(writeFile).not.toHaveBeenCalled();
 });

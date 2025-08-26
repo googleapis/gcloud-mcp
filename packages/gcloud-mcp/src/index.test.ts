@@ -20,11 +20,10 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
 import * as gcloud from './gcloud.js';
 import { init } from './commands/init.js';
-import pkg from '../package.json' with { type: 'json' };
 
 vi.mock('../package.json', () => ({
   default: {
-    version: '0.1.0',
+    version: '9.4.1998',
   },
 }));
 vi.mock('@modelcontextprotocol/sdk/server/mcp.js');
@@ -49,8 +48,12 @@ beforeEach(() => {
 
 test('should initialize Gemini CLI when gcloud-mcp init --agent=gemini-cli is called', async () => {
   process.argv = ['node', 'index.js', 'init', '--agent=gemini-cli'];
+  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+
   await import('./index.js');
+
   expect(init.handler).toHaveBeenCalled();
+  expect(process.exit).toHaveBeenCalledWith(0);
 });
 
 test('should exit if gcloud is not available', async () => {
@@ -79,7 +82,7 @@ test('should start the McpServer if gcloud is available', async () => {
   expect(McpServer).toHaveBeenCalledWith(
     {
       name: 'gcloud-mcp-server',
-      version: pkg.version,
+      version: '9.4.1998',
     },
     { capabilities: { tools: {} } },
   );

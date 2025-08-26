@@ -21,7 +21,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import pkg from '../package.json' with { type: 'json' };
 import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
 import * as gcloud from './gcloud.js';
-import yargs from 'yargs';
+import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
 import {log} from './utility/logger.js';
@@ -38,32 +38,48 @@ export const default_denylist: string[] = [
   'app instances ssh',
 ];
 
+const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({
+  ...cmd,
+  handler: async (argv: ArgumentsCamelCase<U>) => {
+    await cmd.handler(argv);
+    process.exit(0);
+  }
+})
+
 const main = async () => {
-  yargs(hideBin(process.argv))
-    .command('$0', 'Run the gcloud mcp server', async () => {
-      const isAvailable = await gcloud.isAvailable();
-      if (!isAvailable) {
-        log.error('Unable to start gcloud mcp server: gcloud executable not found.');
-        process.exit(1);
-      }
-
-      const denyListSet = [...new Set([...default_denylist])];
-
-      const server = new McpServer(
-        {
-          name: 'gcloud-mcp-server',
-          version: pkg.version,
-        },
-        { capabilities: { tools: {} } },
-      );
-      createRunGcloudCommand(denyListSet).register(server);
-      await server.connect(new StdioServerTransport());
-      log.info('🚀 gcloud mcp server started');
-    })
-    .command(init)
-    .version(false)
+  await yargs(hideBin(process.argv))
+    .command('$0', 'Run the gcloud mcp server')
+    .command(exitProcessAfter(init))
+    .version(pkg.version)
     .help()
     .parse();
+
+  const isAvailable = await gcloud.isAvailable();
+  if (!isAvailable) {
+    log.error('Unable to start gcloud mcp server: gcloud executable not found.');
+    process.exit(1);
+  }
+
+  const server = new McpServer(
+    {
+      name: 'gcloud-mcp-server',
+      version: pkg.version,
+    },
+    { capabilities: { tools: {} } },
+  );
+  createRunGcloudCommand(default_denylist).register(server);
+  await server.connect(new StdioServerTransport());
+  log.info('🚀 gcloud mcp server started');
+
+  // Cleanup on exit
+  process.on("SIGINT", async () => {
+    await server.close();
+    process.exit(0);
+  });
 };
 
-main();
+main().catch((err: unknown) => {
+  const error = err instanceof Error ? err : undefined;
+  log.error("❌ Unable to start gcloud-mcp server.", error);
+  process.exit(1);
+})

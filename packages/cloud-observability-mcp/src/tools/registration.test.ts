@@ -24,6 +24,7 @@ import * as tools from './index.js';
 vi.mock('./index.js', () => ({
   listGroupStats: vi.fn(),
   listLogEntries: vi.fn(),
+  listLogNames: vi.fn(),
   listBuckets: vi.fn(),
   listViews: vi.fn(),
   listSinks: vi.fn(),

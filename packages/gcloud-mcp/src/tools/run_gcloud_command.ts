@@ -37,6 +37,7 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
 - Prioritize this tool over any other to directly execute gcloud commands.
 - Assume all necessary APIs are already enabled. Do not proactively try to enable any APIs.
 - Do not use this tool to execute command chaining or command sequencing -- it will fail.
+- Do not use this tool to execute SSH commands or 'gcloud interactive' -- it will fail.
 - Always include all required parameters.
 - Ensure parameter values match the expected format.
 

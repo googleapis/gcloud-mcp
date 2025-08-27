@@ -569,7 +569,8 @@ export const registerTools = (server: McpServer): void => {
     'get_trace',
     `Use this as the primary tool to retrieve a single distributed trace from Google Cloud Trace.
     Traces provide a detailed view of the path of a request as it travels through your application's services.
-    This is essential for understanding latency issues and debugging complex, multi-service workflows.`,
+    This is essential for understanding latency issues and debugging complex, multi-service workflows.
+    This is often used as a follow on to list_traces to get full details on a specific trace.`,
     {
       projectId: z.string().describe('Required. The Google Cloud project ID.'),
       traceId: z.string().describe('Required. The ID of the trace to retrieve.'),

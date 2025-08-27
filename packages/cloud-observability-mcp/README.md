@@ -86,6 +86,7 @@ The server exposes the following tools:
 |                     | `list_alert_policies`        | Lists the alert policies in a project.        |
 |                     | `list_notification_channels` | Lists the notification channels in a project. |
 | **Trace**           | `list_traces`                | Searches for traces in a project.             |
+|                     | `get_trace`                  | Gets a specific trace in a project.           |
 | **Error Reporting** | `list_group_stats`           | Lists the error groups for a project.         |
 
 

@@ -58,6 +58,36 @@ export async function listLogEntries(
 }
 
 /**
+ * Lists log names from the Google Cloud Logging API.
+ * @param parent The parent resource whose logs are to be listed.
+ * @param pageSize The maximum number of results to return from this request.
+ * @param pageToken If present, then retrieve the next batch of results.
+ * @returns A promise that resolves with a string containing the log names in
+ *     JSON format, or an error message.
+ */
+export async function listLogNames(
+  parent: string,
+  pageSize?: number,
+  pageToken?: string
+): Promise<string> {
+  const request = {
+    parent,
+    pageSize,
+    pageToken,
+  };
+
+  try {
+    const response = await logging.projects.logs.list(request);
+    return JSON.stringify(response.data.logNames || [], null, 2);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to list log names: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while listing log names.');
+  }
+}
+
+/**
  * Lists log buckets from the Google Cloud Logging API.
  * @param parent The parent resource whose buckets are to be listed.
  * @param pageSize The maximum number of results to return from this request.

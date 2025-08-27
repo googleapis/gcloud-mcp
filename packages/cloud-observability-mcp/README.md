@@ -77,6 +77,7 @@ The server exposes the following tools:
 | Service             | Tool                         | Description                                   |
 |---------------------|------------------------------|-----------------------------------------------|
 | **Logging**         | `list_log_entries`           | Lists log entries from a project.             |
+|                     | `list_log_names`             | Lists log names from a project.               |
 |                     | `list_buckets`               | Lists log buckets from a project.             |
 |                     | `list_views`                 | Lists log views from a project.               |
 |                     | `list_sinks`                 | Lists log sinks from a project.               |

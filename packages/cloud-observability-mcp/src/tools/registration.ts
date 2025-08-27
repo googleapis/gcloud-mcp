@@ -28,6 +28,7 @@ import {
   listTimeSeries,
   listAlertPolicies,
   listTraces,
+  listLogNames,
 } from './index.js';
 
 export const registerTools = (server: McpServer): void => {
@@ -107,6 +108,43 @@ export const registerTools = (server: McpServer): void => {
           params.pageSize,
           params.pageToken
         )
+      )
+  );
+
+  server.tool(
+    'list_log_names',
+    `Use this as the primary tool to list the log names in a Google Cloud project.
+    This is useful for discovering what logs are available for a project.`,
+    {
+      parent: z.string().describe(
+        `Required. The parent resource whose logs are to be listed:
+        e.g. "projects/[PROJECT_ID]""`
+      ),
+      pageSize: z
+        .number()
+        .optional()
+        .default(50)
+        .describe(
+          `Optional. The maximum number of results to return from this request.
+          Non-positive values are ignored.
+          The presence of nextPageToken in the response indicates that more results might be available.`
+        ),
+      pageToken: z
+        .string()
+        .optional()
+        .describe(
+          `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
+          pageToken must be the value of nextPageToken from the previous response.
+          The values of other method parameters should be identical to those in the previous call.`
+        ),
+    },
+    (params: {
+      parent: string;
+      pageSize?: number;
+      pageToken?: string;
+    }) =>
+      toolWrapper(async () =>
+        listLogNames(params.parent, params.pageSize, params.pageToken)
       )
   );
 

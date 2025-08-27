@@ -23,6 +23,7 @@ import {
   listViews,
   listSinks,
   listLogScopes,
+  listLogNames,
 } from './logging_api_tools.js';
 import { apiClientFactory } from '../../utils/api_client_factory.js';
 
@@ -50,6 +51,9 @@ vi.mock('../../utils/api_client_factory.js', () => {
         },
       },
       sinks: {
+        list: vi.fn(),
+      },
+      logs: {
         list: vi.fn(),
       },
     },
@@ -98,6 +102,14 @@ const createMockListLogScopesResponse = (
 ): Partial<GaxiosResponse<logging_v2.Schema$ListLogScopesResponse>> => ({
   data: {
     logScopes,
+  },
+});
+
+const createMockListLogNamesResponse = (
+  logNames: string[]
+): Partial<GaxiosResponse<logging_v2.Schema$ListLogsResponse>> => ({
+  data: {
+    logNames,
   },
 });
 
@@ -416,5 +428,68 @@ describe('listLogScopes', () => {
     await expect(
       listLogScopes(`${TEST_PROJECT_RESOURCE}/locations/global`)
     ).rejects.toThrow(`Failed to list log scopes: ${errorMessage}`);
+  });
+});
+
+describe('listLogNames', () => {
+  it('should return a JSON string of log names on success', async () => {
+    const mockResponse = createMockListLogNamesResponse([
+      'projects/my-project/logs/my-log',
+    ]);
+    const loggingClient = apiClientFactory.getLoggingClient();
+    (loggingClient.projects.logs.list as Mock).mockResolvedValue(
+      mockResponse
+    );
+
+    const result = await listLogNames(TEST_PROJECT_RESOURCE);
+    expect(JSON.parse(result)).toEqual(mockResponse.data!.logNames);
+    expect(loggingClient.projects.logs.list).toHaveBeenCalledWith({
+      parent: TEST_PROJECT_RESOURCE,
+      pageSize: undefined,
+      pageToken: undefined,
+    });
+  });
+
+  it('should pass all parameters correctly to the API call', async () => {
+    const mockResponse = createMockListLogNamesResponse([]);
+    const loggingClient = apiClientFactory.getLoggingClient();
+    (loggingClient.projects.logs.list as Mock).mockResolvedValue(
+      mockResponse
+    );
+
+    await listLogNames(
+      'folders/f1',
+      25,
+      'my-page-token'
+    );
+
+    expect(loggingClient.projects.logs.list).toHaveBeenCalledWith({
+      parent: 'folders/f1',
+      pageSize: 25,
+      pageToken: 'my-page-token',
+    });
+  });
+
+  it('should return an empty array when no log names are found', async () => {
+    const mockResponse = createMockListLogNamesResponse([]);
+    const loggingClient = apiClientFactory.getLoggingClient();
+    (loggingClient.projects.logs.list as Mock).mockResolvedValue(
+      mockResponse
+    );
+
+    const result = await listLogNames(TEST_PROJECT_RESOURCE);
+    expect(JSON.parse(result)).toEqual([]);
+  });
+
+  it('should throw an error if the API call fails', async () => {
+    const errorMessage = 'API Error';
+    const loggingClient = apiClientFactory.getLoggingClient();
+    (loggingClient.projects.logs.list as Mock).mockRejectedValue(
+      new Error(errorMessage)
+    );
+
+    await expect(listLogNames(TEST_PROJECT_RESOURCE)).rejects.toThrow(
+      `Failed to list log names: ${errorMessage}`
+    );
   });
 });

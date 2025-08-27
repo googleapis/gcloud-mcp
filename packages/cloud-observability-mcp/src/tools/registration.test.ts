@@ -32,6 +32,7 @@ vi.mock('./index.js', () => ({
   listTimeSeries: vi.fn(),
   listAlertPolicies: vi.fn(),
   listTraces: vi.fn(),
+  getTrace: vi.fn(),
 }));
 
 // Mock the toolWrapper

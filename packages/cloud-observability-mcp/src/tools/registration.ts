@@ -28,6 +28,7 @@ import {
   listTimeSeries,
   listAlertPolicies,
   listTraces,
+  getTrace,
 } from './index.js';
 
 export const registerTools = (server: McpServer): void => {
@@ -562,6 +563,19 @@ export const registerTools = (server: McpServer): void => {
           params.endTime
         )
       )
+  );
+
+  server.tool(
+    'get_trace',
+    `Use this as the primary tool to retrieve a single distributed trace from Google Cloud Trace.
+    Traces provide a detailed view of the path of a request as it travels through your application's services.
+    This is essential for understanding latency issues and debugging complex, multi-service workflows.`,
+    {
+      projectId: z.string().describe('Required. The Google Cloud project ID.'),
+      traceId: z.string().describe('Required. The ID of the trace to retrieve.'),
+    },
+    (params: { projectId: string; traceId: string }) =>
+      toolWrapper(async () => getTrace(params.projectId, params.traceId))
   );
 
   server.tool(

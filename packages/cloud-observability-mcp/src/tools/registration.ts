@@ -114,7 +114,8 @@ export const registerTools = (server: McpServer): void => {
   server.tool(
     'list_log_names',
     `Use this as the primary tool to list the log names in a Google Cloud project.
-    This is useful for discovering what logs are available for a project.`,
+    This is useful for discovering what logs are available for a project.
+    Only logs which have log entries will be listed.`,
     {
       parent: z.string().describe(
         `Required. The parent resource whose logs are to be listed:

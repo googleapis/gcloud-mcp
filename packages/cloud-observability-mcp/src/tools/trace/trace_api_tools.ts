@@ -64,8 +64,8 @@ export async function listTraces(
 
 /**
  * Retrieves a single trace from the Google Cloud Trace API.
- * @param projectId The Google Cloud project ID.
- * @param traceId The ID of the trace to retrieve.
+ * @param projectId Required. The Google Cloud project ID.
+ * @param traceId Required. The ID of the trace to retrieve.
  * @returns A promise that resolves with a string containing the trace in JSON
  *     format, or an error message.
  */

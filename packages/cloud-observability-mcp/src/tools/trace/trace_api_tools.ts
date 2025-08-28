@@ -61,3 +61,30 @@ export async function listTraces(
     throw new Error('An unknown error occurred while listing traces.');
   }
 }
+
+/**
+ * Retrieves a single trace from the Google Cloud Trace API.
+ * @param projectId Required. The Google Cloud project ID.
+ * @param traceId Required. The ID of the trace to retrieve.
+ * @returns A promise that resolves with a string containing the trace in JSON
+ *     format, or an error message.
+ */
+export async function getTrace(
+  projectId: string,
+  traceId: string
+): Promise<string> {
+  const request = {
+    projectId,
+    traceId,
+  };
+
+  try {
+    const response = await trace.projects.traces.get(request);
+    return JSON.stringify(response.data || {}, null, 2);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to get trace: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while getting the trace.');
+  }
+}

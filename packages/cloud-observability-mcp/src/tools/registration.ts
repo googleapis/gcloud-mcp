@@ -20,6 +20,7 @@ import { toolWrapper } from '../utils/index.js';
 import {
   listGroupStats,
   listLogEntries,
+  listLogNames,
   listBuckets,
   listViews,
   listSinks,
@@ -28,7 +29,7 @@ import {
   listTimeSeries,
   listAlertPolicies,
   listTraces,
-  listLogNames,
+  getTrace,
 } from './index.js';
 
 export const registerTools = (server: McpServer): void => {
@@ -532,7 +533,8 @@ export const registerTools = (server: McpServer): void => {
     'list_traces',
     `Use this as the primary tool to retrieve and examine distributed traces from Google Cloud Trace.
     Traces provide a detailed view of the path of a request as it travels through your application's services.
-    This is essential for understanding latency issues and debugging complex, multi-service workflows.`,
+    This is essential for understanding latency issues and debugging complex, multi-service workflows.
+    This will only return the root trace span, to gather full information call get_trace with that id.`,
     {
       projectId: z.string().describe('Required. The Google Cloud project ID.'),
       filter: z
@@ -601,6 +603,20 @@ export const registerTools = (server: McpServer): void => {
           params.endTime
         )
       )
+  );
+
+  server.tool(
+    'get_trace',
+    `Use this as the primary tool to retrieve a single distributed trace from Google Cloud Trace.
+    Traces provide a detailed view of the path of a request as it travels through your application's services.
+    This is essential for understanding latency issues and debugging complex, multi-service workflows.
+    This is often used as a follow on to list_traces to get full details on a specific trace.`,
+    {
+      projectId: z.string().describe('Required. The Google Cloud project ID.'),
+      traceId: z.string().describe('Required. The ID of the trace to retrieve.'),
+    },
+    (params: { projectId: string; traceId: string }) =>
+      toolWrapper(async () => getTrace(params.projectId, params.traceId))
   );
 
   server.tool(

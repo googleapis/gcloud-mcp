@@ -39,10 +39,10 @@ export const initializeGeminiCLI = async (
     const extensionJson = {
       name: pkg.name,
       version: pkg.version,
-      description: 'A new MCP-compatible server.',
+      description: 'Enable MCP-compatible AI agents to interact with Google Cloud Observability.',
       contextFileName: 'GEMINI.md',
       mcpServers: {
-        'cloud-observability-mcp': {
+        'observability': {
           command: 'npx',
           args: ['-y', '@google-cloud/observability-mcp'],
         },

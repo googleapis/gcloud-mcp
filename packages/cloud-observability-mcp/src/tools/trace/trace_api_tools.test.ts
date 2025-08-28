@@ -17,7 +17,7 @@
 import { describe, it, expect, vi, Mock } from 'vitest';
 import { GaxiosResponse } from 'gaxios';
 import { cloudtrace_v1 } from 'googleapis';
-import { listTraces } from './trace_api_tools.js';
+import { listTraces, getTrace } from './trace_api_tools.js';
 import { apiClientFactory } from '../../utils/api_client_factory.js';
 
 const TEST_PROJECT_ID = 'my-project';
@@ -28,6 +28,7 @@ vi.mock('../../utils/api_client_factory.js', () => {
     projects: {
       traces: {
         list: vi.fn(),
+        get: vi.fn(),
       },
     },
   };
@@ -115,6 +116,35 @@ describe('listTraces', () => {
 
     await expect(listTraces(TEST_PROJECT_ID)).rejects.toThrow(
       `Failed to list traces: ${errorMessage}`
+    );
+  });
+});
+
+describe('getTrace', () => {
+  it('should return a JSON string of a trace on success', async () => {
+    const mockResponse = {
+      data: { traceId: 'test-trace' },
+    };
+    const traceClient = apiClientFactory.getTraceClient();
+    (traceClient.projects.traces.get as Mock).mockResolvedValue(mockResponse);
+
+    const result = await getTrace(TEST_PROJECT_ID, 'test-trace');
+    expect(JSON.parse(result)).toEqual(mockResponse.data);
+    expect(traceClient.projects.traces.get).toHaveBeenCalledWith({
+      projectId: TEST_PROJECT_ID,
+      traceId: 'test-trace',
+    });
+  });
+
+  it('should throw an error if the API call fails', async () => {
+    const errorMessage = 'API Error';
+    const traceClient = apiClientFactory.getTraceClient();
+    (traceClient.projects.traces.get as Mock).mockRejectedValue(
+      new Error(errorMessage)
+    );
+
+    await expect(getTrace(TEST_PROJECT_ID, 'test-trace')).rejects.toThrow(
+      `Failed to get trace: ${errorMessage}`
     );
   });
 });

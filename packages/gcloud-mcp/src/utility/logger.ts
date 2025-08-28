@@ -33,7 +33,7 @@ export interface LogRecord {
   severity: LogSeverity;
   message: string;
   context?: Record<string, unknown>;
-  error?: Error;
+  error?: Error | undefined;
 }
 
 /**
@@ -44,7 +44,7 @@ export class Logger {
   private metadata: Record<string, unknown> = {};
 
   constructor() {
-    const envSeverity = process.env.LOG_LEVEL?.toLowerCase() as LogSeverity;
+    const envSeverity = process.env['LOG_LEVEL']?.toLowerCase() as LogSeverity;
     this.minSeverity = SeverityLevels[envSeverity] ?? SeverityLevels.info;
   }
 

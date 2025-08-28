@@ -19,7 +19,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import pkg from '../../package.json' with { type: 'json' };
 
-export const initializeGeminiCLI = async (fs = { mkdir, readFile, writeFile }, local = false) => {
+export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile, writeFile }) => {
   try {
     const cwd = process.env['INIT_CWD'] || process.cwd();
     const __filename = fileURLToPath(import.meta.url);

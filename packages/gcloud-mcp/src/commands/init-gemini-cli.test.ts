@@ -37,7 +37,7 @@ test('initializeGeminiCLI should create directory and write files', async () => 
   const mockWriteFile = vi.fn();
   const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
 
-  await initializeGeminiCLI({
+  await initializeGeminiCLI(undefined, {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
     readFile: mockReadFile,
@@ -82,7 +82,7 @@ test('initializeGeminiCLI should create directory and write files when process.e
   const mockWriteFile = vi.fn();
   const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
 
-  await initializeGeminiCLI({
+  await initializeGeminiCLI(undefined, {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
     readFile: mockReadFile,
@@ -124,7 +124,7 @@ test('initializeGeminiCLI should log error if mkdir fails', async () => {
   const mockWriteFile = vi.fn();
   const mockReadFile = vi.fn();
 
-  await initializeGeminiCLI({
+  await initializeGeminiCLI(undefined, {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
     readFile: mockReadFile,
@@ -143,14 +143,11 @@ test('initializeGeminiCLI should create directory and write files with local=tru
   const mockWriteFile = vi.fn();
   const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
 
-  await initializeGeminiCLI(
-    {
-      mkdir: mockMkdir,
-      writeFile: mockWriteFile,
-      readFile: mockReadFile,
-    },
-    true,
-  );
+  await initializeGeminiCLI(true, {
+    mkdir: mockMkdir,
+    writeFile: mockWriteFile,
+    readFile: mockReadFile,
+  });
 
   const extensionDir = join('/test/cwd', '.gemini', 'extensions', 'gcloud-mcp');
   const extensionFile = join(extensionDir, 'gemini-extension.json');

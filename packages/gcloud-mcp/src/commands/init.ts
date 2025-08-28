@@ -42,7 +42,7 @@ export const init: CommandModule<object, InstallArgs> = {
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(undefined, argv.local);
+      await initializeGeminiCLI(argv['local']);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

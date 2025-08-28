@@ -12,6 +12,7 @@
     "incremental": true,
     "composite": true,
     "sourceMap": true,
+    "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "baseUrl": ".",

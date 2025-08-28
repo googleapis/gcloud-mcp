@@ -20,7 +20,7 @@ import { fileURLToPath } from 'url';
 import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 
-export const initializeGeminiCLI = async (fs = { mkdir, readFile, writeFile }, local = false) => {
+export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile, writeFile }) => {
   try {
     // When running `npm start -w [workspace]`, npm sets the CWD to the workspace directory.
     // INIT_CWD is an environment variable set by npm that holds the original CWD.

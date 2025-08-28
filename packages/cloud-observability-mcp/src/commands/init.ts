@@ -19,6 +19,7 @@ import { initializeGeminiCLI } from './init-gemini-cli.js';
 
 interface InstallArgs {
   agent: string;
+  local: boolean;
 }
 
 export const init: CommandModule<object, InstallArgs> = {
@@ -39,7 +40,7 @@ export const init: CommandModule<object, InstallArgs> = {
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(undefined, argv.local as boolean);
+      await initializeGeminiCLI(argv['local']);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

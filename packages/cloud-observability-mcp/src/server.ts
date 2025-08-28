@@ -20,12 +20,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerTools } from './tools/registration.js';
 import pkg from '../package.json' with { type: 'json' };
-import yargs from 'yargs';
+import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { initializeGeminiCLI } from './gemini_cli_init.js';
+import { init } from './commands/init.js';
 
-
-function getServer(): McpServer {
+const getServer = (): McpServer => {
   const server = new McpServer({
     name: 'cloud-observability-mcp',
     version: pkg.version,
@@ -35,30 +34,59 @@ function getServer(): McpServer {
   });
   registerTools(server);
   return server;
-}
+};
 
-async function main(): Promise<void> {
-  try {
-    const argv = await yargs(hideBin(process.argv)).option('gemini-cli-init', {
-      alias: 'init',
-      type: 'boolean',
-      description: 'Initialize the Gemini CLI extension',
-    }).argv;
+const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({
+  ...cmd,
+  handler: async (argv: ArgumentsCamelCase<U>) => {
+    await cmd.handler(argv);
+    process.exit(0);
+  }
+});
 
-    if (argv.geminiCliInit) {
-      await initializeGeminiCLI();
-      return;
-    }
+const main = async () => {
+  await yargs(hideBin(process.argv))
+    .command('$0', 'Run the Cloud Observability MCP server')
+    .command(exitProcessAfter(init))
+    .version(pkg.version)
+    .help()
+    .parse();
 
-    const stdioTransport = new StdioServerTransport();
-    const server = getServer();
-    await server.connect(stdioTransport);
-  } catch (err) {
+  const server = getServer();
+  await server.connect(new StdioServerTransport());
+  // TODO(https://github.com/googleapis/gcloud-mcp/issues/80): Update to use the custom logger once it's made sharable between packages
+  // eslint-disable-next-line no-console
+  console.error('🚀 Cloud Observability MCP server started');
+
+  process.on('uncaughtException', async (err: unknown) => {
+    await server.close();
+    const error = err instanceof Error ? err : undefined;
     // TODO(https://github.com/googleapis/gcloud-mcp/issues/80): Update to use the custom logger once it's made sharable between packages
     // eslint-disable-next-line no-console
-    console.error('Failed to start MCP server: ', err);
+    console.error("❌ Uncaught exception.", error);
     process.exit(1);
-  }
-}
+  });
+  process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
+    await server.close();
+    const error = reason instanceof Error ? reason : undefined;
+    // TODO(https://github.com/googleapis/gcloud-mcp/issues/80): Update to use the custom logger once it's made sharable between packages
+    // eslint-disable-next-line no-console
+    console.error(`❌ Unhandled rejection: ${promise}`, error);
+    process.exit(1);
+  });
+  process.on('SIGINT', async () => {
+    await server.close();
+    process.exit(0);
+  });
+  process.on('SIGTERM', async () => {
+    await server.close();
+    process.exit(0);
+  });
+};
 
-main();
+main().catch((err: unknown) => {
+  const error = err instanceof Error ? err : undefined;
+  // eslint-disable-next-line no-console
+  console.error("❌ Unable to start Cloud Observability MCP server.", error);
+  process.exit(1);
+});

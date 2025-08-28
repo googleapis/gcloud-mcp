@@ -17,7 +17,7 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import pkg from '../package.json' with { type: 'json' };
+import pkg from '../../package.json' with { type: 'json' };
 
 export const initializeGeminiCLI = async (
   fs = { mkdir, readFile, writeFile }
@@ -27,6 +27,7 @@ export const initializeGeminiCLI = async (
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
 
+    // Create directory
     const extensionDir = join(
       cwd,
       '.gemini',
@@ -35,6 +36,7 @@ export const initializeGeminiCLI = async (
     );
     await fs.mkdir(extensionDir, { recursive: true });
 
+    // Create gemini-extension.json
     const extensionFile = join(extensionDir, 'gemini-extension.json');
     const extensionJson = {
       name: pkg.name,
@@ -53,7 +55,7 @@ export const initializeGeminiCLI = async (
     // eslint-disable-next-line no-console
     console.log(`Created: ${extensionFile}`);
 
-    const geminiMdSrcPath = join(__dirname, '../GEMINI-extension.md');
+    const geminiMdSrcPath = join(__dirname, '../../GEMINI-extension.md');
     const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
     const geminiMdContent = await fs.readFile(geminiMdSrcPath);
     await fs.writeFile(geminiMdDestPath, geminiMdContent);

@@ -15,9 +15,9 @@
  */
 
 import { test, expect, vi, beforeEach } from 'vitest';
-import { initializeGeminiCLI } from './gemini_cli_init.js';
+import { initializeGeminiCLI } from './init-gemini-cli.js';
 import { join } from 'path';
-import pkg from '../package.json' with { type: 'json' };
+import pkg from '../../package.json' with { type: 'json' };
 
 beforeEach(() => {
   vi.clearAllMocks();

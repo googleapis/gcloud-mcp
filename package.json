@@ -14,13 +14,11 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "prettier --check . && eslint . --max-warnings 0",
-    "preflight": "npm ci && npm run format && npm run lint && npm run build && npm run test:ci",
+    "fix": "prettier --write . && eslint . --fix",
     "test": "vitest run",
     "test:i": "vitest run --coverage",
-    "clean": "gts clean",
-    "fix": "prettier --write . && eslint . --fix",
-    "prepare--tobereverted": "npm run build",
-    "pretest--tobereverted": "npm run build",
+    "prepare": "npm run build",
+    "pretest": "npm run build",
     "posttest": "npm run lint"
   },
   "devDependencies": {

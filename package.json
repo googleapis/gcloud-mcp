@@ -23,20 +23,20 @@
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",
-    "@types/node": "^24.2.1",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-license-header": "^0.8.0",
     "eslint-plugin-prettier": "^5.5.4",
-    "jsdom": "^24.1.1",
+    "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "turbo": "^2.5.6",
-    "typescript": "^5.4.3",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
-  "packageManager": "npm@10.9.2"
+  "packageManager": "npm@11.5.2"
 }

@@ -3,7 +3,7 @@
 This server connects
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) clients (like
 the [Gemini CLI](https://github.com/google-gemini/gemini-cli)) to Cloud
-Oservability APIs to search for logs, view metrics, return traces and view error
+Observability APIs to search for logs, view metrics, return traces and view error
 reports. It acts as a local bridge, translating natural language commands
 from your CLI into the appropriate API calls to help you
 **understand, manage, and troubleshoot** your Google Cloud environment.

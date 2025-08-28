@@ -1,4 +1,6 @@
-[![CI Pipeline Status](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml/badge.svg)](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml)
+[![gcloud-mcp Servers CI](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml/badge.svg)](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml)
+[![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp)
+[![License](https://img.shields.io/github/license/googleapis/gcloud-mcp)](https://github.com/googleapis/gcloud-mcp/blob/main/LICENSE)
 
 # gcloud MCP Server ☁️
 

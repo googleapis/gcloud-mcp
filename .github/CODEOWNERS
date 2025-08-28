@@ -2,5 +2,9 @@
 # request containing files matching the given path. The syntax for file paths
 # is the same as .gitignore.
 
-# The owners for all files in the repo.
+# Default owners: The owners for all files in the repo.
 * @googleapis/gcloud-mcp-team
+
+# Folder specific owners. Order is important; the last matching pattern takes
+# the most precedence.
+/packages/cloud-observability-mcp/ @googleapis/cloud-observability-team

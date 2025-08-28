@@ -10,9 +10,8 @@
     "build": "tsc -p . && cp GEMINI-extension.md dist/",
     "test": "vitest run",
     "start": "node dist/src/index.js",
-    "lint": "gts lint 'src/**/*.ts'",
-    "fix": "gts fix 'src/**/*.ts'",
-    "clean": "gts clean",
+    "lint": "prettier --check . && eslint . --max-warnings 0",
+    "fix": "prettier --write . && eslint . --fix",
     "prepare": "npm run build",
     "pretest": "npm run build",
     "posttest": "npm run lint"

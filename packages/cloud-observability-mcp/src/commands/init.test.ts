@@ -57,6 +57,6 @@ describe('init', () => {
       local: true,
     };
     await init.handler(argv);
-    expect(initializeGeminiCLI).toHaveBeenCalledWith(undefined, true);
+    expect(initializeGeminiCLI).toHaveBeenCalledWith(true);
   });
 });

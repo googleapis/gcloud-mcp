@@ -52,7 +52,7 @@ describe('init', () => {
       local: true,
     };
     await init.handler(argv);
-    expect(initializeGeminiCLI).toHaveBeenCalledWith(undefined, true);
+    expect(initializeGeminiCLI).toHaveBeenCalledWith(true);
   });
 
   it('should throw an error if agent is not gemini-cli', async () => {

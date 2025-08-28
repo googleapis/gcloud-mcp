@@ -14,6 +14,5 @@
     "esModuleInterop": true,
     "module": "nodenext"
   },
-  "exclude": ["eslint.config.js", "**/dist/", "**/node_modules/"],
-  "include": ["package.json", "packages/gcloud-mcp/package.json"]
+  "exclude": ["eslint.config.js", "**/dist/", "**/node_modules/"]
 }

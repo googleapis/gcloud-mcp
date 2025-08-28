@@ -19,5 +19,5 @@
     "rootDir": "."
   },
   "include": ["src/**/*.ts", "./package.json"],
-  "exclude": ["dist", "node_modules", "../../node_modules"]
+  "exclude": ["dist", "**/node_modules"]
 }

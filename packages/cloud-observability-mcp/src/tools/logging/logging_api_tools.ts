@@ -34,7 +34,7 @@ export async function listLogEntries(
   filter?: string,
   orderBy: 'timestamp asc' | 'timestamp desc' = 'timestamp asc',
   pageSize = 50,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     requestBody: {
@@ -68,7 +68,7 @@ export async function listLogEntries(
 export async function listLogNames(
   parent: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     parent,
@@ -98,7 +98,7 @@ export async function listLogNames(
 export async function listBuckets(
   parent: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     parent,
@@ -128,7 +128,7 @@ export async function listBuckets(
 export async function listViews(
   parent: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     parent,
@@ -137,8 +137,7 @@ export async function listViews(
   };
 
   try {
-    const response =
-      await logging.projects.locations.buckets.views.list(request);
+    const response = await logging.projects.locations.buckets.views.list(request);
     return JSON.stringify(response.data.views || [], null, 2);
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -159,7 +158,7 @@ export async function listViews(
 export async function listSinks(
   parent: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     parent,
@@ -189,7 +188,7 @@ export async function listSinks(
 export async function listLogScopes(
   parent: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     parent,

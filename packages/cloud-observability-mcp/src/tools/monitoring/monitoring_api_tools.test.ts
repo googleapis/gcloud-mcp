@@ -50,7 +50,7 @@ vi.mock('../../utils/api_client_factory.js', () => {
 });
 
 const createMockListMetricDescriptorsResponse = (
-  descriptors: monitoring_v3.Schema$MetricDescriptor[]
+  descriptors: monitoring_v3.Schema$MetricDescriptor[],
 ): Partial<GaxiosResponse<monitoring_v3.Schema$ListMetricDescriptorsResponse>> => ({
   data: {
     metricDescriptors: descriptors,
@@ -58,7 +58,7 @@ const createMockListMetricDescriptorsResponse = (
 });
 
 const createMockListTimeSeriesResponse = (
-  series: monitoring_v3.Schema$TimeSeries[]
+  series: monitoring_v3.Schema$TimeSeries[],
 ): Partial<GaxiosResponse<monitoring_v3.Schema$ListTimeSeriesResponse>> => ({
   data: {
     timeSeries: series,
@@ -66,7 +66,7 @@ const createMockListTimeSeriesResponse = (
 });
 
 const createMockListAlertPoliciesResponse = (
-  policies: monitoring_v3.Schema$AlertPolicy[]
+  policies: monitoring_v3.Schema$AlertPolicy[],
 ): Partial<GaxiosResponse<monitoring_v3.Schema$ListAlertPoliciesResponse>> => ({
   data: {
     alertPolicies: policies,
@@ -75,19 +75,13 @@ const createMockListAlertPoliciesResponse = (
 
 describe('listMetricDescriptors', () => {
   it('should return a JSON string of metric descriptors on success', async () => {
-    const mockResponse = createMockListMetricDescriptorsResponse([
-      { name: 'test-descriptor' },
-    ]);
+    const mockResponse = createMockListMetricDescriptorsResponse([{ name: 'test-descriptor' }]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (
-      monitoringClient.projects.metricDescriptors.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (monitoringClient.projects.metricDescriptors.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listMetricDescriptors(TEST_PROJECT_RESOURCE);
     expect(JSON.parse(result)).toEqual(mockResponse.data!.metricDescriptors);
-    expect(
-      monitoringClient.projects.metricDescriptors.list
-    ).toHaveBeenCalledWith({
+    expect(monitoringClient.projects.metricDescriptors.list).toHaveBeenCalledWith({
       name: TEST_PROJECT_RESOURCE,
       filter: undefined,
       pageSize: undefined,
@@ -98,20 +92,11 @@ describe('listMetricDescriptors', () => {
   it('should pass all parameters correctly to the API call', async () => {
     const mockResponse = createMockListMetricDescriptorsResponse([]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (
-      monitoringClient.projects.metricDescriptors.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (monitoringClient.projects.metricDescriptors.list as Mock).mockResolvedValue(mockResponse);
 
-    await listMetricDescriptors(
-      TEST_PROJECT_RESOURCE,
-      'test-filter',
-      25,
-      'my-page-token'
-    );
+    await listMetricDescriptors(TEST_PROJECT_RESOURCE, 'test-filter', 25, 'my-page-token');
 
-    expect(
-      monitoringClient.projects.metricDescriptors.list
-    ).toHaveBeenCalledWith({
+    expect(monitoringClient.projects.metricDescriptors.list).toHaveBeenCalledWith({
       name: TEST_PROJECT_RESOURCE,
       filter: 'test-filter',
       pageSize: 25,
@@ -122,9 +107,7 @@ describe('listMetricDescriptors', () => {
   it('should return an empty array when no descriptors are found', async () => {
     const mockResponse = createMockListMetricDescriptorsResponse([]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (
-      monitoringClient.projects.metricDescriptors.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (monitoringClient.projects.metricDescriptors.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listMetricDescriptors(TEST_PROJECT_RESOURCE);
     expect(JSON.parse(result)).toEqual([]);
@@ -133,13 +116,13 @@ describe('listMetricDescriptors', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (
-      monitoringClient.projects.metricDescriptors.list as Mock
-    ).mockRejectedValue(new Error(errorMessage));
+    (monitoringClient.projects.metricDescriptors.list as Mock).mockRejectedValue(
+      new Error(errorMessage),
+    );
 
-    await expect(
-      listMetricDescriptors(TEST_PROJECT_RESOURCE)
-    ).rejects.toThrow(`Failed to list metric descriptors: ${errorMessage}`);
+    await expect(listMetricDescriptors(TEST_PROJECT_RESOURCE)).rejects.toThrow(
+      `Failed to list metric descriptors: ${errorMessage}`,
+    );
   });
 });
 
@@ -147,13 +130,9 @@ describe('listTimeSeries', () => {
   const startTime = new Date(0).toISOString();
   const endTime = new Date().toISOString();
   it('should return a JSON string of time series on success', async () => {
-    const mockResponse = createMockListTimeSeriesResponse([
-      { valueType: 'INT64' },
-    ]);
+    const mockResponse = createMockListTimeSeriesResponse([{ valueType: 'INT64' }]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.timeSeries.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (monitoringClient.projects.timeSeries.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listTimeSeries(TEST_PROJECT_RESOURCE, 'test-filter', {
       endTime,
@@ -164,9 +143,7 @@ describe('listTimeSeries', () => {
   it('should pass all parameters correctly to the API call', async () => {
     const mockResponse = createMockListTimeSeriesResponse([]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.timeSeries.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (monitoringClient.projects.timeSeries.list as Mock).mockResolvedValue(mockResponse);
 
     await listTimeSeries(
       TEST_PROJECT_RESOURCE,
@@ -180,7 +157,7 @@ describe('listTimeSeries', () => {
         perSeriesAligner: 'ALIGN_SUM',
       },
       10,
-      'my-page-token'
+      'my-page-token',
     );
 
     expect(monitoringClient.projects.timeSeries.list).toHaveBeenCalledWith({
@@ -198,9 +175,7 @@ describe('listTimeSeries', () => {
   it('should return an empty array when no time series are found', async () => {
     const mockResponse = createMockListTimeSeriesResponse([]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.timeSeries.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (monitoringClient.projects.timeSeries.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listTimeSeries(TEST_PROJECT_RESOURCE, 'test-filter', {
       endTime,
@@ -211,31 +186,23 @@ describe('listTimeSeries', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.timeSeries.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
-    );
+    (monitoringClient.projects.timeSeries.list as Mock).mockRejectedValue(new Error(errorMessage));
 
-    await expect(
-      listTimeSeries(TEST_PROJECT_RESOURCE, 'test-filter', { endTime })
-    ).rejects.toThrow(`Failed to list time series: ${errorMessage}`);
+    await expect(listTimeSeries(TEST_PROJECT_RESOURCE, 'test-filter', { endTime })).rejects.toThrow(
+      `Failed to list time series: ${errorMessage}`,
+    );
   });
 });
 
 describe('listAlertPolicies', () => {
   it('should return a JSON string of alert policies on success', async () => {
-    const mockResponse = createMockListAlertPoliciesResponse([
-      { name: 'test-policy' },
-    ]);
+    const mockResponse = createMockListAlertPoliciesResponse([{ name: 'test-policy' }]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.alertPolicies.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (monitoringClient.projects.alertPolicies.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listAlertPolicies(TEST_PROJECT_RESOURCE);
     expect(JSON.parse(result)).toEqual(mockResponse.data!.alertPolicies);
-    expect(
-      monitoringClient.projects.alertPolicies.list
-    ).toHaveBeenCalledWith({
+    expect(monitoringClient.projects.alertPolicies.list).toHaveBeenCalledWith({
       name: TEST_PROJECT_RESOURCE,
       filter: undefined,
       orderBy: undefined,
@@ -247,21 +214,17 @@ describe('listAlertPolicies', () => {
   it('should pass all parameters correctly to the API call', async () => {
     const mockResponse = createMockListAlertPoliciesResponse([]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.alertPolicies.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (monitoringClient.projects.alertPolicies.list as Mock).mockResolvedValue(mockResponse);
 
     await listAlertPolicies(
       TEST_PROJECT_RESOURCE,
       'test-filter',
       'displayName',
       25,
-      'my-page-token'
+      'my-page-token',
     );
 
-    expect(
-      monitoringClient.projects.alertPolicies.list
-    ).toHaveBeenCalledWith({
+    expect(monitoringClient.projects.alertPolicies.list).toHaveBeenCalledWith({
       name: TEST_PROJECT_RESOURCE,
       filter: 'test-filter',
       orderBy: 'displayName',
@@ -273,9 +236,7 @@ describe('listAlertPolicies', () => {
   it('should return an empty array when no policies are found', async () => {
     const mockResponse = createMockListAlertPoliciesResponse([]);
     const monitoringClient = apiClientFactory.getMonitoringClient();
-    (monitoringClient.projects.alertPolicies.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (monitoringClient.projects.alertPolicies.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listAlertPolicies(TEST_PROJECT_RESOURCE);
     expect(JSON.parse(result)).toEqual([]);
@@ -285,11 +246,11 @@ describe('listAlertPolicies', () => {
     const errorMessage = 'API Error';
     const monitoringClient = apiClientFactory.getMonitoringClient();
     (monitoringClient.projects.alertPolicies.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
+      new Error(errorMessage),
     );
 
     await expect(listAlertPolicies(TEST_PROJECT_RESOURCE)).rejects.toThrow(
-      `Failed to list alert policies: ${errorMessage}`
+      `Failed to list alert policies: ${errorMessage}`,
     );
   });
 });

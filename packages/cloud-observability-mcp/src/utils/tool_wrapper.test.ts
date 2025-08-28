@@ -52,21 +52,18 @@ describe('toolWrapper', () => {
     { name: 'empty string', value: '' },
     { name: 'empty array', value: '[]' },
     { name: 'empty object', value: '{}' },
-  ])(
-    'should return a user-friendly message for an $name result',
-    async ({ value }) => {
-      const cb = async () => value;
-      const result = await toolWrapper(cb);
-      expect(result).toEqual({
-        content: [
-          {
-            type: 'text',
-            text: 'Invoked tool returned an empty result',
-          },
-        ],
-      });
-    }
-  );
+  ])('should return a user-friendly message for an $name result', async ({ value }) => {
+    const cb = async () => value;
+    const result = await toolWrapper(cb);
+    expect(result).toEqual({
+      content: [
+        {
+          type: 'text',
+          text: 'Invoked tool returned an empty result',
+        },
+      ],
+    });
+  });
 
   it('should handle errors thrown by the callback', async () => {
     const errorMessage = 'test error';
@@ -89,8 +86,7 @@ describe('toolWrapper', () => {
     const parsedError = JSON.parse(result.content[0].text as string);
     expect(parsedError.error.name).toBe('UnknownError');
     expect(parsedError.error.message).toBe(
-      `An unknown error occurred: ${JSON.stringify(errorObject)}`
+      `An unknown error occurred: ${JSON.stringify(errorObject)}`,
     );
   });
 });
-

@@ -37,7 +37,7 @@ export async function listTraces(
   pageSize?: number,
   pageToken?: string,
   startTime?: string,
-  endTime?: string
+  endTime?: string,
 ): Promise<string> {
   const request = {
     projectId,
@@ -69,10 +69,7 @@ export async function listTraces(
  * @returns A promise that resolves with a string containing the trace in JSON
  *     format, or an error message.
  */
-export async function getTrace(
-  projectId: string,
-  traceId: string
-): Promise<string> {
+export async function getTrace(projectId: string, traceId: string): Promise<string> {
   const request = {
     projectId,
     traceId,

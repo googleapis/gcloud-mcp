@@ -40,15 +40,13 @@ export const registerTools = (server: McpServer): void => {
     The 'filter' is powerful and can be used to select logs by severity, resource type, text content, and more.
     `,
     {
-      resourceNames: z
-        .array(z.string())
-        .describe(
-          `Required. Names of one or more parent resources from which to retrieve log entries.
+      resourceNames: z.array(z.string()).describe(
+        `Required. Names of one or more parent resources from which to retrieve log entries.
           Resources may either be resource containers (e.g. 'projects/[PROJECT_ID]') or specific LogViews (e.g. 'projects/[PROJECT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]/views/[VIEW_ID]').
           For the case of resource containers, all logs ingested into that container will be returned regardless of which LogBuckets they are actually stored in - i.e. these queries may fan out to multiple regions.
           Projects listed in the project_ids field are added to this list.
-          A maximum of 100 resources may be specified in a single request.`
-        ),
+          A maximum of 100 resources may be specified in a single request.`,
+      ),
       filter: z
         .string()
         .optional()
@@ -63,7 +61,7 @@ export const registerTools = (server: McpServer): void => {
           - To find all error-level logs: 'severity="ERROR"'
           - To find logs from a specific GCE instance: 'resource.type="gce_instance" AND resource.labels.instance_id="1234567890123456789"'
           - To find logs containing a specific text message: 'textPayload:"database connection failed"'
-          - To find logs within a specific time range: 'timestamp >= "2025-01-01T00:00:00Z" AND timestamp < "2025-01-01T01:00:00Z"'`
+          - To find logs within a specific time range: 'timestamp >= "2025-01-01T00:00:00Z" AND timestamp < "2025-01-01T01:00:00Z"'`,
         ),
       orderBy: z
         .enum(['timestamp asc', 'timestamp desc'])
@@ -74,7 +72,7 @@ export const registerTools = (server: McpServer): void => {
           The timestamp asc option returns entries in order of increasing values of LogEntry.timestamp (oldest first), and the second option returns entries in order of decreasing timestamps (newest first).
           Entries with equal timestamps are returned in order of their insert_id values.
           We recommend setting the order_by field to "timestamp desc" when listing recently ingested log entries.
-          If not set, the default value of "timestamp asc" may take a long time to fetch matching logs that are only recently ingested.`
+          If not set, the default value of "timestamp asc" may take a long time to fetch matching logs that are only recently ingested.`,
         ),
       pageSize: z
         .number()
@@ -83,7 +81,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. The maximum number of results to return from this request.
           Default is 50. If the value is negative, the request is rejected.
-          The presence of next_page_token in the response indicates that more results might be available.`
+          The presence of next_page_token in the response indicates that more results might be available.`,
         ),
       pageToken: z
         .string()
@@ -91,7 +89,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
           page_token must be the value of next_page_token from the previous response.
-          The values of other method parameters should be identical to those in the previous call.`
+          The values of other method parameters should be identical to those in the previous call.`,
         ),
     },
     (params: {
@@ -107,9 +105,9 @@ export const registerTools = (server: McpServer): void => {
           params.filter,
           params.orderBy,
           params.pageSize,
-          params.pageToken
-        )
-      )
+          params.pageToken,
+        ),
+      ),
   );
 
   server.tool(
@@ -120,7 +118,7 @@ export const registerTools = (server: McpServer): void => {
     {
       parent: z.string().describe(
         `Required. The parent resource whose logs are to be listed:
-        e.g. "projects/[PROJECT_ID]""`
+        e.g. "projects/[PROJECT_ID]""`,
       ),
       pageSize: z
         .number()
@@ -129,7 +127,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. The maximum number of results to return from this request.
           Non-positive values are ignored.
-          The presence of nextPageToken in the response indicates that more results might be available.`
+          The presence of nextPageToken in the response indicates that more results might be available.`,
         ),
       pageToken: z
         .string()
@@ -137,17 +135,11 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
           pageToken must be the value of nextPageToken from the previous response.
-          The values of other method parameters should be identical to those in the previous call.`
+          The values of other method parameters should be identical to those in the previous call.`,
         ),
     },
-    (params: {
-      parent: string;
-      pageSize?: number;
-      pageToken?: string;
-    }) =>
-      toolWrapper(async () =>
-        listLogNames(params.parent, params.pageSize, params.pageToken)
-      )
+    (params: { parent: string; pageSize?: number; pageToken?: string }) =>
+      toolWrapper(async () => listLogNames(params.parent, params.pageSize, params.pageToken)),
   );
 
   server.tool(
@@ -162,7 +154,7 @@ export const registerTools = (server: McpServer): void => {
         "organizations/[ORGANIZATION_ID]/locations/[LOCATION_ID]"
         "billingAccounts/[BILLING_ACCOUNT_ID]/locations/[LOCATION_ID]"
         "folders/[FOLDER_ID]/locations/[LOCATION_ID]"
-        Note: The locations portion of the resource must be specified, but supplying the character - in place of LOCATION_ID will return all buckets.`
+        Note: The locations portion of the resource must be specified, but supplying the character - in place of LOCATION_ID will return all buckets.`,
       ),
       pageSize: z
         .number()
@@ -171,7 +163,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. The maximum number of results to return from this request.
           Non-positive values are ignored.
-          The presence of nextPageToken in the response indicates that more results might be available.`
+          The presence of nextPageToken in the response indicates that more results might be available.`,
         ),
       pageToken: z
         .string()
@@ -179,13 +171,11 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
           pageToken must be the value of nextPageToken from the previous response.
-          The values of other method parameters should be identical to those in the previous call.`
+          The values of other method parameters should be identical to those in the previous call.`,
         ),
     },
     (params: { parent: string; pageSize?: number; pageToken?: string }) =>
-      toolWrapper(async () =>
-        listBuckets(params.parent, params.pageSize, params.pageToken)
-      )
+      toolWrapper(async () => listBuckets(params.parent, params.pageSize, params.pageToken)),
   );
 
   server.tool(
@@ -194,9 +184,11 @@ export const registerTools = (server: McpServer): void => {
     Log views provide fine-grained access control to the logs in your buckets.
     This is useful for managing who has access to which logs.`,
     {
-      parent: z.string().describe(
-        'Required. The bucket whose views are to be listed: "projects/[PROJECT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]"'
-      ),
+      parent: z
+        .string()
+        .describe(
+          'Required. The bucket whose views are to be listed: "projects/[PROJECT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]"',
+        ),
       pageSize: z
         .number()
         .optional()
@@ -204,7 +196,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. The maximum number of results to return from this request.
           Non-positive values are ignored.
-          The presence of nextPageToken in the response indicates that more results might be available.`
+          The presence of nextPageToken in the response indicates that more results might be available.`,
         ),
       pageToken: z
         .string()
@@ -212,13 +204,11 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
           pageToken must be the value of nextPageToken from the previous response.
-          The values of other method parameters should be identical to those in the previous call.`
+          The values of other method parameters should be identical to those in the previous call.`,
         ),
     },
     (params: { parent: string; pageSize?: number; pageToken?: string }) =>
-      toolWrapper(async () =>
-        listViews(params.parent, params.pageSize, params.pageToken)
-      )
+      toolWrapper(async () => listViews(params.parent, params.pageSize, params.pageToken)),
   );
 
   server.tool(
@@ -232,7 +222,7 @@ export const registerTools = (server: McpServer): void => {
         "projects/[PROJECT_ID]"
         "organizations/[ORGANIZATION_ID]"
         "billingAccounts/[BILLING_ACCOUNT_ID]"
-        "folders/[FOLDER_ID]"`
+        "folders/[FOLDER_ID]"`,
       ),
       pageSize: z
         .number()
@@ -241,7 +231,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. The maximum number of results to return from this request.
           Non-positive values are ignored.
-          The presence of nextPageToken in the response indicates that more results might be available.`
+          The presence of nextPageToken in the response indicates that more results might be available.`,
         ),
       pageToken: z
         .string()
@@ -249,17 +239,11 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
           pageToken must be the value of nextPageToken from the previous response.
-          The values of other method parameters should be identical to those in the previous call.`
+          The values of other method parameters should be identical to those in the previous call.`,
         ),
     },
-    (params: {
-      parent: string;
-      pageSize?: number;
-      pageToken?: string;
-    }) =>
-      toolWrapper(async () =>
-        listSinks(params.parent, params.pageSize, params.pageToken)
-      )
+    (params: { parent: string; pageSize?: number; pageToken?: string }) =>
+      toolWrapper(async () => listSinks(params.parent, params.pageSize, params.pageToken)),
   );
 
   server.tool(
@@ -270,7 +254,7 @@ export const registerTools = (server: McpServer): void => {
     {
       parent: z.string().describe(
         `Required. The parent resource whose log scopes are to be listed: "projects/[PROJECT_ID]/locations/[LOCATION_ID]".
-        The default location is "global".`
+        The default location is "global".`,
       ),
       pageSize: z
         .number()
@@ -279,7 +263,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. The maximum number of results to return from this request.
           Non-positive values are ignored.
-          The presence of nextPageToken in the response indicates that more results might be available.`
+          The presence of nextPageToken in the response indicates that more results might be available.`,
         ),
       pageToken: z
         .string()
@@ -287,13 +271,11 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. If present, then retrieve the next batch of results from the preceding call to this method.
           pageToken must be the value of nextPageToken from the previous response.
-          The values of other method parameters should be identical to those in the previous call.`
+          The values of other method parameters should be identical to those in the previous call.`,
         ),
     },
     (params: { parent: string; pageSize?: number; pageToken?: string }) =>
-      toolWrapper(async () =>
-        listLogScopes(params.parent, params.pageSize, params.pageToken)
-      )
+      toolWrapper(async () => listLogScopes(params.parent, params.pageSize, params.pageToken)),
   );
 
   server.tool(
@@ -303,7 +285,7 @@ export const registerTools = (server: McpServer): void => {
     {
       name: z.string().describe(
         `Required. The project on which to execute the request.
-        The format is: projects/[PROJECT_ID_OR_NUMBER]`
+        The format is: projects/[PROJECT_ID_OR_NUMBER]`,
       ),
       filter: z
         .string()
@@ -314,36 +296,24 @@ export const registerTools = (server: McpServer): void => {
           Examples:
           - To find metrics related to GCE instances: 'resource.type = "gce_instance"'
           - To find a specific metric type: 'metric.type = "compute.googleapis.com/instance/cpu/usage_time"'
-          - To find all metrics with "cpu" in their type: 'metric.type : "cpu"'`
+          - To find all metrics with "cpu" in their type: 'metric.type : "cpu"'`,
         ),
       pageSize: z
         .number()
         .optional()
         .default(50)
-        .describe(
-          'Optional. A positive number that is the maximum number of results to return.'
-        ),
+        .describe('Optional. A positive number that is the maximum number of results to return.'),
       pageToken: z
         .string()
         .optional()
         .describe(
-          `Optional. If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method.`
+          `Optional. If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method.`,
         ),
     },
-    (params: {
-      name: string;
-      filter?: string;
-      pageSize?: number;
-      pageToken?: string;
-    }) =>
+    (params: { name: string; filter?: string; pageSize?: number; pageToken?: string }) =>
       toolWrapper(async () =>
-        listMetricDescriptors(
-          params.name,
-          params.filter,
-          params.pageSize,
-          params.pageToken
-        )
-      )
+        listMetricDescriptors(params.name, params.filter, params.pageSize, params.pageToken),
+      ),
   );
 
   server.tool(
@@ -355,7 +325,7 @@ export const registerTools = (server: McpServer): void => {
         `Required. The project, organization or folder on which to execute the request. The format is:
         projects/[PROJECT_ID_OR_NUMBER]
         organizations/[ORGANIZATION_ID]
-        folders/[FOLDER_ID]`
+        folders/[FOLDER_ID]`,
       ),
       filter: z.string().describe(
         `Required. A monitoring filter that specifies which time series should be returned.
@@ -366,7 +336,7 @@ export const registerTools = (server: McpServer): void => {
         - To return all time series from a specific Compute Engine instance, use the following filter:
             'metric.type = "compute.googleapis.com/instance/cpu/usage_time" AND metric.labels.instance_name = "my-instance-name"'
         - To return all time series from Compute Engine instances whose names start with frontend-, use the following filter:
-            'metric.type = "compute.googleapis.com/instance/cpu/usage_time" AND metric.labels.instance_name = starts_with("frontend-")'`
+            'metric.type = "compute.googleapis.com/instance/cpu/usage_time" AND metric.labels.instance_name = starts_with("frontend-")'`,
       ),
       interval: z
         .object({
@@ -375,16 +345,16 @@ export const registerTools = (server: McpServer): void => {
             .optional()
             .describe(
               `Optional. Start of the time interval (inclusive) during which the time series data was collected.
-              Must be in RFC 3339 format.`
+              Must be in RFC 3339 format.`,
             ),
           endTime: z.string().describe(
             `Required. End of the time interval (inclusive) during which the time series data was collected.
-            Must be in RFC 3339 format.`
+            Must be in RFC 3339 format.`,
           ),
         })
         .describe(
           `Required. The time interval for which results should be returned.
-        Only time series that contain data points in the specified interval are included in the response.`
+        Only time series that contain data points in the specified interval are included in the response.`,
         ),
       aggregation: z
         .object({
@@ -394,7 +364,7 @@ export const registerTools = (server: McpServer): void => {
             .default('60')
             .describe(
               `The alignmentPeriod specifies a time interval, in seconds, that is used to divide the data in all the time series into consistent blocks of time.
-              The value must be at least 60 seconds.`
+              The value must be at least 60 seconds.`,
             ),
           perSeriesAligner: z
             .enum([
@@ -417,25 +387,23 @@ export const registerTools = (server: McpServer): void => {
             .optional()
             .describe(
               `An Aligner describes how to bring the data points in a single time series into temporal alignment.
-              Except for ALIGN_NONE, all alignments cause all the data points in an alignmentPeriod to be mathematically grouped together, resulting in a single data point for each alignmentPeriod with end timestamp at the end of the period.`
+              Except for ALIGN_NONE, all alignments cause all the data points in an alignmentPeriod to be mathematically grouped together, resulting in a single data point for each alignmentPeriod with end timestamp at the end of the period.`,
             ),
         })
         .optional()
         .describe(
-          'Optional. Specifies the alignment of data points in individual time series. By default (if no aggregation is explicitly specified), the raw time series data is returned.'
+          'Optional. Specifies the alignment of data points in individual time series. By default (if no aggregation is explicitly specified), the raw time series data is returned.',
         ),
       pageSize: z
         .number()
         .optional()
         .default(50)
-        .describe(
-          'Optional. A positive number that is the maximum number of results to return.'
-        ),
+        .describe('Optional. A positive number that is the maximum number of results to return.'),
       pageToken: z
         .string()
         .optional()
         .describe(
-          `Optional. If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method.`
+          `Optional. If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method.`,
         ),
     },
     (params: {
@@ -459,9 +427,9 @@ export const registerTools = (server: McpServer): void => {
           params.interval,
           params.aggregation,
           params.pageSize,
-          params.pageToken
-        )
-      )
+          params.pageToken,
+        ),
+      ),
   );
 
   server.tool(
@@ -472,7 +440,7 @@ export const registerTools = (server: McpServer): void => {
     {
       name: z.string().describe(
         `Required. The project whose alert policies are to be listed.
-        The format is: projects/[PROJECT_ID_OR_NUMBER]`
+        The format is: projects/[PROJECT_ID_OR_NUMBER]`,
       ),
       filter: z
         .string()
@@ -486,7 +454,7 @@ export const registerTools = (server: McpServer): void => {
           - To return all entries whose description contains 'cloud':
               description:'cloud'
           - To return all entries whose title matches "Temp XYZ":
-              display_name=monitoring.regex.full_match('Temp \\d{3}')`
+              display_name=monitoring.regex.full_match('Temp \\d{3}')`,
         ),
       orderBy: z
         .string()
@@ -495,20 +463,18 @@ export const registerTools = (server: McpServer): void => {
           `Optional. A comma-separated list of fields by which to sort the result.
           The result will be sorted by aescending order.
           If a field is prefixed with a -, it is sorted in descending order.
-          Sortable fields are: name, display_name, documentation.content, documentation.mime_type, user_labels, conditions.size, combiner, enabled, notification_channels.`
+          Sortable fields are: name, display_name, documentation.content, documentation.mime_type, user_labels, conditions.size, combiner, enabled, notification_channels.`,
         ),
       pageSize: z
         .number()
         .optional()
         .default(50)
-        .describe(
-          'Optional. The maximum number of results to return in a single response.'
-        ),
+        .describe('Optional. The maximum number of results to return in a single response.'),
       pageToken: z
         .string()
         .optional()
         .describe(
-          `Optional. If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method.`
+          `Optional. If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method.`,
         ),
     },
     (params: {
@@ -524,9 +490,9 @@ export const registerTools = (server: McpServer): void => {
           params.filter,
           params.orderBy,
           params.pageSize,
-          params.pageToken
-        )
-      )
+          params.pageToken,
+        ),
+      ),
   );
 
   server.tool(
@@ -549,7 +515,7 @@ export const registerTools = (server: McpServer): void => {
             For a prefix string match on the root span name, do root:[NAME_PREFIX] (e.g. 'root:main.api.HTTP')
             For an exact string match on the root span name, do +root:[NAME] (e.g. '+root:main.api.HTTP Get')
             To filter by HTTP status code: 'http.status_code:[CODE]' (e.g. 'http.status_code:500')
-            To filter by method: 'method:[METHOD_NAME]' (e.g. 'method:Get')`
+            To filter by method: 'method:[METHOD_NAME]' (e.g. 'method:Get')`,
         ),
       orderBy: z
         .string()
@@ -557,7 +523,7 @@ export const registerTools = (server: McpServer): void => {
         .describe(
           `Optional. Field used to sort the returned traces.
           Can be one of the following: 'trace_id', 'name', 'duration', 'start'.
-          Descending order can be specified by appending 'desc' to the sort field.`
+          Descending order can be specified by appending 'desc' to the sort field.`,
         ),
       pageSize: z
         .number()
@@ -573,14 +539,14 @@ export const registerTools = (server: McpServer): void => {
         .optional()
         .describe(
           `Optional. Start of the time interval (inclusive) during which the trace data was collected from the application.
-          Must be in RFC 3339 format.`
+          Must be in RFC 3339 format.`,
         ),
       endTime: z
         .string()
         .optional()
         .describe(
           `Optional. End of the time interval (inclusive) during which the trace data was collected from the application.
-          Must be in RFC 3339 format.`
+          Must be in RFC 3339 format.`,
         ),
     },
     (params: {
@@ -600,9 +566,9 @@ export const registerTools = (server: McpServer): void => {
           params.pageSize,
           params.pageToken,
           params.startTime,
-          params.endTime
-        )
-      )
+          params.endTime,
+        ),
+      ),
   );
 
   server.tool(
@@ -616,7 +582,7 @@ export const registerTools = (server: McpServer): void => {
       traceId: z.string().describe('Required. The ID of the trace to retrieve.'),
     },
     (params: { projectId: string; traceId: string }) =>
-      toolWrapper(async () => getTrace(params.projectId, params.traceId))
+      toolWrapper(async () => getTrace(params.projectId, params.traceId)),
   );
 
   server.tool(
@@ -630,7 +596,7 @@ export const registerTools = (server: McpServer): void => {
     {
       projectName: z.string().describe(
         `Required. The resource name of the Google Cloud Platform project.
-          Written as 'projects/{projectID}' or 'projects/{projectNumber}'.`
+          Written as 'projects/{projectID}' or 'projects/{projectNumber}'.`,
       ),
       timeRangePeriod: z
         .enum([
@@ -644,12 +610,7 @@ export const registerTools = (server: McpServer): void => {
         .default('PERIOD_6_HOURS')
         .describe('Optional. The time range to query.'),
       order: z
-        .enum([
-          'COUNT_DESC',
-          'LAST_SEEN_DESC',
-          'CREATED_DESC',
-          'AFFECTED_USERS_DESC',
-        ])
+        .enum(['COUNT_DESC', 'LAST_SEEN_DESC', 'CREATED_DESC', 'AFFECTED_USERS_DESC'])
         .optional()
         .default('COUNT_DESC')
         .describe('Optional. The sort order in which the results are returned.'),
@@ -676,8 +637,8 @@ export const registerTools = (server: McpServer): void => {
           params.timeRangePeriod,
           params.order,
           params.pageSize,
-          params.pageToken
-        )
-      )
+          params.pageToken,
+        ),
+      ),
   );
 };

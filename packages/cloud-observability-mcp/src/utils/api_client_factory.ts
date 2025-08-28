@@ -20,7 +20,8 @@ import {
   logging_v2,
   monitoring_v3,
   cloudtrace_v1,
- google } from 'googleapis';
+  google,
+} from 'googleapis';
 import { GoogleAuth } from 'google-auth-library';
 
 export class ApiClientFactory {

@@ -4,15 +4,16 @@ This server connects
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) clients (like
 the [Gemini CLI](https://github.com/google-gemini/gemini-cli)) to Cloud
 Oservability APIs to search for logs, view metrics, return traces and view error
-reports.  It acts as a local bridge, translating natural language commands 
+reports. It acts as a local bridge, translating natural language commands
 from your CLI into the appropriate API calls to help you
 **understand, manage, and troubleshoot** your Google Cloud environment.
 
 > To learn more about the underlying services, see the official documentation:
-> * [Cloud Logging](https://cloud.google.com/logging/docs)
-> * [Cloud Monitoring](https://cloud.google.com/monitoring/docs)
-> * [Cloud Trace](https://cloud.google.com/trace/docs)
-> * [Error Reporting](https://cloud.google.com/error-reporting/docs)
+>
+> - [Cloud Logging](https://cloud.google.com/logging/docs)
+> - [Cloud Monitoring](https://cloud.google.com/monitoring/docs)
+> - [Cloud Trace](https://cloud.google.com/trace/docs)
+> - [Error Reporting](https://cloud.google.com/error-reporting/docs)
 
 ## 🚀 Getting Started
 
@@ -54,10 +55,10 @@ This ensures that all API usage from this server is attributed to the correct pr
 
 Once the server is configured, you can ask your MCP client natural language questions about your Google Cloud environment. Here are a few examples:
 
-*   **"Show me all logs with a severity of ERROR."**
-*   **"What is the average CPU utilization for my GCE instances over the last hour?"**
-*   **"List all traces from the past 30 minutes."**
-*   **"Are there any new stack traces in my logs in the last day?"**
+- **"Show me all logs with a severity of ERROR."**
+- **"What is the average CPU utilization for my GCE instances over the last hour?"**
+- **"List all traces from the past 30 minutes."**
+- **"Are there any new stack traces in my logs in the last day?"**
 
 Your MCP client will translate these questions into the appropriate tool calls to fetch the data from Google Cloud.
 
@@ -66,7 +67,7 @@ Your MCP client will translate these questions into the appropriate tool calls t
 The server exposes the following tools:
 
 | Service             | Tool                         | Description                                   |
-|---------------------|------------------------------|-----------------------------------------------|
+| ------------------- | ---------------------------- | --------------------------------------------- |
 | **Logging**         | `list_log_entries`           | Lists log entries from a project.             |
 |                     | `list_log_names`             | Lists log names from a project.               |
 |                     | `list_buckets`               | Lists log buckets from a project.             |

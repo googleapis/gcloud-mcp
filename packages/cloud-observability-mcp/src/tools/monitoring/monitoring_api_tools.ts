@@ -32,7 +32,7 @@ export async function listMetricDescriptors(
   name: string,
   filter?: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     name,
@@ -48,9 +48,7 @@ export async function listMetricDescriptors(
     if (error instanceof Error) {
       throw new Error(`Failed to list metric descriptors: ${error.message}`);
     }
-    throw new Error(
-      'An unknown error occurred while listing metric descriptors.'
-    );
+    throw new Error('An unknown error occurred while listing metric descriptors.');
   }
 }
 
@@ -80,7 +78,7 @@ export async function listTimeSeries(
   },
   aggregation?: Aggregation,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     name,
@@ -121,7 +119,7 @@ export async function listAlertPolicies(
   filter?: string,
   orderBy?: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     name,

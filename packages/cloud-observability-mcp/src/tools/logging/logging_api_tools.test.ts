@@ -66,7 +66,7 @@ vi.mock('../../utils/api_client_factory.js', () => {
 });
 
 const createMockListLogEntriesResponse = (
-  entries: logging_v2.Schema$LogEntry[]
+  entries: logging_v2.Schema$LogEntry[],
 ): Partial<GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>> => ({
   data: {
     entries,
@@ -74,7 +74,7 @@ const createMockListLogEntriesResponse = (
 });
 
 const createMockListBucketsResponse = (
-  buckets: logging_v2.Schema$LogBucket[]
+  buckets: logging_v2.Schema$LogBucket[],
 ): Partial<GaxiosResponse<logging_v2.Schema$ListBucketsResponse>> => ({
   data: {
     buckets,
@@ -82,7 +82,7 @@ const createMockListBucketsResponse = (
 });
 
 const createMockListViewsResponse = (
-  views: logging_v2.Schema$LogView[]
+  views: logging_v2.Schema$LogView[],
 ): Partial<GaxiosResponse<logging_v2.Schema$ListViewsResponse>> => ({
   data: {
     views,
@@ -90,7 +90,7 @@ const createMockListViewsResponse = (
 });
 
 const createMockListSinksResponse = (
-  sinks: logging_v2.Schema$LogSink[]
+  sinks: logging_v2.Schema$LogSink[],
 ): Partial<GaxiosResponse<logging_v2.Schema$ListSinksResponse>> => ({
   data: {
     sinks,
@@ -98,7 +98,7 @@ const createMockListSinksResponse = (
 });
 
 const createMockListLogScopesResponse = (
-  logScopes: logging_v2.Schema$LogScope[]
+  logScopes: logging_v2.Schema$LogScope[],
 ): Partial<GaxiosResponse<logging_v2.Schema$ListLogScopesResponse>> => ({
   data: {
     logScopes,
@@ -106,7 +106,7 @@ const createMockListLogScopesResponse = (
 });
 
 const createMockListLogNamesResponse = (
-  logNames: string[]
+  logNames: string[],
 ): Partial<GaxiosResponse<logging_v2.Schema$ListLogsResponse>> => ({
   data: {
     logNames,
@@ -115,9 +115,7 @@ const createMockListLogNamesResponse = (
 
 describe('listLogEntries', () => {
   it('should return a JSON string of log entries on success', async () => {
-    const mockResponse = createMockListLogEntriesResponse([
-      { textPayload: 'test log entry' },
-    ]);
+    const mockResponse = createMockListLogEntriesResponse([{ textPayload: 'test log entry' }]);
     const loggingClient = apiClientFactory.getLoggingClient();
     (loggingClient.entries.list as Mock).mockResolvedValue(mockResponse);
 
@@ -153,7 +151,7 @@ describe('listLogEntries', () => {
       'severity=ERROR',
       'timestamp desc',
       25,
-      'my-page-token'
+      'my-page-token',
     );
 
     expect(loggingClient.entries.list).toHaveBeenCalledWith({
@@ -170,33 +168,23 @@ describe('listLogEntries', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.entries.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
-    );
+    (loggingClient.entries.list as Mock).mockRejectedValue(new Error(errorMessage));
 
-    await expect(
-      listLogEntries([TEST_PROJECT_RESOURCE], 'test filter')
-    ).rejects.toThrow(`Failed to list log entries: ${errorMessage}`);
+    await expect(listLogEntries([TEST_PROJECT_RESOURCE], 'test filter')).rejects.toThrow(
+      `Failed to list log entries: ${errorMessage}`,
+    );
   });
 });
 
 describe('listBuckets', () => {
   it('should return a JSON string of log buckets on success', async () => {
-    const mockResponse = createMockListBucketsResponse([
-      { name: 'test-bucket' },
-    ]);
+    const mockResponse = createMockListBucketsResponse([{ name: 'test-bucket' }]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.locations.buckets.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.locations.buckets.list as Mock).mockResolvedValue(mockResponse);
 
-    const result = await listBuckets(
-      `${TEST_PROJECT_RESOURCE}/locations/global`
-    );
+    const result = await listBuckets(`${TEST_PROJECT_RESOURCE}/locations/global`);
     expect(JSON.parse(result)).toEqual(mockResponse.data!.buckets);
-    expect(
-      loggingClient.projects.locations.buckets.list
-    ).toHaveBeenCalledWith({
+    expect(loggingClient.projects.locations.buckets.list).toHaveBeenCalledWith({
       parent: `${TEST_PROJECT_RESOURCE}/locations/global`,
     });
   });
@@ -204,14 +192,10 @@ describe('listBuckets', () => {
   it('should pass location parameter correctly', async () => {
     const mockResponse = createMockListBucketsResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.locations.buckets.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.locations.buckets.list as Mock).mockResolvedValue(mockResponse);
 
     await listBuckets(`${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}`);
-    expect(
-      loggingClient.projects.locations.buckets.list
-    ).toHaveBeenCalledWith({
+    expect(loggingClient.projects.locations.buckets.list).toHaveBeenCalledWith({
       parent: `${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}`,
     });
   });
@@ -219,13 +203,9 @@ describe('listBuckets', () => {
   it('should return an empty array when no buckets are found', async () => {
     const mockResponse = createMockListBucketsResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.locations.buckets.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.locations.buckets.list as Mock).mockResolvedValue(mockResponse);
 
-    const result = await listBuckets(
-      `${TEST_PROJECT_RESOURCE}/locations/global`
-    );
+    const result = await listBuckets(`${TEST_PROJECT_RESOURCE}/locations/global`);
     expect(JSON.parse(result)).toEqual([]);
   });
 
@@ -233,12 +213,12 @@ describe('listBuckets', () => {
     const errorMessage = 'API Error';
     const loggingClient = apiClientFactory.getLoggingClient();
     (loggingClient.projects.locations.buckets.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
+      new Error(errorMessage),
     );
 
-    await expect(
-      listBuckets(`${TEST_PROJECT_RESOURCE}/locations/global`)
-    ).rejects.toThrow(`Failed to list log buckets: ${errorMessage}`);
+    await expect(listBuckets(`${TEST_PROJECT_RESOURCE}/locations/global`)).rejects.toThrow(
+      `Failed to list log buckets: ${errorMessage}`,
+    );
   });
 });
 
@@ -246,17 +226,13 @@ describe('listViews', () => {
   it('should return a JSON string of log views on success', async () => {
     const mockResponse = createMockListViewsResponse([{ name: 'test-view' }]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (
-      loggingClient.projects.locations.buckets.views.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (loggingClient.projects.locations.buckets.views.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listViews(
-      `${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`
+      `${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`,
     );
     expect(JSON.parse(result)).toEqual(mockResponse.data!.views);
-    expect(
-      loggingClient.projects.locations.buckets.views.list
-    ).toHaveBeenCalledWith({
+    expect(loggingClient.projects.locations.buckets.views.list).toHaveBeenCalledWith({
       parent: `${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`,
     });
   });
@@ -264,16 +240,12 @@ describe('listViews', () => {
   it('should pass location parameter correctly', async () => {
     const mockResponse = createMockListViewsResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (
-      loggingClient.projects.locations.buckets.views.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (loggingClient.projects.locations.buckets.views.list as Mock).mockResolvedValue(mockResponse);
 
     await listViews(
-      `${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}/buckets/${TEST_BUCKET_ID}`
+      `${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}/buckets/${TEST_BUCKET_ID}`,
     );
-    expect(
-      loggingClient.projects.locations.buckets.views.list
-    ).toHaveBeenCalledWith({
+    expect(loggingClient.projects.locations.buckets.views.list).toHaveBeenCalledWith({
       parent: `${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}/buckets/${TEST_BUCKET_ID}`,
     });
   });
@@ -281,12 +253,10 @@ describe('listViews', () => {
   it('should return an empty array when no views are found', async () => {
     const mockResponse = createMockListViewsResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (
-      loggingClient.projects.locations.buckets.views.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (loggingClient.projects.locations.buckets.views.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listViews(
-      `${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`
+      `${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`,
     );
     expect(JSON.parse(result)).toEqual([]);
   });
@@ -294,14 +264,12 @@ describe('listViews', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const loggingClient = apiClientFactory.getLoggingClient();
-    (
-      loggingClient.projects.locations.buckets.views.list as Mock
-    ).mockRejectedValue(new Error(errorMessage));
+    (loggingClient.projects.locations.buckets.views.list as Mock).mockRejectedValue(
+      new Error(errorMessage),
+    );
 
     await expect(
-      listViews(
-        `${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`
-      )
+      listViews(`${TEST_PROJECT_RESOURCE}/locations/global/buckets/${TEST_BUCKET_ID}`),
     ).rejects.toThrow(`Failed to list log views: ${errorMessage}`);
   });
 });
@@ -326,11 +294,7 @@ describe('listSinks', () => {
     const loggingClient = apiClientFactory.getLoggingClient();
     (loggingClient.projects.sinks.list as Mock).mockResolvedValue(mockResponse);
 
-    await listSinks(
-      'folders/f1',
-      25,
-      'my-page-token'
-    );
+    await listSinks('folders/f1', 25, 'my-page-token');
 
     expect(loggingClient.projects.sinks.list).toHaveBeenCalledWith({
       parent: 'folders/f1',
@@ -351,33 +315,23 @@ describe('listSinks', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.sinks.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
-    );
+    (loggingClient.projects.sinks.list as Mock).mockRejectedValue(new Error(errorMessage));
 
     await expect(listSinks(TEST_PROJECT_RESOURCE)).rejects.toThrow(
-      `Failed to list log sinks: ${errorMessage}`
+      `Failed to list log sinks: ${errorMessage}`,
     );
   });
 });
 
 describe('listLogScopes', () => {
   it('should return a JSON string of log scopes on success', async () => {
-    const mockResponse = createMockListLogScopesResponse([
-      { name: 'test-scope' },
-    ]);
+    const mockResponse = createMockListLogScopesResponse([{ name: 'test-scope' }]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.locations.logScopes.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.locations.logScopes.list as Mock).mockResolvedValue(mockResponse);
 
-    const result = await listLogScopes(
-      `${TEST_PROJECT_RESOURCE}/locations/global`
-    );
+    const result = await listLogScopes(`${TEST_PROJECT_RESOURCE}/locations/global`);
     expect(JSON.parse(result)).toEqual(mockResponse.data!.logScopes);
-    expect(
-      loggingClient.projects.locations.logScopes.list
-    ).toHaveBeenCalledWith({
+    expect(loggingClient.projects.locations.logScopes.list).toHaveBeenCalledWith({
       parent: `${TEST_PROJECT_RESOURCE}/locations/global`,
       pageSize: undefined,
       pageToken: undefined,
@@ -387,18 +341,10 @@ describe('listLogScopes', () => {
   it('should pass all parameters correctly to the API call', async () => {
     const mockResponse = createMockListLogScopesResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.locations.logScopes.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.locations.logScopes.list as Mock).mockResolvedValue(mockResponse);
 
-    await listLogScopes(
-      `${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}`,
-      25,
-      'my-page-token'
-    );
-    expect(
-      loggingClient.projects.locations.logScopes.list
-    ).toHaveBeenCalledWith({
+    await listLogScopes(`${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}`, 25, 'my-page-token');
+    expect(loggingClient.projects.locations.logScopes.list).toHaveBeenCalledWith({
       parent: `${TEST_PROJECT_RESOURCE}/locations/${TEST_LOCATION}`,
       pageSize: 25,
       pageToken: 'my-page-token',
@@ -408,38 +354,30 @@ describe('listLogScopes', () => {
   it('should return an empty array when no log scopes are found', async () => {
     const mockResponse = createMockListLogScopesResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.locations.logScopes.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.locations.logScopes.list as Mock).mockResolvedValue(mockResponse);
 
-    const result = await listLogScopes(
-      `${TEST_PROJECT_RESOURCE}/locations/global`
-    );
+    const result = await listLogScopes(`${TEST_PROJECT_RESOURCE}/locations/global`);
     expect(JSON.parse(result)).toEqual([]);
   });
 
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const loggingClient = apiClientFactory.getLoggingClient();
-    (
-      loggingClient.projects.locations.logScopes.list as Mock
-    ).mockRejectedValue(new Error(errorMessage));
+    (loggingClient.projects.locations.logScopes.list as Mock).mockRejectedValue(
+      new Error(errorMessage),
+    );
 
-    await expect(
-      listLogScopes(`${TEST_PROJECT_RESOURCE}/locations/global`)
-    ).rejects.toThrow(`Failed to list log scopes: ${errorMessage}`);
+    await expect(listLogScopes(`${TEST_PROJECT_RESOURCE}/locations/global`)).rejects.toThrow(
+      `Failed to list log scopes: ${errorMessage}`,
+    );
   });
 });
 
 describe('listLogNames', () => {
   it('should return a JSON string of log names on success', async () => {
-    const mockResponse = createMockListLogNamesResponse([
-      'projects/my-project/logs/my-log',
-    ]);
+    const mockResponse = createMockListLogNamesResponse(['projects/my-project/logs/my-log']);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.logs.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.logs.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listLogNames(TEST_PROJECT_RESOURCE);
     expect(JSON.parse(result)).toEqual(mockResponse.data!.logNames);
@@ -453,15 +391,9 @@ describe('listLogNames', () => {
   it('should pass all parameters correctly to the API call', async () => {
     const mockResponse = createMockListLogNamesResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.logs.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.logs.list as Mock).mockResolvedValue(mockResponse);
 
-    await listLogNames(
-      'folders/f1',
-      25,
-      'my-page-token'
-    );
+    await listLogNames('folders/f1', 25, 'my-page-token');
 
     expect(loggingClient.projects.logs.list).toHaveBeenCalledWith({
       parent: 'folders/f1',
@@ -473,9 +405,7 @@ describe('listLogNames', () => {
   it('should return an empty array when no log names are found', async () => {
     const mockResponse = createMockListLogNamesResponse([]);
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.logs.list as Mock).mockResolvedValue(
-      mockResponse
-    );
+    (loggingClient.projects.logs.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listLogNames(TEST_PROJECT_RESOURCE);
     expect(JSON.parse(result)).toEqual([]);
@@ -484,12 +414,10 @@ describe('listLogNames', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const loggingClient = apiClientFactory.getLoggingClient();
-    (loggingClient.projects.logs.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
-    );
+    (loggingClient.projects.logs.list as Mock).mockRejectedValue(new Error(errorMessage));
 
     await expect(listLogNames(TEST_PROJECT_RESOURCE)).rejects.toThrow(
-      `Failed to list log names: ${errorMessage}`
+      `Failed to list log names: ${errorMessage}`,
     );
   });
 });

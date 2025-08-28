@@ -14,11 +14,13 @@ readability, and type safety. When in doubt, refer to the official
 and existing code in this repository.
 
 Key resources include:
+
 - [TypeScript for JavaScript Programmers](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
 - [The TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [Google's TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)
 
 ### Prefer Plain Objects over Classes
+
 Prefer the use of plain JavaScript objects with accompanying TypeScript
 interface or type declarations over JavaScript class syntax.
 
@@ -34,6 +36,7 @@ interface or type declarations over JavaScript class syntax.
   serialize to JSON and deserialize back.
 
 ### Embrace ES Module Syntax for Encapsulation
+
 Leverage ES module syntax (`import`/`export`) for encapsulating private and
 public APIs.
 
@@ -45,8 +48,7 @@ public APIs.
   of your modules, rather than their internal implementation details.
 - **Reduced Coupling**: Explicitly defined module boundaries through
   `import`/`export` help reduce coupling between different parts of your
-  codebase.
--**Faster Module Loading**: ESM asynchronous module loading allows for parallel
+  codebase. -**Faster Module Loading**: ESM asynchronous module loading allows for parallel
   loading of import modules, as well as tree-shaking, giving our code more
   efficient loading.
 
@@ -77,12 +79,14 @@ self-documenting.
   readability.
 
 ### Avoid `any` Types and Type Assertions; Prefer `unknown`
+
 Using `any` effectively opts out of TypeScript's type checking for that
 particular variable or expression. When you absolutely cannot determine the type
 of a value at compile time, and you're tempted to reach for `any`, consider
 using `unknown` instead. `unknown` is a type-safe counterpart to `any`.
 
 ### Embrace JavaScript's Array Operators
+
 Leverage JavaScript's rich set of array operators as much as possible. Methods
 like `.map()`, `.filter()`, `.reduce()`, `.slice()`, `.sort()`, and others are
 incredibly powerful for transforming and manipulating data collections in an
@@ -108,6 +112,7 @@ Use `describe` to group related tests and `test` (or `it`) for individual test
 cases. This improves organization and reporting.
 
 Example:
+
 ```typescript
 import { describe, expect, test } from 'vitest';
 import { Calculator } from './calculator';
@@ -126,6 +131,7 @@ describe('Calculator', () => {
 ```
 
 ### Mocking (`vi` from Vitest)
+
 - **ES Modules**: Mock with `vi.mock('module-name', async (importOriginal) => { ... })`.
 - **Mocking Order**: For critical dependencies (e.g., `os`, `fs`) that affect
   module-level constants, place `vi.mock` at the very top of the test file,

@@ -24,8 +24,7 @@ import * as gcloud from './gcloud.js';
 import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
-import {log} from './utility/logger.js';
-
+import { log } from './utility/logger.js';
 
 export const default_denylist: string[] = [
   'compute start-iap-tunnel',
@@ -44,8 +43,8 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
   handler: async (argv: ArgumentsCamelCase<U>) => {
     await cmd.handler(argv);
     process.exit(0);
-  }
-})
+  },
+});
 
 const main = async () => {
   await yargs(hideBin(process.argv))
@@ -75,7 +74,7 @@ const main = async () => {
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();
     const error = err instanceof Error ? err : undefined;
-    log.error("❌ Uncaught exception.", error);
+    log.error('❌ Uncaught exception.', error);
     process.exit(1);
   });
   process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
@@ -96,6 +95,6 @@ const main = async () => {
 
 main().catch((err: unknown) => {
   const error = err instanceof Error ? err : undefined;
-  log.error("❌ Unable to start gcloud-mcp server.", error);
+  log.error('❌ Unable to start gcloud-mcp server.', error);
   process.exit(1);
-})
+});

@@ -33,7 +33,7 @@ export async function listGroupStats(
   timeRangePeriod?: string,
   order?: string,
   pageSize?: number,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<string> {
   const request = {
     projectName,

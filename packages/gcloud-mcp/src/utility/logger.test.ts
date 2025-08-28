@@ -154,7 +154,9 @@ describe('Logger', () => {
   describe('Exported `log` object', () => {
     test('log.info should call logger.info', () => {
       log.info('test from exported object');
-      expect(console.error).toHaveBeenCalledWith('[2025-01-01T00:00:00.000Z] INFO: test from exported object');
+      expect(console.error).toHaveBeenCalledWith(
+        '[2025-01-01T00:00:00.000Z] INFO: test from exported object',
+      );
     });
 
     test('log.mcp should create a contextual logger', () => {

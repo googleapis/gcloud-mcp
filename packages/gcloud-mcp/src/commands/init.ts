@@ -17,8 +17,7 @@
 import { Argv, ArgumentsCamelCase, CommandModule } from 'yargs';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
 import * as gcloud from '../gcloud.js';
-import {log} from '../utility/logger.js';
-
+import { log } from '../utility/logger.js';
 
 interface InstallArgs {
   agent: string;
@@ -49,7 +48,9 @@ export const init: CommandModule<object, InstallArgs> = {
     }
     const isAvailable = await gcloud.isAvailable();
     if (!isAvailable) {
-      log.warn("⚠️❗ gcloud executable not found. The MCP server won't start unless gcloud is available.")
+      log.warn(
+        "⚠️❗ gcloud executable not found. The MCP server won't start unless gcloud is available.",
+      );
     }
   },
 };

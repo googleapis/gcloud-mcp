@@ -83,7 +83,10 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
           }
           return { content: [{ type: 'text', text: result }] };
         } catch (e: unknown) {
-          toolLogger.error('run_gcloud_command failed', e instanceof Error ? e : new Error(String(e)));
+          toolLogger.error(
+            'run_gcloud_command failed',
+            e instanceof Error ? e : new Error(String(e)),
+          );
           const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
           return { content: [{ type: 'text', text: msg }], isError: true };
         }

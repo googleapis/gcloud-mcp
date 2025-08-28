@@ -55,7 +55,7 @@ describe('registerTools', () => {
 
     // Spot-check a specific tool registration (e.g., list_log_entries)
     const listLogEntriesCall = (mockServer.tool as Mock).mock.calls.find(
-      (call: unknown[]) => call[0] === 'list_log_entries'
+      (call: unknown[]) => call[0] === 'list_log_entries',
     );
 
     expect(listLogEntriesCall).toBeDefined();

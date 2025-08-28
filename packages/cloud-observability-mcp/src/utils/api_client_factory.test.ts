@@ -40,8 +40,7 @@ describe('ApiClientFactory', () => {
     vi.resetModules();
     vi.clearAllMocks();
     // Re-import the module to get a fresh instance
-    ApiClientFactory = (await import('./api_client_factory.js'))
-      .ApiClientFactory;
+    ApiClientFactory = (await import('./api_client_factory.js')).ApiClientFactory;
   });
 
   it('should use the correct auth scopes on initialization', () => {
@@ -89,4 +88,3 @@ describe('ApiClientFactory', () => {
     expect(google.cloudtrace).toHaveBeenCalledTimes(1);
   });
 });
-

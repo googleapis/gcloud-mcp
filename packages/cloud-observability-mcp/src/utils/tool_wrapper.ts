@@ -18,9 +18,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 export const MAX_CHAR_LIMIT = 100000;
 
-export async function toolWrapper(
-  cb: () => Promise<string>
-): Promise<CallToolResult> {
+export async function toolWrapper(cb: () => Promise<string>): Promise<CallToolResult> {
   try {
     let result = await cb();
     // Enforce a tool response cap of 100,000 characters

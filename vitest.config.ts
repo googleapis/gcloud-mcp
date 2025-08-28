@@ -17,7 +17,8 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({ //eslint-disable-line import/no-default-export
+// eslint-disable-next-line import/no-default-export
+export default defineConfig({
   test: {
     include: ['**/src/**/*.test.ts', '**/src/**/*.test.js'],
     exclude: ['**/node_modules/**', '**/dist/**'],
@@ -39,7 +40,7 @@ export default defineConfig({ //eslint-disable-line import/no-default-export
         'lcov',
         'text',
         ['text', { file: 'full-text-summary.txt' }],
-      ]
+      ],
     },
   },
 });

@@ -15,7 +15,7 @@ body:
       label: Why do you need this feature?
       description: Describe the problem that this feature would solve.
     validations:
-        required: true
+      required: true
   - type: textarea
     id: prompts
     attributes:

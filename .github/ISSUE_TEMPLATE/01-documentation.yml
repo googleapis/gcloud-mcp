@@ -1,7 +1,7 @@
 ---
-name: "📕 Documentation Issue"
+name: '📕 Documentation Issue'
 description: Changes to the documentation
-title: "doc: short issue description"
+title: 'doc: short issue description'
 
 body:
   - type: textarea

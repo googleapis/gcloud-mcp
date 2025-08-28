@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import globals from "globals";
-import tseslint from "typescript-eslint";
-import prettierConfig from "eslint-config-prettier";
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import prettierConfig from 'eslint-config-prettier';
 import licenseHeader from 'eslint-plugin-license-header';
 import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
   prettierConfig,
   {
-    ignores: ["dist/", "**/dist/"],
+    ignores: ['dist/', '**/dist/'],
   },
   ...tseslint.configs.recommended,
   {
-    files: ["**/*.ts"],
+    files: ['**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -52,14 +52,8 @@ export default tseslint.config(
       'arrow-body-style': ['error', 'as-needed'],
       curly: ['error', 'multi-line'],
       eqeqeq: ['error', 'always', { null: 'ignore' }],
-      '@typescript-eslint/consistent-type-assertions': [
-        'error',
-        { assertionStyle: 'as' },
-      ],
-      '@typescript-eslint/explicit-member-accessibility': [
-        'error',
-        { accessibility: 'no-public' },
-      ],
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as' }],
+      '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-inferrable-types': [
         'error',
@@ -82,7 +76,7 @@ export default tseslint.config(
       ],
       'import/no-relative-packages': 'error',
       'no-cond-assign': 'error',
-      // Do not use console.log in MCP servers. 
+      // Do not use console.log in MCP servers.
       // See https://modelcontextprotocol.io/quickstart/server#logging-in-mcp-servers
       'no-console': 'error',
       'no-debugger': 'error',
@@ -156,5 +150,3 @@ export default tseslint.config(
   },
   prettierConfig,
 );
-
-

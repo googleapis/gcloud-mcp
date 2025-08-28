@@ -39,7 +39,9 @@ export const initializeGeminiCLI = async (fs = { mkdir, readFile, writeFile }, l
       mcpServers: {
         observability: {
           command: 'npx',
-          args: local ? ['-y', 'cloud-observability-mcp'] : ['-y', '@google-cloud/observability-mcp'],
+          args: local
+            ? ['-y', 'cloud-observability-mcp']
+            : ['-y', '@google-cloud/observability-mcp'],
         },
       },
     };

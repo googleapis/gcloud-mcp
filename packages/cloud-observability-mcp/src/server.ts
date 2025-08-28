@@ -29,8 +29,7 @@ const getServer = (): McpServer => {
     name: 'cloud-observability-mcp',
     version: pkg.version,
     title: 'Cloud Observability MCP',
-    description:
-      'MCP Server for GCP environment for interacting with various Observability APIs',
+    description: 'MCP Server for GCP environment for interacting with various Observability APIs',
   });
   registerTools(server);
   return server;
@@ -41,7 +40,7 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
   handler: async (argv: ArgumentsCamelCase<U>) => {
     await cmd.handler(argv);
     process.exit(0);
-  }
+  },
 });
 
 const main = async () => {
@@ -63,7 +62,7 @@ const main = async () => {
     const error = err instanceof Error ? err : undefined;
     // TODO(https://github.com/googleapis/gcloud-mcp/issues/80): Update to use the custom logger once it's made sharable between packages
     // eslint-disable-next-line no-console
-    console.error("❌ Uncaught exception.", error);
+    console.error('❌ Uncaught exception.', error);
     process.exit(1);
   });
   process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
@@ -87,6 +86,6 @@ const main = async () => {
 main().catch((err: unknown) => {
   const error = err instanceof Error ? err : undefined;
   // eslint-disable-next-line no-console
-  console.error("❌ Unable to start Cloud Observability MCP server.", error);
+  console.error('❌ Unable to start Cloud Observability MCP server.', error);
   process.exit(1);
 });

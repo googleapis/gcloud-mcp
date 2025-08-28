@@ -40,7 +40,7 @@ vi.mock('../../utils/api_client_factory.js', () => {
 });
 
 const createMockListTracesResponse = (
-  traces: cloudtrace_v1.Schema$Trace[]
+  traces: cloudtrace_v1.Schema$Trace[],
 ): Partial<GaxiosResponse<cloudtrace_v1.Schema$ListTracesResponse>> => ({
   data: {
     traces,
@@ -49,9 +49,7 @@ const createMockListTracesResponse = (
 
 describe('listTraces', () => {
   it('should return a JSON string of traces on success', async () => {
-    const mockResponse = createMockListTracesResponse([
-      { traceId: 'test-trace' },
-    ]);
+    const mockResponse = createMockListTracesResponse([{ traceId: 'test-trace' }]);
     const traceClient = apiClientFactory.getTraceClient();
     (traceClient.projects.traces.list as Mock).mockResolvedValue(mockResponse);
 
@@ -83,7 +81,7 @@ describe('listTraces', () => {
       25,
       'my-page-token',
       startTime,
-      endTime
+      endTime,
     );
 
     expect(traceClient.projects.traces.list).toHaveBeenCalledWith({
@@ -110,12 +108,10 @@ describe('listTraces', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const traceClient = apiClientFactory.getTraceClient();
-    (traceClient.projects.traces.list as Mock).mockRejectedValue(
-      new Error(errorMessage)
-    );
+    (traceClient.projects.traces.list as Mock).mockRejectedValue(new Error(errorMessage));
 
     await expect(listTraces(TEST_PROJECT_ID)).rejects.toThrow(
-      `Failed to list traces: ${errorMessage}`
+      `Failed to list traces: ${errorMessage}`,
     );
   });
 });
@@ -139,13 +135,10 @@ describe('getTrace', () => {
   it('should throw an error if the API call fails', async () => {
     const errorMessage = 'API Error';
     const traceClient = apiClientFactory.getTraceClient();
-    (traceClient.projects.traces.get as Mock).mockRejectedValue(
-      new Error(errorMessage)
-    );
+    (traceClient.projects.traces.get as Mock).mockRejectedValue(new Error(errorMessage));
 
     await expect(getTrace(TEST_PROJECT_ID, 'test-trace')).rejects.toThrow(
-      `Failed to get trace: ${errorMessage}`
+      `Failed to get trace: ${errorMessage}`,
     );
   });
 });
-

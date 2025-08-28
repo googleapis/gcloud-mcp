@@ -17,8 +17,7 @@
 // Normalize the string in case the list and LLM formatting differs.
 // Append a space to avoid matching with commands that are substrings.
 // For example: app and apphub
-const normalizeForComparison = (s: string): string => 
-  s.toLowerCase().trim() + ' ' 
+const normalizeForComparison = (s: string): string => s.toLowerCase().trim() + ' ';
 
 export const allowedCommands = (allowlist: string[] = []) => ({
   matches: (command: string): boolean => {

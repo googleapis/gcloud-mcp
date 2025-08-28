@@ -39,10 +39,8 @@ vi.mock('../../utils/api_client_factory.js', () => {
 });
 
 const createMockListGroupStatsResponse = (
-  stats: clouderrorreporting_v1beta1.Schema$ErrorGroupStats[]
-): Partial<
-  GaxiosResponse<clouderrorreporting_v1beta1.Schema$ListGroupStatsResponse>
-> => ({
+  stats: clouderrorreporting_v1beta1.Schema$ErrorGroupStats[],
+): Partial<GaxiosResponse<clouderrorreporting_v1beta1.Schema$ListGroupStatsResponse>> => ({
   data: {
     errorGroupStats: stats,
   },
@@ -52,15 +50,11 @@ describe('listGroupStats', () => {
   it('should return a JSON string of group stats on success', async () => {
     const mockResponse = createMockListGroupStatsResponse([{ count: '10' }]);
     const errorReportingClient = apiClientFactory.getErrorReportingClient();
-    (
-      errorReportingClient.projects.groupStats.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (errorReportingClient.projects.groupStats.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listGroupStats(TEST_PROJECT_NAME);
     expect(JSON.parse(result)).toEqual(mockResponse.data!.errorGroupStats);
-    expect(
-      errorReportingClient.projects.groupStats.list
-    ).toHaveBeenCalledWith({
+    expect(errorReportingClient.projects.groupStats.list).toHaveBeenCalledWith({
       projectName: TEST_PROJECT_NAME,
       'timeRange.period': undefined,
       order: undefined,
@@ -72,21 +66,11 @@ describe('listGroupStats', () => {
   it('should pass all parameters correctly to the API call', async () => {
     const mockResponse = createMockListGroupStatsResponse([]);
     const errorReportingClient = apiClientFactory.getErrorReportingClient();
-    (
-      errorReportingClient.projects.groupStats.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (errorReportingClient.projects.groupStats.list as Mock).mockResolvedValue(mockResponse);
 
-    await listGroupStats(
-      TEST_PROJECT_NAME,
-      'PERIOD_1_DAY',
-      'COUNT_DESC',
-      25,
-      'test-token'
-    );
+    await listGroupStats(TEST_PROJECT_NAME, 'PERIOD_1_DAY', 'COUNT_DESC', 25, 'test-token');
 
-    expect(
-      errorReportingClient.projects.groupStats.list
-    ).toHaveBeenCalledWith({
+    expect(errorReportingClient.projects.groupStats.list).toHaveBeenCalledWith({
       projectName: TEST_PROJECT_NAME,
       'timeRange.period': 'PERIOD_1_DAY',
       order: 'COUNT_DESC',
@@ -98,9 +82,7 @@ describe('listGroupStats', () => {
   it('should return an empty array when no group stats are found', async () => {
     const mockResponse = createMockListGroupStatsResponse([]);
     const errorReportingClient = apiClientFactory.getErrorReportingClient();
-    (
-      errorReportingClient.projects.groupStats.list as Mock
-    ).mockResolvedValue(mockResponse);
+    (errorReportingClient.projects.groupStats.list as Mock).mockResolvedValue(mockResponse);
 
     const result = await listGroupStats(TEST_PROJECT_NAME);
     expect(result).toBe('[]');
@@ -110,11 +92,11 @@ describe('listGroupStats', () => {
     const errorMessage = 'API Error';
     const errorReportingClient = apiClientFactory.getErrorReportingClient();
     vi.mocked(errorReportingClient.projects.groupStats.list).mockRejectedValue(
-      new Error(errorMessage)
+      new Error(errorMessage),
     );
 
     await expect(listGroupStats(TEST_PROJECT_NAME)).rejects.toThrow(
-      `Failed to list group stats: ${errorMessage}`
+      `Failed to list group stats: ${errorMessage}`,
     );
   });
 });

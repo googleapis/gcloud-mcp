@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run gts
+      - name: Run lint
         run: |
           npm run fix
           git diff --exit-code

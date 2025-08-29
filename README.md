@@ -19,7 +19,7 @@ This repository also hosts other MCP servers in addition to the gcloud MCP serve
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org): version 20 or higher
+- [Node.js](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm): version 20 or higher
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install)
 
 ## ✨ Set up your MCP server

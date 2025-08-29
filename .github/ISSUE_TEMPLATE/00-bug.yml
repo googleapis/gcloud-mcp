@@ -22,7 +22,9 @@ body:
     id: description
     attributes:
       label: What did you do?
-      description: Describe the bug. If possible, provide a recipe for reproducing the error.
+      description: |
+        Describe the bug. If possible, provide a recipe for reproducing the error. 
+        Use `npx @google-cloud/[PACKAGE_NAME] --version` to find the version you're using. (ex: `npx @google-cloud/gcloud-mcp --version`)
     validations:
       required: true
   - type: textarea

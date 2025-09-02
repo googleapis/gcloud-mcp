@@ -138,6 +138,7 @@ For more information regarding installing the repository locally, please see
 | :------------ | :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | gcloud        | `run_gcloud_command`         | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [doc/denylist.md](doc/denylist.md) for more information. |
 | observability | `list_log_entries`           | Lists log entries from a project.                                                                                                                       |
+|               | `list_log_names`             | Lists log names from a project.                                                                                                                         |
 |               | `list_buckets`               | Lists log buckets from a project.                                                                                                                       |
 |               | `list_views`                 | Lists log views from a project.                                                                                                                         |
 |               | `list_sinks`                 | Lists log sinks from a project.                                                                                                                         |
@@ -147,6 +148,7 @@ For more information regarding installing the repository locally, please see
 |               | `list_alert_policies`        | Lists the alert policies in a project.                                                                                                                  |
 |               | `list_notification_channels` | Lists the notification channels in a project.                                                                                                           |
 |               | `list_traces`                | Searches for traces in a project.                                                                                                                       |
+|               | `get_trace`                  | Gets a specific trace by id in a project.                                                                                                               |
 |               | `list_group_stats`           | Lists the error groups for a project.                                                                                                                   |
 
 ## 🔑 MCP Permissions

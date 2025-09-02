@@ -66,20 +66,20 @@ Your MCP client will translate these questions into the appropriate tool calls t
 
 The server exposes the following tools:
 
-| Service             | Tool                         | Description                                   |
-| ------------------- | ---------------------------- | --------------------------------------------- |
-| **Logging**         | `list_log_entries`           | Lists log entries from a project.             |
-|                     | `list_log_names`             | Lists log names from a project.               |
-|                     | `list_buckets`               | Lists log buckets from a project.             |
-|                     | `list_views`                 | Lists log views from a project.               |
-|                     | `list_sinks`                 | Lists log sinks from a project.               |
-|                     | `list_log_scopes`            | Lists log scopes from a project.              |
-| **Monitoring**      | `list_metric_descriptors`    | Lists metric descriptors for a project.       |
-|                     | `list_time_series`           | Lists time series data for a given metric.    |
-|                     | `list_alert_policies`        | Lists the alert policies in a project.        |
-| **Trace**           | `list_traces`                | Searches for traces in a project.             |
-|                     | `get_trace`                  | Gets a specific trace in a project.           |
-| **Error Reporting** | `list_group_stats`           | Lists the error groups for a project.         |
+| Service             | Tool                      | Description                                |
+| ------------------- | ------------------------- | ------------------------------------------ |
+| **Logging**         | `list_log_entries`        | Lists log entries from a project.          |
+|                     | `list_log_names`          | Lists log names from a project.            |
+|                     | `list_buckets`            | Lists log buckets from a project.          |
+|                     | `list_views`              | Lists log views from a project.            |
+|                     | `list_sinks`              | Lists log sinks from a project.            |
+|                     | `list_log_scopes`         | Lists log scopes from a project.           |
+| **Monitoring**      | `list_metric_descriptors` | Lists metric descriptors for a project.    |
+|                     | `list_time_series`        | Lists time series data for a given metric. |
+|                     | `list_alert_policies`     | Lists the alert policies in a project.     |
+| **Trace**           | `list_traces`             | Searches for traces in a project.          |
+|                     | `get_trace`               | Gets a specific trace in a project.        |
+| **Error Reporting** | `list_group_stats`        | Lists the error groups for a project.      |
 
 ## 🛡️ Important Notes
 

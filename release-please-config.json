@@ -1,13 +1,19 @@
 {
-  "initial-version": "0.1.0",
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "packages": {
-    "packages/gcloud-mcp": {}
+    "packages/gcloud-mcp": {},
+    "packages/observability-mcp": {}
   },
   "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    },
     {
       "type": "sentence-case"
     }
   ],
+  "separate-pull-requests": true,
   "bump-minor-pre-major": true,
   "release-type": "node"
 }

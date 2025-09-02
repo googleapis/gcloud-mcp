@@ -42,9 +42,12 @@ To integrate gcloud MCP with Gemini CLI or Gemini Code Assist, you can run a
 single setup command. This will configure it as a
 [Gemini CLI extension](https://github.com/google-gemini/gemini-cli/blob/main/docs/extension.md).
 
-Run this command from your project's root directory (for a single project) or
-your home directory (for all projects) for each MCP server you would like to
-install from the list above:
+To make the MCP server(s) available for all your projects, run the command in
+your home directory. This will install the MCP server as a Gemini CLI extension
+globally for the current user.
+
+Alternatively, to make the MCP server(s) available for a specific project, run
+the command from your project's root directory.
 
 ```shell
 npx @google-cloud/[PACKAGE_NAME] init --agent=gemini-cli
@@ -164,10 +167,13 @@ By default, gcloud MCP denies commands deemed unsafe for agents. See
 ## 💫 Other Google Cloud MCP Servers
 
 Google Cloud offers these other servers:
-
-- [Cloud Run MCP](https://github.com/GoogleCloudPlatform/cloud-run-mcp)
-- [Databases MCP](https://github.com/googleapis/genai-toolbox)
-- [GKE MCP](https://github.com/GoogleCloudPlatform/gke-mcp)
+- [Firebase MCP](https://firebase.google.com/docs/cli/mcp-server)
+- [Google Analytics MCP](https://github.com/googleanalytics/google-analytics-mcp)
+- [Google Cloud Genmedia MCP](https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio/tree/main/experiments/mcp-genmedia)
+- [Google Cloud Run MCP](https://github.com/GoogleCloudPlatform/cloud-run-mcp)
+- [Google Kubernetes Engine (GKE) MCP](https://github.com/GoogleCloudPlatform/gke-mcp)
+- [Google Security Operations and Threat Intelligence MCP](https://github.com/google/mcp-security)
+- [MCP Toolbox for Databases](https://github.com/googleapis/genai-toolbox)
 
 ## 👥 Contributing
 

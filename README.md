@@ -161,8 +161,11 @@ privilege, you can
 assign the service account a
 [role with limited permissions](https://cloud.google.com/iam/docs/roles-overview).
 
-By default, gcloud MCP denies commands deemed unsafe for agents. See
-[denylist.md](doc/denylist.md) for more information.
+By default, the gcloud MCP prevents execution of gcloud commands that don't
+make sense for AI agents. This is done to restrict commands that can run
+arbitrary inputs and initiate interactive sessions. See
+[here](https://github.com/googleapis/gcloud-mcp/blob/ed743f04272744e57aa4990f5fcd9816a05b03ba/packages/gcloud-mcp/src/index.ts#L29)
+for the list of denied commands.
 
 ## 💫 Other Google Cloud MCP Servers
 

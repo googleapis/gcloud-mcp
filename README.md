@@ -172,6 +172,7 @@ for the list of denied commands.
 ## 💫 Other Google Cloud MCP Servers
 
 Google Cloud offers these other servers:
+
 - [Firebase MCP](https://firebase.google.com/docs/cli/mcp-server)
 - [Google Analytics MCP](https://github.com/googleanalytics/google-analytics-mcp)
 - [Google Cloud Genmedia MCP](https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio/tree/main/experiments/mcp-genmedia)

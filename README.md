@@ -149,7 +149,6 @@ For more information regarding installing the repository locally, please see
 |               | `list_metric_descriptors`    | Lists metric descriptors for a project.                                                                                                                 |
 |               | `list_time_series`           | Lists time series data for a given metric.                                                                                                              |
 |               | `list_alert_policies`        | Lists the alert policies in a project.                                                                                                                  |
-|               | `list_notification_channels` | Lists the notification channels in a project.                                                                                                           |
 |               | `list_traces`                | Searches for traces in a project.                                                                                                                       |
 |               | `get_trace`                  | Gets a specific trace by id in a project.                                                                                                               |
 |               | `list_group_stats`           | Lists the error groups for a project.                                                                                                                   |

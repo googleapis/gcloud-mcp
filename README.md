@@ -52,6 +52,7 @@ npx @google-cloud/[PACKAGE_NAME] init --agent=gemini-cli
 For example, for the gcloud-mcp:
 
 ```shell
+cd ~
 npx @google-cloud/gcloud-mcp init --agent=gemini-cli
 ```
 

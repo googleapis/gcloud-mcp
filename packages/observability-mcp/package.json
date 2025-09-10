@@ -1,7 +1,7 @@
 {
   "name": "@google-cloud/observability-mcp",
   "displayName": "Cloud Observability MCP",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "MCP Server for GCP environment for interacting with various Observability APIs.",
   "main": "dist/src/server.js",

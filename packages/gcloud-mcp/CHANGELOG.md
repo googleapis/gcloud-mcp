@@ -7,6 +7,13 @@
 
 * Standardize install to home dir ([#178](https://github.com/googleapis/gcloud-mcp/issues/178)) ([2129a76](https://github.com/googleapis/gcloud-mcp/commit/2129a76d6c8887793c72d418245fe50250203312))
 
+## [0.1.1](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.1.0...gcloud-mcp-v0.1.1) (2025-09-10)
+
+
+### Bug Fixes
+
+* Standardize install to home dir ([#178](https://github.com/googleapis/gcloud-mcp/issues/178)) ([2129a76](https://github.com/googleapis/gcloud-mcp/commit/2129a76d6c8887793c72d418245fe50250203312))
+
 ## 0.1.0 (2025-09-09)
 
 

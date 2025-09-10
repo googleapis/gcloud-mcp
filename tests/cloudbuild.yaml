@@ -25,6 +25,8 @@ steps:
         npm link
         cd ../..
         npm install -g @google/gemini-cli
+        echo "Gemini CLI version:"
+        gemini --version
 
         echo "--- Initializing servers with Gemini CLI"
         npx gcloud-mcp init --agent=gemini-cli --local

@@ -45,14 +45,12 @@ will install the MCP server as a
 for the current user, making it available for all your projects.
 
 ```shell
-cd ~
 npx @google-cloud/[PACKAGE_NAME] init --agent=gemini-cli
 ```
 
 For example, for the gcloud-mcp:
 
 ```shell
-cd ~
 npx @google-cloud/gcloud-mcp init --agent=gemini-cli
 ```
 

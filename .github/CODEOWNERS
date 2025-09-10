@@ -6,5 +6,5 @@
 * @googleapis/gcloud-mcp-team
 
 # Folder specific owners. Order is important; the last matching pattern takes
-# the most precedence.
-/packages/observability-mcp/ @googleapis/cloud-observability-team
+# the most precedence. All entries should grant permission to @googleapis/gcloud-mcp-team.
+/packages/observability-mcp/ @googleapis/cloud-observability-team @googleapis/gcloud-mcp-team

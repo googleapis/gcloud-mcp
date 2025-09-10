@@ -7,7 +7,7 @@
     "gcloud-mcp": "./dist/src/index.js"
   },
   "scripts": {
-    "build": "tsc -p . && cp GEMINI-extension.md dist/",
+    "build": "tsc -p . && cp GEMINI-extension.md dist/ && cp ../../README.md .",
     "test": "vitest run",
     "start": "node dist/src/index.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",

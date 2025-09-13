@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/googleapis-gcloud-mcp-badge.png)](https://mseep.ai/app/googleapis-gcloud-mcp)
+
 # gcloud MCP Server ☁️
 
 The gcloud

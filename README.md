@@ -1,5 +1,4 @@
 [![gcloud-mcp Servers CI](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml/badge.svg)](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml)
-[![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp)
 [![License](https://img.shields.io/github/license/googleapis/gcloud-mcp)](https://github.com/googleapis/gcloud-mcp/blob/main/LICENSE)
 
 # gcloud MCP Server ☁️
@@ -25,10 +24,10 @@ server. An up to date list is below, and links to other Google Cloud MCP
 servers hosted outside of this repo are
 [here](#-other-google-cloud-mcp-servers).
 
-| MCP Server Name | Description                                                                   | Package Name        |
-| :-------------- | :---------------------------------------------------------------------------- | :------------------ |
-| gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        |
-| observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` |
+| MCP Server Name | Description                                                                   | Package Name        | Version |
+| :-------------- | :---------------------------------------------------------------------------- | :------------------ | :--- |
+| gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        | [![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp) |
+| observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` | [![Version](https://img.shields.io/npm/v/@google-cloud/observability-mcp)](https://www.npmjs.com/package/@google-cloud/observability-mcp) |
 
 ## 🚀 Getting Started
 

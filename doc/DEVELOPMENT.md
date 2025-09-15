@@ -70,7 +70,17 @@ npm unlink
 npm uninstall -g gcloud-mcp
 ```
 
-Then re-run `npx gcloud-mcp init --agent=gemini-cli` **without** the `--local` flag.
+After unlinking, the local `gcloud-mcp` binary will no longer be available.  
+To re-run the init step, use the published package:
+
+```sh
+npx @google-cloud/gcloud-mcp init --agent=gemini-cli
+
+Or reinstall globally and run:
+```sh
+npm install -g @google-cloud/gcloud-mcp
+gcloud-mcp init --agent=gemini-cli
+
 
 ---
 

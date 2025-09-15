@@ -1,3 +1,5 @@
+substitutions:
+  _GEMINI_CLI_PACKAGE: '@google/gemini-cli'
 steps:
   - name: 'node:20'
     entrypoint: 'bash'
@@ -24,7 +26,7 @@ steps:
         cd packages/observability-mcp
         npm link
         cd ../..
-        npm install -g @google/gemini-cli
+        npm install -g $_GEMINI_CLI_PACKAGE
         echo "Gemini CLI version:"
         gemini --version
 

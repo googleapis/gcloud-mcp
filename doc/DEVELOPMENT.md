@@ -36,10 +36,10 @@ npx gcloud-mcp init --agent=gemini-cli --local
 
 ### 📊 Local vs Remote Comparison
 
-| Mode             | Where it points                           | When to use |
-|------------------|-------------------------------------------|-------------|
-| `--local`        | Local npm link (`gcloud-mcp` inside repo) | When developing/testing changes in your fork/clone |
-| _(no flag)_      | Remote npm registry (`@google-cloud/gcloud-mcp`) | When using the published package |
+| Mode        | Where it points                                  | When to use                                        |
+| ----------- | ------------------------------------------------ | -------------------------------------------------- |
+| `--local`   | Local npm link (`gcloud-mcp` inside repo)        | When developing/testing changes in your fork/clone |
+| _(no flag)_ | Remote npm registry (`@google-cloud/gcloud-mcp`) | When using the published package                   |
 
 ---
 
@@ -76,6 +76,6 @@ Then re-run `npx gcloud-mcp init --agent=gemini-cli` **without** the `--local` f
 
 ### 🛠️ Troubleshooting
 
-- **Command not found** → Ensure you ran `npm link` inside the correct `packages/<mcp_server_name>` folder.  
-- **Client not reflecting changes** → Check whether you initialized with `--local` or not.  
-- **Conflicts with global install** → Run the cleanup/reset steps and reinstall cleanly.  
+- **Command not found** → Ensure you ran `npm link` inside the correct `packages/<mcp_server_name>` folder.··
+- **Client not reflecting changes** → Check whether you initialized with `--local` or not.··
+- **Conflicts with global install** → Run the cleanup/reset steps and reinstall cleanly.··

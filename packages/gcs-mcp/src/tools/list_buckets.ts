@@ -1,4 +1,4 @@
-import {Storage} from '@google-cloud/storage';
+import {Storage, Bucket} from '@google-cloud/storage';
 
 // Create a GCS client
 const storage = new Storage();
@@ -15,7 +15,7 @@ export const listBucketsTool = {
     if (buckets.length === 0) {
       return { content: [{ type: 'text', text: 'No buckets found.' }] };
     }
-    const bucketNames = buckets.map(bucket => bucket.name);
+    const bucketNames = buckets.map((bucket: Bucket) => bucket.name);
     return { content: [{ type: 'text', text: bucketNames.join('\n') }] };
   },
 };

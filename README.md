@@ -25,6 +25,7 @@ servers hosted outside of this repo are
 | :-------------- | :---------------------------------------------------------------------------- | :------------------ |
 | gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        |
 | observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` |
+| gcs             | Interact with Google Cloud Storage for bucket and object management.          | `gcs-mcp`           |
 
 ## 🚀 Getting Started
 
@@ -145,6 +146,20 @@ For more information regarding installing the repository locally, please see
 |               | `list_traces`             | Searches for traces in a project.                                                                                                                         |
 |               | `get_trace`               | Gets a specific trace by id in a project.                                                                                                                 |
 |               | `list_group_stats`        | Lists the error groups for a project.                                                                                                                     |
+| **gcs**       | `list_objects`            | Lists objects in a GCS bucket.                                                                                                                            |
+|               | `read_object_metadata`    | Reads comprehensive metadata for a specific object.                                                                                                       |
+|               | `read_object_content`     | Reads the content of a specific object.                                                                                                                   |
+|               | `delete_object`           | Deletes a specific object from a bucket.                                                                                                                  |
+|               | `write_object`            | Writes a new object to a bucket.                                                                                                                          |
+|               | `update_object_metadata`  | Updates the custom metadata of an existing object.                                                                                                        |
+|               | `copy_object`             | Copies an object from one bucket to another.                                                                                                              |
+|               | `move_object`             | Moves an object from one bucket to another.                                                                                                               |                                                                 |
+|               | `list_buckets`            | Lists all buckets in a project.                                                                                                                           |
+|               | `create_bucket`           | Creates a new bucket.                                                                                                                                     |
+|               | `delete_bucket`           | Deletes a bucket.                                                                                                                                         |
+|               | `get_bucket_metadata`     | Gets comprehensive metadata for a specific bucket.                                                                                                        |                                                                                                           |
+|               | `update_bucket_labels`    | Updates labels for a bucket.                                                                                                                              |
+|               | `get_bucket_location`     | Gets the location of a bucket.                                                                                                                            |
 
 ## 🔑 MCP Permissions
 

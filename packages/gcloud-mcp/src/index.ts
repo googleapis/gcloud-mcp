@@ -36,6 +36,7 @@ export const default_denylist: string[] = [
   'workstations ssh',
   'app instances ssh',
   'interactive',
+  'meta',
 ];
 
 const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({

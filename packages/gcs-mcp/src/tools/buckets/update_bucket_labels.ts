@@ -27,9 +27,7 @@ export const registerUpdateBucketLabelsTool = (server: McpServer) => {
       description: 'Updates labels for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the bucket.'),
-        labels: z
-          .record(z.string())
-          .describe('Dictionary of labels to set on the bucket.'),
+        labels: z.record(z.string()).describe('Dictionary of labels to set on the bucket.'),
       },
     },
     async (params: { bucket_name: string; labels: Record<string, string> }) => {
@@ -39,9 +37,7 @@ export const registerUpdateBucketLabelsTool = (server: McpServer) => {
         const bucket = storage.bucket(params.bucket_name);
         const [metadata] = await bucket.setLabels(params.labels);
 
-        logger.info(
-          `Successfully updated labels for bucket ${params.bucket_name}`
-        );
+        logger.info(`Successfully updated labels for bucket ${params.bucket_name}`);
         return {
           content: [
             {
@@ -54,7 +50,7 @@ export const registerUpdateBucketLabelsTool = (server: McpServer) => {
                   updated_labels: (metadata as BucketMetadata).labels,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -84,6 +80,6 @@ export const registerUpdateBucketLabelsTool = (server: McpServer) => {
           ],
         };
       }
-    }
+    },
   );
 };

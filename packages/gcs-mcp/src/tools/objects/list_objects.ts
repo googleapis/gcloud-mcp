@@ -24,7 +24,8 @@ export const registerListObjectsTool = (server: McpServer) => {
   server.registerTool(
     'list_objects',
     {
-      description: 'Lists objects in a GCS bucket with optional filters.',
+      description:
+        'Lists the names of objects in a Google Cloud Storage (GCS) bucket. Supports filtering by prefix, directory-like listing with a delimiter, pagination, and listing object versions.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
         prefix: z
@@ -35,18 +36,37 @@ export const registerListObjectsTool = (server: McpServer) => {
           .string()
           .optional()
           .describe(
-            'Results will contain only objects whose names, aside from the prefix, do not contain this delimiter.',
+            "Can be used to list objects in a directory-like structure. For example, using a delimiter of '/' will return objects at the root level and not in subdirectories. This helps in navigating virtual folder hierarchies."
           ),
+        max_results: z
+          .number()
+          .optional()
+          .describe(
+            'The maximum number of object names to return in a single response. If not specified, the API defaults to 1,000. The maximum value allowed is also 1,000.'
+          ),
+        page_token: z
+          .string()
+          .optional()
+          .describe(
+            'A token used to retrieve the next page of results. This is obtained from the `next_page_token` field of a previous `list_objects` call.'
+          ),
+        versions: z
+          .boolean()
+          .optional()
+          .describe('If true, lists all versions of an object as distinct results.'),
       },
     },
     async (params: {
       bucket_name: string;
       prefix?: string | undefined;
       delimiter?: string | undefined;
+      max_results?: number | undefined;
+      page_token?: string | undefined;
+      versions?: boolean | undefined;
     }) => {
       try {
         logger.info(
-          `Listing objects in bucket: ${params.bucket_name}, prefix: ${params.prefix}, delimiter: ${params.delimiter}`,
+          `Listing objects in bucket: ${params.bucket_name}, prefix: ${params.prefix}, delimiter: ${params.delimiter}, max_results: ${params.max_results}, page_token: ${params.page_token}, versions: ${params.versions}`,
         );
         const storage = apiClientFactory.getStorageClient();
         const options: GetFilesOptions = {};
@@ -56,7 +76,16 @@ export const registerListObjectsTool = (server: McpServer) => {
         if (params.delimiter) {
           options.delimiter = params.delimiter;
         }
-        const [files] = await storage.bucket(params.bucket_name).getFiles(options);
+        if (params.max_results) {
+          options.maxResults = params.max_results;
+        }
+        if (params.page_token) {
+          options.pageToken = params.page_token;
+        }
+        if (params.versions) {
+          options.versions = params.versions;
+        }
+        const [files, nextQuery] = await storage.bucket(params.bucket_name).getFiles(options);
 
         const objectList = files.map((file: File) => file.name);
 
@@ -66,6 +95,7 @@ export const registerListObjectsTool = (server: McpServer) => {
           delimiter: params.delimiter,
           object_count: objectList.length,
           objects: objectList,
+          next_page_token: nextQuery?.pageToken ?? null,
         };
 
         logger.info(

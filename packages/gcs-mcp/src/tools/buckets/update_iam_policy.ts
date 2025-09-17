@@ -27,10 +27,7 @@ export const registerUpdateIamPolicyTool = (server: McpServer) => {
       description: 'Updates the IAM policy for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        policy_updates: z
-          .any()
-          .describe('The policy updates to apply.')
-          .optional(),
+        policy_updates: z.any().describe('The policy updates to apply.').optional(),
       },
     },
     async (params: { bucket_name: string; policy_updates?: Policy }) => {
@@ -58,9 +55,7 @@ export const registerUpdateIamPolicyTool = (server: McpServer) => {
 
         const [updatedPolicy] = await bucket.iam.setPolicy(policy);
 
-        logger.info(
-          `Successfully updated IAM policy for bucket ${params.bucket_name}`
-        );
+        logger.info(`Successfully updated IAM policy for bucket ${params.bucket_name}`);
         return {
           content: [
             {
@@ -73,7 +68,7 @@ export const registerUpdateIamPolicyTool = (server: McpServer) => {
                   updated_policy: updatedPolicy,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -103,6 +98,6 @@ export const registerUpdateIamPolicyTool = (server: McpServer) => {
           ],
         };
       }
-    }
+    },
   );
 };

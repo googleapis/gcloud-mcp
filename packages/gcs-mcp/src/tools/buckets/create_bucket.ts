@@ -28,20 +28,13 @@ export const registerCreateBucketTool = (server: McpServer) => {
       inputSchema: {
         project_id: z.string().describe('The ID of the GCP project.'),
         bucket_name: z.string().describe('The name of the bucket to create.'),
-        location: z
-          .string()
-          .optional()
-          .default('US')
-          .describe('The location for the bucket.'),
+        location: z.string().optional().default('US').describe('The location for the bucket.'),
         storage_class: z
           .string()
           .optional()
           .default('STANDARD')
           .describe('The storage class for the bucket.'),
-        labels: z
-          .record(z.string())
-          .optional()
-          .describe('Labels to apply to the bucket.'),
+        labels: z.record(z.string()).optional().describe('Labels to apply to the bucket.'),
         versioning_enabled: z
           .boolean()
           .optional()
@@ -64,9 +57,7 @@ export const registerCreateBucketTool = (server: McpServer) => {
       requester_pays: boolean;
     }) => {
       try {
-        logger.info(
-          `Creating bucket: ${params.bucket_name} in project: ${params.project_id}`
-        );
+        logger.info(`Creating bucket: ${params.bucket_name} in project: ${params.project_id}`);
         const storage = apiClientFactory.getStorageClient();
         const options: CreateBucketRequest = {
           location: params.location,
@@ -80,15 +71,12 @@ export const registerCreateBucketTool = (server: McpServer) => {
         if (params.labels) {
           options.labels = params.labels;
         }
-        const [bucket] = await storage.createBucket(
-          params.bucket_name,
-          options
-        );
+        const [bucket] = await storage.createBucket(params.bucket_name, options);
 
         const [metadata] = await bucket.getMetadata();
 
         logger.info(
-          `Successfully created bucket ${params.bucket_name} in project ${params.project_id}`
+          `Successfully created bucket ${params.bucket_name} in project ${params.project_id}`,
         );
 
         return {
@@ -130,6 +118,6 @@ export const registerCreateBucketTool = (server: McpServer) => {
           ],
         };
       }
-    }
+    },
   );
 };

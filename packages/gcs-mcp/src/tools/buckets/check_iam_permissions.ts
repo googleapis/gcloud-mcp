@@ -26,25 +26,17 @@ export const registerCheckIamPermissionsTool = (server: McpServer) => {
       description: 'Tests IAM permissions for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        permissions: z
-          .array(z.string())
-          .describe('List of permissions to test.'),
+        permissions: z.array(z.string()).describe('List of permissions to test.'),
       },
     },
     async (params: { bucket_name: string; permissions: string[] }) => {
       try {
-        logger.info(
-          `Testing IAM permissions for bucket: ${params.bucket_name}`
-        );
+        logger.info(`Testing IAM permissions for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
         const bucket = storage.bucket(params.bucket_name);
-        const [allowedPermissions] = await bucket.iam.testPermissions(
-          params.permissions
-        );
+        const [allowedPermissions] = await bucket.iam.testPermissions(params.permissions);
 
-        logger.info(
-          `Successfully tested IAM permissions for bucket ${params.bucket_name}`
-        );
+        logger.info(`Successfully tested IAM permissions for bucket ${params.bucket_name}`);
         return {
           content: [
             {
@@ -55,13 +47,11 @@ export const registerCheckIamPermissionsTool = (server: McpServer) => {
                   requested_permissions: params.permissions,
                   allowed_permissions: allowedPermissions,
                   denied_permissions: params.permissions.filter(
-                    (p) =>
-                      Array.isArray(allowedPermissions) &&
-                      !allowedPermissions.includes(p)
+                    (p) => Array.isArray(allowedPermissions) && !allowedPermissions.includes(p),
                   ),
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -89,6 +79,6 @@ export const registerCheckIamPermissionsTool = (server: McpServer) => {
           ],
         };
       }
-    }
+    },
   );
 };

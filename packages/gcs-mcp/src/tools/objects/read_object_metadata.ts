@@ -56,11 +56,7 @@ export const registerReadObjectMetadataTool = (server: McpServer) => {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(
-                formatFileMetadataResponse(file.metadata),
-                null,
-                2
-              ),
+              text: JSON.stringify(formatFileMetadataResponse(file.metadata), null, 2),
             },
           ],
         };

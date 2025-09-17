@@ -16,26 +16,35 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerGetBucketLocationTool = (server: McpServer) => {
+export const registerCheckIamPermissionsTool = (server: McpServer) => {
   server.registerTool(
-    'get_bucket_location',
+    'check_iam_permissions',
     {
-      description: 'Gets the location and storage class of a bucket.',
+      description: 'Tests IAM permissions for a bucket.',
       inputSchema: {
-        bucket_name: z.string().describe('The name of the bucket.'),
+        bucket_name: z.string().describe('The name of the GCS bucket.'),
+        permissions: z
+          .array(z.string())
+          .describe('List of permissions to test.'),
       },
     },
-    async (params: { bucket_name: string }) => {
+    async (params: { bucket_name: string; permissions: string[] }) => {
       try {
-        logger.info(`Getting location for bucket: ${params.bucket_name}`);
+        logger.info(
+          `Testing IAM permissions for bucket: ${params.bucket_name}`
+        );
         const storage = apiClientFactory.getStorageClient();
         const bucket = storage.bucket(params.bucket_name);
-        const [metadata] = await bucket.getMetadata();
+        const [allowedPermissions] = await bucket.iam.testPermissions(
+          params.permissions
+        );
 
-        logger.info(`Successfully retrieved location for bucket ${params.bucket_name}`);
+        logger.info(
+          `Successfully tested IAM permissions for bucket ${params.bucket_name}`
+        );
         return {
           content: [
             {
@@ -43,14 +52,16 @@ export const registerGetBucketLocationTool = (server: McpServer) => {
               text: JSON.stringify(
                 {
                   bucket_name: params.bucket_name,
-                  location: metadata.location,
-                  location_type: metadata.locationType,
-                  storage_class: metadata.storageClass,
-                  time_created: metadata.timeCreated,
-                  updated: metadata.updated,
+                  requested_permissions: params.permissions,
+                  allowed_permissions: allowedPermissions,
+                  denied_permissions: params.permissions.filter(
+                    (p) =>
+                      Array.isArray(allowedPermissions) &&
+                      !allowedPermissions.includes(p)
+                  ),
                 },
                 null,
-                2,
+                2
               ),
             },
           ],
@@ -63,7 +74,7 @@ export const registerGetBucketLocationTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error getting bucket location: ${error.message}`;
+        const errorMsg = `Error testing IAM permissions: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [
@@ -78,6 +89,6 @@ export const registerGetBucketLocationTool = (server: McpServer) => {
           ],
         };
       }
-    },
+    }
   );
 };

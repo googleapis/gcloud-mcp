@@ -16,8 +16,8 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 import { CreateBucketRequest } from '@google-cloud/storage';
 
 export const registerCreateBucketTool = (server: McpServer) => {

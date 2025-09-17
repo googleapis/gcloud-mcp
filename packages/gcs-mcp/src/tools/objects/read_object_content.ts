@@ -16,9 +16,9 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
-import { MAX_CONTENT_SIZE, STREAMING_THRESHOLD } from '../utility/gcs_helpers.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
+import { MAX_CONTENT_SIZE, STREAMING_THRESHOLD } from '../../utility/gcs_helpers.js';
 
 export const registerReadObjectContentTool = (server: McpServer) => {
   server.registerTool(

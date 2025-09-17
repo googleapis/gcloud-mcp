@@ -16,37 +16,42 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
-import { validateBase64Content, getContentType } from '../utility/gcs_helpers.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerWriteObjectTool = (server: McpServer) => {
+export const registerGenerateUploadSignedUrlTool = (server: McpServer) => {
   server.registerTool(
-    'write_object',
+    'generate_upload_signed_url',
     {
-      description: 'Writes a new object to the bucket.',
+      description: 'Generates a signed URL for uploading an object to GCS.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object to write.'),
-        content: z.string().describe('The content to write to the object, encoded in base64.'),
-        content_type: z.string().optional().describe('The content type of the object.'),
+        object_name: z.string().describe('The name of the object to upload.'),
+        content_type: z
+          .string()
+          .optional()
+          .default('application/octet-stream')
+          .describe('The content type of the object to upload.'),
+        expiration_minutes: z
+          .number()
+          .optional()
+          .default(15)
+          .describe('URL expiration time in minutes.'),
       },
     },
     async (params: {
       bucket_name: string;
       object_name: string;
-      content: string;
-      content_type?: string | undefined;
+      content_type: string;
+      expiration_minutes: number;
     }) => {
       try {
-        logger.info(`Writing object: ${params.object_name} to bucket: ${params.bucket_name}`);
+        logger.info(
+          `Generating upload signed URL for object: ${params.object_name} in bucket: ${params.bucket_name}`,
+        );
 
-        let decoded_content: Buffer;
-        try {
-          validateBase64Content(params.content);
-          decoded_content = Buffer.from(params.content, 'base64');
-        } catch (e: unknown) {
-          const errorMsg = (e as Error).message;
+        if (params.expiration_minutes <= 0 || params.expiration_minutes > 10080) {
+          const errorMsg = 'Expiration time must be between 1 minute and 7 days (10080 minutes)';
           logger.error(errorMsg);
           return {
             content: [
@@ -61,26 +66,28 @@ export const registerWriteObjectTool = (server: McpServer) => {
           };
         }
 
-        const final_content_type = params.content_type || getContentType(params.object_name);
-
         const storage = apiClientFactory.getStorageClient();
-
-        await storage
+        const [url] = await storage
           .bucket(params.bucket_name)
           .file(params.object_name)
-          .save(decoded_content, { contentType: final_content_type });
+          .getSignedUrl({
+            action: 'write',
+            expires: Date.now() + params.expiration_minutes * 60 * 1000, // 15 minutes
+            contentType: params.content_type,
+          });
 
         const result = {
           success: true,
-          message: `Object ${params.object_name} written successfully to bucket ${params.bucket_name}`,
           bucket: params.bucket_name,
           object: params.object_name,
-          size: decoded_content.byteLength,
-          content_type: final_content_type,
+          signed_url: url,
+          method: 'PUT',
+          content_type: params.content_type,
+          expiration_minutes: params.expiration_minutes,
+          expires_at: new Date(Date.now() + params.expiration_minutes * 60 * 1000).toISOString(),
+          usage_example: `curl -X PUT -H 'Content-Type: ${params.content_type}' --upload-file <local-file> '${url}'`,
         };
-        logger.info(
-          `Successfully wrote object ${params.object_name} to bucket ${params.bucket_name} (${decoded_content.byteLength} bytes)`,
-        );
+        logger.info(`Successfully generated upload signed URL for object ${params.object_name}`);
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
@@ -91,10 +98,8 @@ export const registerWriteObjectTool = (server: McpServer) => {
           errorType = 'NotFound';
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
-        } else if (error.message.includes('Invalid')) {
-          errorType = 'BadRequest';
         }
-        const errorMsg = `Error writing object: ${error.message}`;
+        const errorMsg = `Error generating upload signed URL: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [

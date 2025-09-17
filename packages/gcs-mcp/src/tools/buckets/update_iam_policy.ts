@@ -16,31 +16,50 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
-import { BucketMetadata } from '@google-cloud/storage';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
+import { Policy } from '@google-cloud/storage';
 
-export const registerUpdateBucketLabelsTool = (server: McpServer) => {
+export const registerUpdateIamPolicyTool = (server: McpServer) => {
   server.registerTool(
-    'update_bucket_labels',
+    'update_iam_policy',
     {
-      description: 'Updates labels for a bucket.',
+      description: 'Updates the IAM policy for a bucket.',
       inputSchema: {
-        bucket_name: z.string().describe('The name of the bucket.'),
-        labels: z
-          .record(z.string())
-          .describe('Dictionary of labels to set on the bucket.'),
+        bucket_name: z.string().describe('The name of the GCS bucket.'),
+        policy_updates: z
+          .any()
+          .describe('The policy updates to apply.')
+          .optional(),
       },
     },
-    async (params: { bucket_name: string; labels: Record<string, string> }) => {
+    async (params: { bucket_name: string; policy_updates?: Policy }) => {
       try {
-        logger.info(`Updating labels for bucket: ${params.bucket_name}`);
+        logger.info(`Updating IAM policy for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
         const bucket = storage.bucket(params.bucket_name);
-        const [metadata] = await bucket.setLabels(params.labels);
+        const [policy] = await bucket.iam.getPolicy({
+          requestedPolicyVersion: 3,
+        });
+
+        // The nodejs library bindings are not a direct mapping to the python library
+        // In nodejs, we set the entire policy, so we need to merge the changes
+        // rather than add/remove individual bindings.
+        // We will overwrite the bindings with the new bindings from the request.
+        if (params.policy_updates) {
+          policy.bindings = params.policy_updates.bindings;
+          if (params.policy_updates.version) {
+            policy.version = params.policy_updates.version;
+          }
+          if (params.policy_updates.etag) {
+            policy.etag = params.policy_updates.etag;
+          }
+        }
+
+        const [updatedPolicy] = await bucket.iam.setPolicy(policy);
 
         logger.info(
-          `Successfully updated labels for bucket ${params.bucket_name}`
+          `Successfully updated IAM policy for bucket ${params.bucket_name}`
         );
         return {
           content: [
@@ -49,9 +68,9 @@ export const registerUpdateBucketLabelsTool = (server: McpServer) => {
               text: JSON.stringify(
                 {
                   success: true,
-                  message: `Labels for bucket ${params.bucket_name} updated successfully`,
+                  message: `IAM policy for bucket ${params.bucket_name} updated successfully`,
                   bucket_name: params.bucket_name,
-                  updated_labels: (metadata as BucketMetadata).labels,
+                  updated_policy: updatedPolicy,
                 },
                 null,
                 2
@@ -69,7 +88,7 @@ export const registerUpdateBucketLabelsTool = (server: McpServer) => {
         } else if (error.message.includes('Invalid')) {
           errorType = 'BadRequest';
         }
-        const errorMsg = `Error updating bucket labels: ${error.message}`;
+        const errorMsg = `Error updating IAM policy: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [

@@ -16,42 +16,28 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerViewIamPolicyTool = (server: McpServer) => {
+export const registerGetBucketMetadataTool = (server: McpServer) => {
   server.registerTool(
-    'view_iam_policy',
+    'get_bucket_metadata',
     {
-      description: 'Views the IAM policy for a bucket.',
+      description: 'Gets detailed metadata for a specific bucket.',
       inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
+        bucket_name: z.string().describe('The name of the bucket.'),
       },
     },
     async (params: { bucket_name: string }) => {
       try {
-        logger.info(`Viewing IAM policy for bucket: ${params.bucket_name}`);
+        logger.info(`Getting metadata for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
         const bucket = storage.bucket(params.bucket_name);
-        const [policy] = await bucket.iam.getPolicy({
-          requestedPolicyVersion: 3,
-        });
+        const [metadata] = await bucket.getMetadata();
 
-        logger.info(`Successfully retrieved IAM policy for bucket ${params.bucket_name}`);
+        logger.info(`Successfully retrieved metadata for bucket ${params.bucket_name}`);
         return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  bucket_name: params.bucket_name,
-                  iam_policy: policy,
-                },
-                null,
-                2,
-              ),
-            },
-          ],
+          content: [{ type: 'text', text: JSON.stringify(metadata, null, 2) }],
         };
       } catch (e: unknown) {
         const error = e as Error;
@@ -61,7 +47,7 @@ export const registerViewIamPolicyTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error viewing IAM policy: ${error.message}`;
+        const errorMsg = `Error getting bucket metadata: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [

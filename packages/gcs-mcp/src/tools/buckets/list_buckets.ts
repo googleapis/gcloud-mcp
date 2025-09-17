@@ -16,7 +16,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
+import { apiClientFactory } from '../../utility/index.js';
 
 export const registerListGcsBucketsTool = (server: McpServer) => {
   server.registerTool(

@@ -16,35 +16,28 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerCheckIamPermissionsTool = (server: McpServer) => {
+export const registerViewIamPolicyTool = (server: McpServer) => {
   server.registerTool(
-    'check_iam_permissions',
+    'view_iam_policy',
     {
-      description: 'Tests IAM permissions for a bucket.',
+      description: 'Views the IAM policy for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        permissions: z
-          .array(z.string())
-          .describe('List of permissions to test.'),
       },
     },
-    async (params: { bucket_name: string; permissions: string[] }) => {
+    async (params: { bucket_name: string }) => {
       try {
-        logger.info(
-          `Testing IAM permissions for bucket: ${params.bucket_name}`
-        );
+        logger.info(`Viewing IAM policy for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
         const bucket = storage.bucket(params.bucket_name);
-        const [allowedPermissions] = await bucket.iam.testPermissions(
-          params.permissions
-        );
+        const [policy] = await bucket.iam.getPolicy({
+          requestedPolicyVersion: 3,
+        });
 
-        logger.info(
-          `Successfully tested IAM permissions for bucket ${params.bucket_name}`
-        );
+        logger.info(`Successfully retrieved IAM policy for bucket ${params.bucket_name}`);
         return {
           content: [
             {
@@ -52,16 +45,10 @@ export const registerCheckIamPermissionsTool = (server: McpServer) => {
               text: JSON.stringify(
                 {
                   bucket_name: params.bucket_name,
-                  requested_permissions: params.permissions,
-                  allowed_permissions: allowedPermissions,
-                  denied_permissions: params.permissions.filter(
-                    (p) =>
-                      Array.isArray(allowedPermissions) &&
-                      !allowedPermissions.includes(p)
-                  ),
+                  iam_policy: policy,
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -74,7 +61,7 @@ export const registerCheckIamPermissionsTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error testing IAM permissions: ${error.message}`;
+        const errorMsg = `Error viewing IAM policy: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [
@@ -89,6 +76,6 @@ export const registerCheckIamPermissionsTool = (server: McpServer) => {
           ],
         };
       }
-    }
+    },
   );
 };

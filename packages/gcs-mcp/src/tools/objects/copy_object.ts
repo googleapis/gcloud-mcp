@@ -16,20 +16,19 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerMoveObjectTool = (server: McpServer) => {
+export const registerCopyObjectTool = (server: McpServer) => {
   server.registerTool(
-    'move_object',
+    'copy_object',
     {
-      description:
-        'Moves an object from one bucket to another or renames it within the same bucket by copying and deleting the original.',
+      description: 'Copies an object from one bucket to another or within the same bucket.',
       inputSchema: {
         source_bucket_name: z.string().describe('The name of the source GCS bucket.'),
         source_object_name: z.string().describe('The name of the source object.'),
         destination_bucket_name: z.string().describe('The name of the destination GCS bucket.'),
-        destination_object_name: z.string().describe('The name for the moved object.'),
+        destination_object_name: z.string().describe('The name for the copied object.'),
       },
     },
     async (params: {
@@ -40,27 +39,29 @@ export const registerMoveObjectTool = (server: McpServer) => {
     }) => {
       try {
         logger.info(
-          `Moving object: ${params.source_object_name} from bucket: ${params.source_bucket_name} to ${params.destination_object_name} in bucket: ${params.destination_bucket_name}`,
+          `Copying object: ${params.source_object_name} from bucket: ${params.source_bucket_name} to ${params.destination_object_name} in bucket: ${params.destination_bucket_name}`,
         );
 
         const storage = apiClientFactory.getStorageClient();
         const destinationBucket = storage.bucket(params.destination_bucket_name);
         const destinationFile = destinationBucket.file(params.destination_object_name);
-        await storage
+        const [copiedFile] = await storage
           .bucket(params.source_bucket_name)
           .file(params.source_object_name)
-          .move(destinationFile);
+          .copy(destinationFile);
 
         const result = {
           success: true,
-          message: `Object ${params.source_object_name} moved successfully from bucket ${params.source_bucket_name} to ${params.destination_object_name} in bucket ${params.destination_bucket_name}`,
+          message: `Object ${params.source_object_name} copied successfully from bucket ${params.source_bucket_name} to ${params.destination_object_name} in bucket ${params.destination_bucket_name}`,
           source_bucket: params.source_bucket_name,
           source_object: params.source_object_name,
           destination_bucket: params.destination_bucket_name,
           destination_object: params.destination_object_name,
+          copied_object_size: copiedFile.metadata.size,
+          copied_object_generation: copiedFile.metadata.generation,
         };
         logger.info(
-          `Successfully moved object ${params.source_object_name} to ${params.destination_object_name}`,
+          `Successfully copied object ${params.source_object_name} to ${params.destination_object_name}`,
         );
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -73,7 +74,7 @@ export const registerMoveObjectTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error moving object: ${error.message}`;
+        const errorMsg = `Error copying object: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [

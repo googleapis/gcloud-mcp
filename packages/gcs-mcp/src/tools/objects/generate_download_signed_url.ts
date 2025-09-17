@@ -16,22 +16,17 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerGenerateUploadSignedUrlTool = (server: McpServer) => {
+export const registerGenerateDownloadSignedUrlTool = (server: McpServer) => {
   server.registerTool(
-    'generate_upload_signed_url',
+    'generate_download_signed_url',
     {
-      description: 'Generates a signed URL for uploading an object to GCS.',
+      description: 'Generates a signed URL for downloading an object from GCS.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object to upload.'),
-        content_type: z
-          .string()
-          .optional()
-          .default('application/octet-stream')
-          .describe('The content type of the object to upload.'),
+        object_name: z.string().describe('The name of the object.'),
         expiration_minutes: z
           .number()
           .optional()
@@ -39,15 +34,10 @@ export const registerGenerateUploadSignedUrlTool = (server: McpServer) => {
           .describe('URL expiration time in minutes.'),
       },
     },
-    async (params: {
-      bucket_name: string;
-      object_name: string;
-      content_type: string;
-      expiration_minutes: number;
-    }) => {
+    async (params: { bucket_name: string; object_name: string; expiration_minutes: number }) => {
       try {
         logger.info(
-          `Generating upload signed URL for object: ${params.object_name} in bucket: ${params.bucket_name}`,
+          `Generating download signed URL for object: ${params.object_name} in bucket: ${params.bucket_name}`,
         );
 
         if (params.expiration_minutes <= 0 || params.expiration_minutes > 10080) {
@@ -71,23 +61,24 @@ export const registerGenerateUploadSignedUrlTool = (server: McpServer) => {
           .bucket(params.bucket_name)
           .file(params.object_name)
           .getSignedUrl({
-            action: 'write',
+            action: 'read',
             expires: Date.now() + params.expiration_minutes * 60 * 1000, // 15 minutes
-            contentType: params.content_type,
           });
+
+        const blob = await storage.bucket(params.bucket_name).file(params.object_name).get();
 
         const result = {
           success: true,
           bucket: params.bucket_name,
           object: params.object_name,
           signed_url: url,
-          method: 'PUT',
-          content_type: params.content_type,
+          method: 'GET',
           expiration_minutes: params.expiration_minutes,
           expires_at: new Date(Date.now() + params.expiration_minutes * 60 * 1000).toISOString(),
-          usage_example: `curl -X PUT -H 'Content-Type: ${params.content_type}' --upload-file <local-file> '${url}'`,
+          object_size: blob[0].metadata.size,
+          content_type: blob[0].metadata.contentType,
         };
-        logger.info(`Successfully generated upload signed URL for object ${params.object_name}`);
+        logger.info(`Successfully generated download signed URL for object ${params.object_name}`);
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
@@ -99,7 +90,7 @@ export const registerGenerateUploadSignedUrlTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error generating upload signed URL: ${error.message}`;
+        const errorMsg = `Error generating download signed URL: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [

@@ -16,28 +16,48 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
+import { BucketMetadata } from '@google-cloud/storage';
 
-export const registerGetBucketMetadataTool = (server: McpServer) => {
+export const registerUpdateBucketLabelsTool = (server: McpServer) => {
   server.registerTool(
-    'get_bucket_metadata',
+    'update_bucket_labels',
     {
-      description: 'Gets detailed metadata for a specific bucket.',
+      description: 'Updates labels for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the bucket.'),
+        labels: z
+          .record(z.string())
+          .describe('Dictionary of labels to set on the bucket.'),
       },
     },
-    async (params: { bucket_name: string }) => {
+    async (params: { bucket_name: string; labels: Record<string, string> }) => {
       try {
-        logger.info(`Getting metadata for bucket: ${params.bucket_name}`);
+        logger.info(`Updating labels for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
         const bucket = storage.bucket(params.bucket_name);
-        const [metadata] = await bucket.getMetadata();
+        const [metadata] = await bucket.setLabels(params.labels);
 
-        logger.info(`Successfully retrieved metadata for bucket ${params.bucket_name}`);
+        logger.info(
+          `Successfully updated labels for bucket ${params.bucket_name}`
+        );
         return {
-          content: [{ type: 'text', text: JSON.stringify(metadata, null, 2) }],
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Labels for bucket ${params.bucket_name} updated successfully`,
+                  bucket_name: params.bucket_name,
+                  updated_labels: (metadata as BucketMetadata).labels,
+                },
+                null,
+                2
+              ),
+            },
+          ],
         };
       } catch (e: unknown) {
         const error = e as Error;
@@ -46,8 +66,10 @@ export const registerGetBucketMetadataTool = (server: McpServer) => {
           errorType = 'NotFound';
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
+        } else if (error.message.includes('Invalid')) {
+          errorType = 'BadRequest';
         }
-        const errorMsg = `Error getting bucket metadata: ${error.message}`;
+        const errorMsg = `Error updating bucket labels: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [
@@ -62,6 +84,6 @@ export const registerGetBucketMetadataTool = (server: McpServer) => {
           ],
         };
       }
-    },
+    }
   );
 };

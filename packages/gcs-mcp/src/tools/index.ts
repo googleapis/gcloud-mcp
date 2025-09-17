@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './buckets/create_bucket.js';
+export * from './buckets/delete_bucket.js';
+export * from './buckets/get_bucket_location.js';
+export * from './buckets/get_bucket_metadata.js';
+export * from './buckets/list_buckets.js';
+export * from './buckets/update_bucket_labels.js';
+export * from './buckets/update_iam_policy.js';
+export * from './buckets/view_iam_policy.js';
+export * from './buckets/check_iam_permissions.js';
 
-export * from './list_buckets.js';
-export * from './list_objects.js';
-export * from './read_object_metadata.js';
-export * from './read_object_content.js';
-export * from './delete_object.js';
-export * from './write_object.js';
-export * from './update_object_metadata.js';
-export * from './copy_object.js';
-export * from './move_object.js';
-export * from './generate_download_signed_url.js';
-export * from './generate_upload_signed_url.js';
-export * from './create_bucket.js';
-export * from './delete_bucket.js';
-export * from './get_bucket_metadata.js';
-export * from './view_iam_policy.js';
-export * from './update_iam_policy.js';
-export * from './check_iam_permissions.js';
-export * from './update_bucket_labels.js';
-export * from './get_bucket_location.js';
+export * from './objects/copy_object.js';
+export * from './objects/delete_object.js';
+export * from './objects/generate_download_signed_url.js';
+export * from './objects/generate_upload_signed_url.js';
+export * from './objects/list_objects.js';
+export * from './objects/move_object.js';
+export * from './objects/read_object_content.js';
+export * from './objects/read_object_metadata.js';
+export * from './objects/update_object_metadata.js';
+export * from './objects/write_object.js';

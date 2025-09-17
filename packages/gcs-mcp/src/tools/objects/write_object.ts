@@ -16,32 +16,37 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
+import { validateBase64Content, getContentType } from '../../utility/gcs_helpers.js';
 
-export const registerGenerateDownloadSignedUrlTool = (server: McpServer) => {
+export const registerWriteObjectTool = (server: McpServer) => {
   server.registerTool(
-    'generate_download_signed_url',
+    'write_object',
     {
-      description: 'Generates a signed URL for downloading an object from GCS.',
+      description: 'Writes a new object to the bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object.'),
-        expiration_minutes: z
-          .number()
-          .optional()
-          .default(15)
-          .describe('URL expiration time in minutes.'),
+        object_name: z.string().describe('The name of the object to write.'),
+        content: z.string().describe('The content to write to the object, encoded in base64.'),
+        content_type: z.string().optional().describe('The content type of the object.'),
       },
     },
-    async (params: { bucket_name: string; object_name: string; expiration_minutes: number }) => {
+    async (params: {
+      bucket_name: string;
+      object_name: string;
+      content: string;
+      content_type?: string | undefined;
+    }) => {
       try {
-        logger.info(
-          `Generating download signed URL for object: ${params.object_name} in bucket: ${params.bucket_name}`,
-        );
+        logger.info(`Writing object: ${params.object_name} to bucket: ${params.bucket_name}`);
 
-        if (params.expiration_minutes <= 0 || params.expiration_minutes > 10080) {
-          const errorMsg = 'Expiration time must be between 1 minute and 7 days (10080 minutes)';
+        let decoded_content: Buffer;
+        try {
+          validateBase64Content(params.content);
+          decoded_content = Buffer.from(params.content, 'base64');
+        } catch (e: unknown) {
+          const errorMsg = (e as Error).message;
           logger.error(errorMsg);
           return {
             content: [
@@ -56,29 +61,26 @@ export const registerGenerateDownloadSignedUrlTool = (server: McpServer) => {
           };
         }
 
+        const final_content_type = params.content_type || getContentType(params.object_name);
+
         const storage = apiClientFactory.getStorageClient();
-        const [url] = await storage
+
+        await storage
           .bucket(params.bucket_name)
           .file(params.object_name)
-          .getSignedUrl({
-            action: 'read',
-            expires: Date.now() + params.expiration_minutes * 60 * 1000, // 15 minutes
-          });
-
-        const blob = await storage.bucket(params.bucket_name).file(params.object_name).get();
+          .save(decoded_content, { contentType: final_content_type });
 
         const result = {
           success: true,
+          message: `Object ${params.object_name} written successfully to bucket ${params.bucket_name}`,
           bucket: params.bucket_name,
           object: params.object_name,
-          signed_url: url,
-          method: 'GET',
-          expiration_minutes: params.expiration_minutes,
-          expires_at: new Date(Date.now() + params.expiration_minutes * 60 * 1000).toISOString(),
-          object_size: blob[0].metadata.size,
-          content_type: blob[0].metadata.contentType,
+          size: decoded_content.byteLength,
+          content_type: final_content_type,
         };
-        logger.info(`Successfully generated download signed URL for object ${params.object_name}`);
+        logger.info(
+          `Successfully wrote object ${params.object_name} to bucket ${params.bucket_name} (${decoded_content.byteLength} bytes)`,
+        );
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
@@ -89,8 +91,10 @@ export const registerGenerateDownloadSignedUrlTool = (server: McpServer) => {
           errorType = 'NotFound';
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
+        } else if (error.message.includes('Invalid')) {
+          errorType = 'BadRequest';
         }
-        const errorMsg = `Error generating download signed URL: ${error.message}`;
+        const errorMsg = `Error writing object: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [

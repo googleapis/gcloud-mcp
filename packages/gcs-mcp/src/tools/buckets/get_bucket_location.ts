@@ -16,50 +16,41 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../utility/index.js';
-import { logger } from '../utility/logger.js';
-import { formatFileMetadataResponse } from '../utility/gcs_helpers.js';
+import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 
-export const registerReadObjectMetadataTool = (server: McpServer) => {
+export const registerGetBucketLocationTool = (server: McpServer) => {
   server.registerTool(
-    'read_object_metadata',
+    'get_bucket_location',
     {
-      description: 'Reads metadata for a specific object.',
+      description: 'Gets the location and storage class of a bucket.',
       inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object.'),
+        bucket_name: z.string().describe('The name of the bucket.'),
       },
     },
-    async (params: { bucket_name: string; object_name: string }) => {
+    async (params: { bucket_name: string }) => {
       try {
-        logger.info(
-          `Reading metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
-        );
+        logger.info(`Getting location for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
-        const [file] = await storage.bucket(params.bucket_name).file(params.object_name).get();
+        const bucket = storage.bucket(params.bucket_name);
+        const [metadata] = await bucket.getMetadata();
 
-        if (!file) {
-          const errorMsg = `Object ${params.object_name} not found in bucket ${params.bucket_name}`;
-          logger.warn(errorMsg);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({ error: errorMsg, error_type: 'NotFound' }),
-              },
-            ],
-          };
-        }
-
-        logger.info(`Successfully retrieved metadata for object ${params.object_name}`);
+        logger.info(`Successfully retrieved location for bucket ${params.bucket_name}`);
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify(
-                formatFileMetadataResponse(file.metadata),
+                {
+                  bucket_name: params.bucket_name,
+                  location: metadata.location,
+                  location_type: metadata.locationType,
+                  storage_class: metadata.storageClass,
+                  time_created: metadata.timeCreated,
+                  updated: metadata.updated,
+                },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -72,13 +63,17 @@ export const registerReadObjectMetadataTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error reading object metadata: ${error.message}`;
+        const errorMsg = `Error getting bucket location: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({ error: errorMsg, error_type: errorType }),
+              text: JSON.stringify({
+                success: false,
+                error: errorMsg,
+                error_type: errorType,
+              }),
             },
           ],
         };

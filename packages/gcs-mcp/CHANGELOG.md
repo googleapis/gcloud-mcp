@@ -4,4 +4,4 @@
 
 ### Features
 
-* Initial release of the Google Cloud Storage MCP server.
+- Initial release of the Google Cloud Storage MCP server.

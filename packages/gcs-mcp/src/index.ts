@@ -19,7 +19,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
-import { listBucketsTool } from './tools/list_buckets.js';
+import { registerTool } from './tools/list_buckets.js';
 import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
@@ -46,18 +46,9 @@ const main = async () => {
       name: 'gcs-mcp-server',
       version: pkg.version,
     },
-    {
-      capabilities: {
-        tools: {
-          [listBucketsTool.toolSpec.name]: {
-            description: listBucketsTool.toolSpec.description,
-            inputSchema: listBucketsTool.toolSpec.inputSchema,
-            handler: listBucketsTool.toolExecutor,
-          },
-        },
-      },
-    },
+    { capabilities: { tools: {} } },
   );
+  registerTool(server);
 
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcs mcp server started');

@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
-export * from './list_buckets.js';
+export * from './api_client_factory.js';
+export * from './logger.js';

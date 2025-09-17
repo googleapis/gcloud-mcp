@@ -18,10 +18,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../utility/index.js';
 import { logger } from '../utility/logger.js';
-import {
-  MAX_CONTENT_SIZE,
-  STREAMING_THRESHOLD,
-} from '../utility/gcs_helpers.js';
+import { MAX_CONTENT_SIZE, STREAMING_THRESHOLD } from '../utility/gcs_helpers.js';
 
 export const registerReadObjectContentTool = (server: McpServer) => {
   server.registerTool(
@@ -36,17 +33,14 @@ export const registerReadObjectContentTool = (server: McpServer) => {
     async (params: { bucket_name: string; object_name: string }) => {
       try {
         logger.info(
-          `Reading content for object: ${params.object_name} in bucket: ${params.bucket_name}`
+          `Reading content for object: ${params.object_name} in bucket: ${params.bucket_name}`,
         );
         const storage = apiClientFactory.getStorageClient();
 
-        const file = storage
-          .bucket(params.bucket_name)
-          .file(params.object_name);
+        const file = storage.bucket(params.bucket_name).file(params.object_name);
         const [metadata] = await file.get();
         const size = Number(metadata.metadata.size);
-        const contentType =
-          metadata.metadata.contentType || 'application/octet-stream';
+        const contentType = metadata.metadata.contentType || 'application/octet-stream';
 
         // Handle size constraints before downloading
         if (size > MAX_CONTENT_SIZE) {
@@ -67,7 +61,7 @@ export const registerReadObjectContentTool = (server: McpServer) => {
 
         if (size > STREAMING_THRESHOLD) {
           logger.warn(
-            `Object ${params.object_name} is large (${size} bytes). Consider using streaming for better performance.`
+            `Object ${params.object_name} is large (${size} bytes). Consider using streaming for better performance.`,
           );
         }
 
@@ -86,17 +80,15 @@ export const registerReadObjectContentTool = (server: McpServer) => {
               content,
             };
             logger.info(
-              `Successfully read text content for object ${params.object_name} (${size} bytes)`
+              `Successfully read text content for object ${params.object_name} (${size} bytes)`,
             );
             return {
-              content: [
-                { type: 'text', text: JSON.stringify(result, null, 2) },
-              ],
+              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
             };
-          } catch (e) {
+          } catch (_e) {
             // If decoding fails, fall through to treat as a raw resource.
             logger.warn(
-              `Failed to decode ${params.object_name} as text, treating as raw resource.`
+              `Failed to decode ${params.object_name} as text, treating as raw resource.`,
             );
           }
         }
@@ -104,7 +96,7 @@ export const registerReadObjectContentTool = (server: McpServer) => {
         // Treat everything else (non-text or text that failed to decode) as a raw resource
         const contentBase64 = buffer.toString('base64');
         logger.info(
-          `Successfully read raw content for object ${params.object_name} (${size} bytes)`
+          `Successfully read raw content for object ${params.object_name} (${size} bytes)`,
         );
         return {
           content: [
@@ -138,6 +130,6 @@ export const registerReadObjectContentTool = (server: McpServer) => {
           ],
         };
       }
-    }
+    },
   );
 };

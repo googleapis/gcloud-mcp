@@ -18,46 +18,48 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../utility/index.js';
 import { logger } from '../utility/logger.js';
-import { formatFileMetadataResponse } from '../utility/gcs_helpers.js';
 
-export const registerReadObjectMetadataTool = (server: McpServer) => {
+export const registerCheckIamPermissionsTool = (server: McpServer) => {
   server.registerTool(
-    'read_object_metadata',
+    'check_iam_permissions',
     {
-      description: 'Reads metadata for a specific object.',
+      description: 'Tests IAM permissions for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object.'),
+        permissions: z
+          .array(z.string())
+          .describe('List of permissions to test.'),
       },
     },
-    async (params: { bucket_name: string; object_name: string }) => {
+    async (params: { bucket_name: string; permissions: string[] }) => {
       try {
         logger.info(
-          `Reading metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
+          `Testing IAM permissions for bucket: ${params.bucket_name}`
         );
         const storage = apiClientFactory.getStorageClient();
-        const [file] = await storage.bucket(params.bucket_name).file(params.object_name).get();
+        const bucket = storage.bucket(params.bucket_name);
+        const [allowedPermissions] = await bucket.iam.testPermissions(
+          params.permissions
+        );
 
-        if (!file) {
-          const errorMsg = `Object ${params.object_name} not found in bucket ${params.bucket_name}`;
-          logger.warn(errorMsg);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({ error: errorMsg, error_type: 'NotFound' }),
-              },
-            ],
-          };
-        }
-
-        logger.info(`Successfully retrieved metadata for object ${params.object_name}`);
+        logger.info(
+          `Successfully tested IAM permissions for bucket ${params.bucket_name}`
+        );
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify(
-                formatFileMetadataResponse(file.metadata),
+                {
+                  bucket_name: params.bucket_name,
+                  requested_permissions: params.permissions,
+                  allowed_permissions: allowedPermissions,
+                  denied_permissions: params.permissions.filter(
+                    (p) =>
+                      Array.isArray(allowedPermissions) &&
+                      !allowedPermissions.includes(p)
+                  ),
+                },
                 null,
                 2
               ),
@@ -72,17 +74,21 @@ export const registerReadObjectMetadataTool = (server: McpServer) => {
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
         }
-        const errorMsg = `Error reading object metadata: ${error.message}`;
+        const errorMsg = `Error testing IAM permissions: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({ error: errorMsg, error_type: errorType }),
+              text: JSON.stringify({
+                success: false,
+                error: errorMsg,
+                error_type: errorType,
+              }),
             },
           ],
         };
       }
-    },
+    }
   );
 };

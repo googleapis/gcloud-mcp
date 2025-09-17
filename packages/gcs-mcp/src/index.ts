@@ -29,6 +29,14 @@ import {
   registerMoveObjectTool,
   registerGenerateDownloadSignedUrlTool,
   registerGenerateUploadSignedUrlTool,
+  registerCreateBucketTool,
+  registerDeleteBucketTool,
+  registerGetBucketMetadataTool,
+  registerViewIamPolicyTool,
+  registerUpdateIamPolicyTool,
+  registerCheckIamPermissionsTool,
+  registerUpdateBucketLabelsTool,
+  registerGetBucketLocationTool,
 } from './tools/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
@@ -71,6 +79,14 @@ const main = async () => {
   registerMoveObjectTool(server);
   registerGenerateDownloadSignedUrlTool(server);
   registerGenerateUploadSignedUrlTool(server);
+  registerCreateBucketTool(server);
+  registerDeleteBucketTool(server);
+  registerGetBucketMetadataTool(server);
+  registerViewIamPolicyTool(server);
+  registerUpdateIamPolicyTool(server);
+  registerCheckIamPermissionsTool(server);
+  registerUpdateBucketLabelsTool(server);
+  registerGetBucketLocationTool(server);
 
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcs mcp server started');

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { FileMetadata } from '@google-cloud/storage';
 import mime from 'mime';
 
 // The maximum size of a file that can be read into memory, in bytes.
@@ -52,21 +53,28 @@ export interface GCSListObjectsResponse {
   prefixes?: string[];
 }
 
-export const getContentType = (object_name: string) => {
-  return mime.getType(object_name) || 'application/octet-stream';
-};
+export const getContentType = (object_name: string) =>
+  mime.getType(object_name) || 'application/octet-stream';
 
-export const formatFileMetadataResponse = (metadata: any) => {
-  return {
-    bucket: metadata.bucket,
-    object: metadata.name,
-    size: Number(metadata.size),
-    content_type: metadata.contentType,
-    time_created: metadata.timeCreated,
-    updated: metadata.updated,
-    storage_class: metadata.storageClass,
-  };
-};
+export const formatGCSObjectMetaResponse = (metadata: GCSObjectMeta) => ({
+  bucket: metadata.bucket,
+  object: metadata.name,
+  size: Number(metadata.size),
+  content_type: metadata.contentType,
+  time_created: metadata.timeCreated,
+  updated: metadata.updated,
+  storage_class: metadata.storageClass,
+});
+
+export const formatFileMetadataResponse = (metadata: FileMetadata) => ({
+  bucket: metadata.bucket,
+  object: metadata.name,
+  size: Number(metadata.size),
+  content_type: metadata.contentType,
+  time_created: metadata.timeCreated,
+  updated: metadata.updated,
+  storage_class: metadata.storageClass,
+});
 
 export const validateBase64Content = (content: string) => {
   // Basic check for base64 validity

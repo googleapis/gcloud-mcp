@@ -96,6 +96,7 @@ export class Logger {
     const errorString = error ? ` | Message: ${error.message}` : '';
 
     const output = `${record.timestamp} [${record.severity.toUpperCase()}] ${record.message}${contextString}${errorString}`;
+    // eslint-disable-next-line no-console
     console.log(output);
   }
 

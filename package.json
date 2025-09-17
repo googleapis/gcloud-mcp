@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:i": "vitest run --coverage",
     "prepare": "npm run build",
+    "pretest": "npm run build",
     "posttest": "npm run lint"
   },
   "devDependencies": {

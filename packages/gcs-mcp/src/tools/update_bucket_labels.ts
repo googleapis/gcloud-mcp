@@ -18,46 +18,41 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../utility/index.js';
 import { logger } from '../utility/logger.js';
-import { formatFileMetadataResponse } from '../utility/gcs_helpers.js';
+import { BucketMetadata } from '@google-cloud/storage';
 
-export const registerReadObjectMetadataTool = (server: McpServer) => {
+export const registerUpdateBucketLabelsTool = (server: McpServer) => {
   server.registerTool(
-    'read_object_metadata',
+    'update_bucket_labels',
     {
-      description: 'Reads metadata for a specific object.',
+      description: 'Updates labels for a bucket.',
       inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object.'),
+        bucket_name: z.string().describe('The name of the bucket.'),
+        labels: z
+          .record(z.string())
+          .describe('Dictionary of labels to set on the bucket.'),
       },
     },
-    async (params: { bucket_name: string; object_name: string }) => {
+    async (params: { bucket_name: string; labels: Record<string, string> }) => {
       try {
-        logger.info(
-          `Reading metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
-        );
+        logger.info(`Updating labels for bucket: ${params.bucket_name}`);
         const storage = apiClientFactory.getStorageClient();
-        const [file] = await storage.bucket(params.bucket_name).file(params.object_name).get();
+        const bucket = storage.bucket(params.bucket_name);
+        const [metadata] = await bucket.setLabels(params.labels);
 
-        if (!file) {
-          const errorMsg = `Object ${params.object_name} not found in bucket ${params.bucket_name}`;
-          logger.warn(errorMsg);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({ error: errorMsg, error_type: 'NotFound' }),
-              },
-            ],
-          };
-        }
-
-        logger.info(`Successfully retrieved metadata for object ${params.object_name}`);
+        logger.info(
+          `Successfully updated labels for bucket ${params.bucket_name}`
+        );
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify(
-                formatFileMetadataResponse(file.metadata),
+                {
+                  success: true,
+                  message: `Labels for bucket ${params.bucket_name} updated successfully`,
+                  bucket_name: params.bucket_name,
+                  updated_labels: (metadata as BucketMetadata).labels,
+                },
                 null,
                 2
               ),
@@ -71,18 +66,24 @@ export const registerReadObjectMetadataTool = (server: McpServer) => {
           errorType = 'NotFound';
         } else if (error.message.includes('Forbidden')) {
           errorType = 'Forbidden';
+        } else if (error.message.includes('Invalid')) {
+          errorType = 'BadRequest';
         }
-        const errorMsg = `Error reading object metadata: ${error.message}`;
+        const errorMsg = `Error updating bucket labels: ${error.message}`;
         logger.error(errorMsg);
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({ error: errorMsg, error_type: errorType }),
+              text: JSON.stringify({
+                success: false,
+                error: errorMsg,
+                error_type: errorType,
+              }),
             },
           ],
         };
       }
-    },
+    }
   );
 };

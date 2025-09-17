@@ -18,7 +18,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../utility/index.js';
 
-export const registerTool = (server: McpServer) => {
+export const registerListGcsBucketsTool = (server: McpServer) => {
   server.registerTool(
     'list_gcs_buckets',
     {
@@ -35,8 +35,7 @@ export const registerTool = (server: McpServer) => {
           'Project ID not specified. Please specify via the project_id parameter or GOOGLE_CLOUD_PROJECT environment variable.',
         );
       }
-      const res = await storage.buckets.list({ project: projectId });
-      const buckets = res.data.items;
+      const [buckets] = await storage.getBuckets({ userProject: projectId });
 
       if (!buckets || buckets.length === 0) {
         return { content: [{ type: 'text', text: 'No buckets found.' }] };

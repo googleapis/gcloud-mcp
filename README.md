@@ -132,7 +132,7 @@ For more information regarding installing the repository locally, please see
 ## 🧰 Available MCP Tools
 
 | MCP Server    | Tool                      | Description                                                                                                                                               |
-| :------------ | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| :------------ | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
 | gcloud        | `run_gcloud_command`      | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [MCP Permissions](#-mcp-permissions) for more information. |
 | observability | `list_log_entries`        | Lists log entries from a project.                                                                                                                         |
 |               | `list_log_names`          | Lists log names from a project.                                                                                                                           |
@@ -153,11 +153,11 @@ For more information regarding installing the repository locally, please see
 |               | `write_object`            | Writes a new object to a bucket.                                                                                                                          |
 |               | `update_object_metadata`  | Updates the custom metadata of an existing object.                                                                                                        |
 |               | `copy_object`             | Copies an object from one bucket to another.                                                                                                              |
-|               | `move_object`             | Moves an object from one bucket to another.                                                                                                               |                                                                 |
+|               | `move_object`             | Moves an object from one bucket to another.                                                                                                               |     |
 |               | `list_buckets`            | Lists all buckets in a project.                                                                                                                           |
 |               | `create_bucket`           | Creates a new bucket.                                                                                                                                     |
 |               | `delete_bucket`           | Deletes a bucket.                                                                                                                                         |
-|               | `get_bucket_metadata`     | Gets comprehensive metadata for a specific bucket.                                                                                                        |                                                                                                           |
+|               | `get_bucket_metadata`     | Gets comprehensive metadata for a specific bucket.                                                                                                        |     |
 |               | `update_bucket_labels`    | Updates labels for a bucket.                                                                                                                              |
 |               | `get_bucket_location`     | Gets the location of a bucket.                                                                                                                            |
 

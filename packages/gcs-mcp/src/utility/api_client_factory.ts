@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-import { Auth, google, storage_v1 } from 'googleapis';
-import { GoogleAuth } from 'google-auth-library';
+import { Storage } from '@google-cloud/storage';
 
 export class ApiClientFactory {
   private static instance: ApiClientFactory;
-  private readonly auth: Auth.GoogleAuth;
-  private storageClient?: storage_v1.Storage;
+  private storageClient?: Storage;
 
-  private constructor() {
-    this.auth = new GoogleAuth({
-      scopes: 'https://www.googleapis.com/auth/cloud-platform',
-    });
-  }
+  private constructor() {}
 
   static getInstance(): ApiClientFactory {
     if (!ApiClientFactory.instance) {
@@ -35,12 +29,9 @@ export class ApiClientFactory {
     return ApiClientFactory.instance;
   }
 
-  getStorageClient(): storage_v1.Storage {
+  getStorageClient(): Storage {
     if (!this.storageClient) {
-      this.storageClient = google.storage({
-        version: 'v1',
-        auth: this.auth,
-      });
+      this.storageClient = new Storage();
     }
     return this.storageClient;
   }

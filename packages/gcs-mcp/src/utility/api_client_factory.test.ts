@@ -15,19 +15,11 @@
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { google } from 'googleapis';
-import { GoogleAuth } from 'google-auth-library';
+import { Storage } from '@google-cloud/storage';
 import { ApiClientFactory as ApiClientFactoryClass } from './api_client_factory.js';
 
-// Mock the googleapis library
-vi.mock('googleapis', () => ({
-  google: {
-    storage: vi.fn(() => ({})),
-  },
-}));
-
-// Mock the google-auth-library
-vi.mock('google-auth-library');
+// Mock the @google-cloud/storage library
+vi.mock('@google-cloud/storage');
 
 describe('ApiClientFactory', () => {
   let ApiClientFactory: typeof ApiClientFactoryClass;
@@ -38,13 +30,6 @@ describe('ApiClientFactory', () => {
     vi.clearAllMocks();
     // Re-import the module to get a fresh instance
     ApiClientFactory = (await import('./api_client_factory.js')).ApiClientFactory;
-  });
-
-  it('should use the correct auth scopes on initialization', () => {
-    ApiClientFactory.getInstance();
-    expect(GoogleAuth).toHaveBeenCalledWith({
-      scopes: 'https://www.googleapis.com/auth/cloud-platform',
-    });
   });
 
   it('should always return the same singleton instance', () => {
@@ -58,6 +43,6 @@ describe('ApiClientFactory', () => {
     const client1 = factory.getStorageClient();
     const client2 = factory.getStorageClient();
     expect(client1).toBe(client2);
-    expect(google.storage).toHaveBeenCalledTimes(1);
+    expect(Storage).toHaveBeenCalledTimes(1);
   });
 });

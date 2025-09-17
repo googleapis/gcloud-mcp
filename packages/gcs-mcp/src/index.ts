@@ -17,9 +17,21 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import {
+  registerListGcsBucketsTool,
+  registerListObjectsTool,
+  registerReadObjectMetadataTool,
+  registerReadObjectContentTool,
+  registerDeleteObjectTool,
+  registerWriteObjectTool,
+  registerUpdateObjectMetadataTool,
+  registerCopyObjectTool,
+  registerMoveObjectTool,
+  registerGenerateDownloadSignedUrlTool,
+  registerGenerateUploadSignedUrlTool,
+} from './tools/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
-import { registerTool } from './tools/list_buckets.js';
 import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
@@ -48,7 +60,17 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  registerTool(server);
+  registerListGcsBucketsTool(server);
+  registerListObjectsTool(server);
+  registerReadObjectMetadataTool(server);
+  registerReadObjectContentTool(server);
+  registerDeleteObjectTool(server);
+  registerWriteObjectTool(server);
+  registerUpdateObjectMetadataTool(server);
+  registerCopyObjectTool(server);
+  registerMoveObjectTool(server);
+  registerGenerateDownloadSignedUrlTool(server);
+  registerGenerateUploadSignedUrlTool(server);
 
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcs mcp server started');

@@ -95,14 +95,8 @@ export class Logger {
 
     const errorString = error ? ` | Message: ${error.message}` : '';
 
-    const formattedMessage = `[${record.timestamp}] ${record.severity.toUpperCase()}: ${message}${contextString}${errorString}`;
-
-    // Use console.error for all levels to ensure MCP server logs are captured
-    console.error(formattedMessage);
-
-    if (error?.stack) {
-      console.error('Stack trace:', error.stack);
-    }
+    const output = `${record.timestamp} [${record.severity.toUpperCase()}] ${record.message}${contextString}${errorString}`;
+    console.log(output);
   }
 
   startTimer(operation: string): () => void {

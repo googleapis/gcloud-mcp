@@ -15,3 +15,13 @@
  */
 
 export * from './list_buckets.js';
+export * from './list_objects.js';
+export * from './read_object_metadata.js';
+export * from './read_object_content.js';
+export * from './delete_object.js';
+export * from './write_object.js';
+export * from './update_object_metadata.js';
+export * from './copy_object.js';
+export * from './move_object.js';
+export * from './generate_download_signed_url.js';
+export * from './generate_upload_signed_url.js';

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.1.1...gcloud-mcp-v0.2.0) (2025-09-17)
+
+
+### Features
+
+* Add meta commands to default denylist ([#228](https://github.com/googleapis/gcloud-mcp/issues/228)) ([e04f1a2](https://github.com/googleapis/gcloud-mcp/commit/e04f1a220648633a2a0cb8bc53656701a270b363))
+
 ## [0.1.1](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.1.0...gcloud-mcp-v0.1.1) (2025-09-10)
 
 

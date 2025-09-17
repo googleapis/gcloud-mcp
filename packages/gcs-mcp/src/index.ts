@@ -18,7 +18,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
-  registerListGcsBucketsTool,
+  registerListBucketsTool,
   registerListObjectsTool,
   registerReadObjectMetadataTool,
   registerReadObjectContentTool,
@@ -68,7 +68,7 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  registerListGcsBucketsTool(server);
+  registerListBucketsTool(server);
   registerListObjectsTool(server);
   registerReadObjectMetadataTool(server);
   registerReadObjectContentTool(server);

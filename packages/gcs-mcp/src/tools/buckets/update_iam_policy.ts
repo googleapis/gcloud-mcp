@@ -27,7 +27,12 @@ export const registerUpdateIamPolicyTool = (server: McpServer) => {
       description: 'Updates the IAM policy for a bucket.',
       inputSchema: {
         bucket_name: z.string().describe('The name of the GCS bucket.'),
-        policy_updates: z.any().describe('The policy updates to apply.').optional(),
+        policy_updates: z
+          .any()
+          .describe(
+            'The policy updates to apply. This should be a JSON object with a `bindings` array. For example: `{"bindings": [{"role": "roles/storage.objectViewer", "members": ["user:test@example.com"]}]}`',
+          )
+          .optional(),
       },
     },
     async (params: { bucket_name: string; policy_updates?: Policy }) => {

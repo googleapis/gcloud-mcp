@@ -9,7 +9,7 @@
     "observability-mcp": "./dist/src/server.js"
   },
   "scripts": {
-    "build": "tsc -p . && cp GEMINI-extension.md dist/",
+    "build": "tsc -p . && shx cp GEMINI-extension.md dist/",
     "test": "vitest run",
     "start": "node dist/src/server.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",

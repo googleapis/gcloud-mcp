@@ -15,17 +15,14 @@
  */
 
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
+import geminiMd from '../../GEMINI-extension.md';
 import os from 'os';
 
 export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile, writeFile }) => {
   try {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'gcloud-mcp');
     await fs.mkdir(extensionDir, { recursive: true });
@@ -50,10 +47,8 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile,
     console.log(`Created: ${extensionFile}`);
 
     // Create GEMINI.md
-    const geminiMdSrcPath = join(__dirname, '../../GEMINI-extension.md');
     const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
-    const geminiMdContent = await fs.readFile(geminiMdSrcPath);
-    await fs.writeFile(geminiMdDestPath, geminiMdContent);
+    await fs.writeFile(geminiMdDestPath, geminiMd);
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console
     console.log(`Created: ${geminiMdDestPath}`);

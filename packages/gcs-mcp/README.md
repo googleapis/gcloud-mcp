@@ -103,6 +103,7 @@ For more information regarding installing the repository locally, please see
 | `move_object`                    | Moves an object from one bucket to another.               |
 | `generate_download_signed_url`   | Generates a signed URL for downloading an object.         |
 | `generate_upload_signed_url`     | Generates a signed URL for uploading an object.           |
+| `upload_object`                    | Uploads a file to a GCS bucket.                           |
 
 ### Bucket Tools
 
@@ -115,7 +116,6 @@ For more information regarding installing the repository locally, please see
 | `update_bucket_labels`    | Updates labels for a bucket.                       |
 | `get_bucket_location`     | Gets the location of a bucket.                     |
 | `view_iam_policy`         | Views the IAM policy for a bucket.                 |
-| `update_iam_policy`       | Updates the IAM policy for a bucket.               |
 | `check_iam_permissions`   | Tests IAM permissions for a bucket.                |
 
 ## 🔑 MCP Permissions

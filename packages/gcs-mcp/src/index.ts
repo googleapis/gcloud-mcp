@@ -24,6 +24,7 @@ import {
   registerReadObjectContentTool,
   registerDeleteObjectTool,
   registerWriteObjectTool,
+  registerUploadObjectTool,
   registerUpdateObjectMetadataTool,
   registerCopyObjectTool,
   registerMoveObjectTool,
@@ -33,7 +34,6 @@ import {
   registerDeleteBucketTool,
   registerGetBucketMetadataTool,
   registerViewIamPolicyTool,
-  registerUpdateIamPolicyTool,
   registerCheckIamPermissionsTool,
   registerUpdateBucketLabelsTool,
   registerGetBucketLocationTool,
@@ -74,6 +74,7 @@ const main = async () => {
   registerReadObjectContentTool(server);
   registerDeleteObjectTool(server);
   registerWriteObjectTool(server);
+  registerUploadObjectTool(server);
   registerUpdateObjectMetadataTool(server);
   registerCopyObjectTool(server);
   registerMoveObjectTool(server);
@@ -83,7 +84,6 @@ const main = async () => {
   registerDeleteBucketTool(server);
   registerGetBucketMetadataTool(server);
   registerViewIamPolicyTool(server);
-  registerUpdateIamPolicyTool(server);
   registerCheckIamPermissionsTool(server);
   registerUpdateBucketLabelsTool(server);
   registerGetBucketLocationTool(server);

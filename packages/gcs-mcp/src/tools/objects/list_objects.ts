@@ -36,19 +36,19 @@ export const registerListObjectsTool = (server: McpServer) => {
           .string()
           .optional()
           .describe(
-            "Can be used to list objects in a directory-like structure. For example, using a delimiter of '/' will return objects at the root level and not in subdirectories. This helps in navigating virtual folder hierarchies."
+            "Can be used to list objects in a directory-like structure. For example, using a delimiter of '/' will return objects at the root level and not in subdirectories. This helps in navigating virtual folder hierarchies.",
           ),
         max_results: z
           .number()
           .optional()
           .describe(
-            'The maximum number of object names to return in a single response. If not specified, the API defaults to 1,000. The maximum value allowed is also 1,000.'
+            'The maximum number of object names to return in a single response. If not specified, the API defaults to 1,000. The maximum value allowed is also 1,000.',
           ),
         page_token: z
           .string()
           .optional()
           .describe(
-            'A token used to retrieve the next page of results. This is obtained from the `next_page_token` field of a previous `list_objects` call.'
+            'A token used to retrieve the next page of results. This is obtained from the `next_page_token` field of a previous `list_objects` call.',
           ),
         versions: z
           .boolean()

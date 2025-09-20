@@ -20,7 +20,6 @@ export * from './buckets/get_bucket_location.js';
 export * from './buckets/get_bucket_metadata.js';
 export * from './buckets/list_buckets.js';
 export * from './buckets/update_bucket_labels.js';
-export * from './buckets/update_iam_policy.js';
 export * from './buckets/view_iam_policy.js';
 export * from './buckets/check_iam_permissions.js';
 
@@ -34,3 +33,4 @@ export * from './objects/read_object_content.js';
 export * from './objects/read_object_metadata.js';
 export * from './objects/update_object_metadata.js';
 export * from './objects/write_object.js';
+export * from './objects/upload_object.js';

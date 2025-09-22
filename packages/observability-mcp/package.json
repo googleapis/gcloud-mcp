@@ -4,7 +4,9 @@
   "version": "0.1.1",
   "type": "module",
   "description": "MCP Server for GCP environment for interacting with various Observability APIs.",
-  "files": ["dist/"],
+  "files": [
+    "dist/"
+  ],
   "bin": {
     "observability-mcp": "./dist/bundle.js"
   },

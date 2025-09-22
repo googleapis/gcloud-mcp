@@ -2,7 +2,9 @@
   "name": "@google-cloud/gcloud-mcp",
   "version": "0.1.1",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist/"
+  ],
   "bin": {
     "gcloud-mcp": "./dist/bundle.js"
   },

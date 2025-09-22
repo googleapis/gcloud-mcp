@@ -24,4 +24,5 @@ build({
   outfile: 'dist/bundle.js',
   platform: 'node',
   format: 'esm',
+  external: ['google-auth-library', 'googleapis'],
 }).catch(() => process.exit(1));

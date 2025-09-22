@@ -15,36 +15,41 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
+
+const inputSchema = {
+  project_id: z.string().optional().describe('The project ID to list buckets for.'),
+};
+
+type ListBucketsParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function listBuckets(params: ListBucketsParams): Promise<CallToolResult> {
+  const storage = apiClientFactory.getStorageClient();
+  const projectId = params.project_id || process.env['GOOGLE_CLOUD_PROJECT'];
+  if (!projectId) {
+    throw new Error(
+      'Project ID not specified. Please specify via the project_id parameter or GOOGLE_CLOUD_PROJECT environment variable.',
+    );
+  }
+  const [buckets] = await storage.getBuckets({ userProject: projectId });
+
+  if (!buckets || buckets.length === 0) {
+    return { content: [{ type: 'text', text: 'No buckets found.' }] };
+  }
+  const bucketNames = buckets.map((bucket) => bucket.name).filter((name): name is string => !!name);
+
+  return { content: [{ type: 'text', text: bucketNames.join('\n') }] };
+}
 
 export const registerListBucketsTool = (server: McpServer) => {
   server.registerTool(
     'list_buckets',
     {
       description: 'Lists all GCS buckets in the project.',
-      inputSchema: {
-        project_id: z.string().optional().describe('The project ID to list buckets for.'),
-      },
+      inputSchema,
     },
-    async (params: { project_id?: string | undefined }) => {
-      const storage = apiClientFactory.getStorageClient();
-      const projectId = params.project_id || process.env['GOOGLE_CLOUD_PROJECT'];
-      if (!projectId) {
-        throw new Error(
-          'Project ID not specified. Please specify via the project_id parameter or GOOGLE_CLOUD_PROJECT environment variable.',
-        );
-      }
-      const [buckets] = await storage.getBuckets({ userProject: projectId });
-
-      if (!buckets || buckets.length === 0) {
-        return { content: [{ type: 'text', text: 'No buckets found.' }] };
-      }
-      const bucketNames = buckets
-        .map((bucket) => bucket.name)
-        .filter((name): name is string => !!name);
-
-      return { content: [{ type: 'text', text: bucketNames.join('\n') }] };
-    },
+    listBuckets,
   );
 };

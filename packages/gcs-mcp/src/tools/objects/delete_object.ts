@@ -15,57 +15,64 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
+
+const inputSchema = {
+  bucket_name: z.string().describe('The name of the GCS bucket.'),
+  object_name: z.string().describe('The name of the object to delete.'),
+};
+
+type DeleteObjectParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function deleteObject(params: DeleteObjectParams): Promise<CallToolResult> {
+  try {
+    logger.info(`Deleting object: ${params.object_name} from bucket: ${params.bucket_name}`);
+    const storage = apiClientFactory.getStorageClient();
+    await storage.bucket(params.bucket_name).file(params.object_name).delete();
+
+    const result = {
+      success: true,
+      message: `Object ${params.object_name} deleted successfully from bucket ${params.bucket_name}`,
+      bucket: params.bucket_name,
+      object: params.object_name,
+    };
+    logger.info(
+      `Successfully deleted object ${params.object_name} from bucket ${params.bucket_name}`,
+    );
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  } catch (e: unknown) {
+    const error = e as Error;
+    let errorType = 'Unknown';
+    if (error.message.includes('Not Found')) {
+      errorType = 'NotFound';
+    } else if (error.message.includes('Forbidden')) {
+      errorType = 'Forbidden';
+    }
+    const errorMsg = `Error deleting object: ${error.message}`;
+    logger.error(errorMsg);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error: errorMsg, error_type: errorType }),
+        },
+      ],
+    };
+  }
+}
 
 export const registerDeleteObjectTool = (server: McpServer) => {
   server.registerTool(
     'delete_object',
     {
       description: 'Deletes a specific object.',
-      inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object to delete.'),
-      },
+      inputSchema,
     },
-    async (params: { bucket_name: string; object_name: string }) => {
-      try {
-        logger.info(`Deleting object: ${params.object_name} from bucket: ${params.bucket_name}`);
-        const storage = apiClientFactory.getStorageClient();
-        await storage.bucket(params.bucket_name).file(params.object_name).delete();
-
-        const result = {
-          success: true,
-          message: `Object ${params.object_name} deleted successfully from bucket ${params.bucket_name}`,
-          bucket: params.bucket_name,
-          object: params.object_name,
-        };
-        logger.info(
-          `Successfully deleted object ${params.object_name} from bucket ${params.bucket_name}`,
-        );
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-        };
-      } catch (e: unknown) {
-        const error = e as Error;
-        let errorType = 'Unknown';
-        if (error.message.includes('Not Found')) {
-          errorType = 'NotFound';
-        } else if (error.message.includes('Forbidden')) {
-          errorType = 'Forbidden';
-        }
-        const errorMsg = `Error deleting object: ${error.message}`;
-        logger.error(errorMsg);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({ error: errorMsg, error_type: errorType }),
-            },
-          ],
-        };
-      }
-    },
+    deleteObject,
   );
 };

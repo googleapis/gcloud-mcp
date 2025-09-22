@@ -15,69 +15,76 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
+
+const inputSchema = {
+  bucket_name: z.string().describe('The name of the bucket.'),
+};
+
+type GetBucketLocationParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function getBucketLocation(params: GetBucketLocationParams): Promise<CallToolResult> {
+  try {
+    logger.info(`Getting location for bucket: ${params.bucket_name}`);
+    const storage = apiClientFactory.getStorageClient();
+    const bucket = storage.bucket(params.bucket_name);
+    const [metadata] = await bucket.getMetadata();
+
+    logger.info(`Successfully retrieved location for bucket ${params.bucket_name}`);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              bucket_name: params.bucket_name,
+              location: metadata.location,
+              location_type: metadata.locationType,
+              storage_class: metadata.storageClass,
+              time_created: metadata.timeCreated,
+              updated: metadata.updated,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  } catch (e: unknown) {
+    const error = e as Error;
+    let errorType = 'Unknown';
+    if (error.message.includes('Not Found')) {
+      errorType = 'NotFound';
+    } else if (error.message.includes('Forbidden')) {
+      errorType = 'Forbidden';
+    }
+    const errorMsg = `Error getting bucket location: ${error.message}`;
+    logger.error(errorMsg);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: false,
+            error: errorMsg,
+            error_type: errorType,
+          }),
+        },
+      ],
+    };
+  }
+}
 
 export const registerGetBucketLocationTool = (server: McpServer) => {
   server.registerTool(
     'get_bucket_location',
     {
       description: 'Gets the location and storage class of a bucket.',
-      inputSchema: {
-        bucket_name: z.string().describe('The name of the bucket.'),
-      },
+      inputSchema,
     },
-    async (params: { bucket_name: string }) => {
-      try {
-        logger.info(`Getting location for bucket: ${params.bucket_name}`);
-        const storage = apiClientFactory.getStorageClient();
-        const bucket = storage.bucket(params.bucket_name);
-        const [metadata] = await bucket.getMetadata();
-
-        logger.info(`Successfully retrieved location for bucket ${params.bucket_name}`);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  bucket_name: params.bucket_name,
-                  location: metadata.location,
-                  location_type: metadata.locationType,
-                  storage_class: metadata.storageClass,
-                  time_created: metadata.timeCreated,
-                  updated: metadata.updated,
-                },
-                null,
-                2,
-              ),
-            },
-          ],
-        };
-      } catch (e: unknown) {
-        const error = e as Error;
-        let errorType = 'Unknown';
-        if (error.message.includes('Not Found')) {
-          errorType = 'NotFound';
-        } else if (error.message.includes('Forbidden')) {
-          errorType = 'Forbidden';
-        }
-        const errorMsg = `Error getting bucket location: ${error.message}`;
-        logger.error(errorMsg);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: false,
-                error: errorMsg,
-                error_type: errorType,
-              }),
-            },
-          ],
-        };
-      }
-    },
+    getBucketLocation,
   );
 };

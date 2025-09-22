@@ -15,74 +15,79 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
+
+const inputSchema = {
+  bucket_name: z.string().describe('The name of the GCS bucket.'),
+  object_name: z.string().describe('The name of the object to update.'),
+  metadata: z.record(z.string()).describe('A dictionary of metadata to set on the object.'),
+};
+
+type UpdateObjectMetadataParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function updateObjectMetadata(
+  params: UpdateObjectMetadataParams,
+): Promise<CallToolResult> {
+  try {
+    logger.info(
+      `Updating metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
+    );
+
+    const string_metadata: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params.metadata)) {
+      string_metadata[String(key)] = String(value);
+    }
+
+    const storage = apiClientFactory.getStorageClient();
+    await storage
+      .bucket(params.bucket_name)
+      .file(params.object_name)
+      .setMetadata({ metadata: string_metadata });
+
+    const result = {
+      success: true,
+      message: `Metadata for object ${params.object_name} updated successfully`,
+      bucket: params.bucket_name,
+      object: params.object_name,
+      updated_metadata: string_metadata,
+    };
+    logger.info(`Successfully updated metadata for object ${params.object_name}`);
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  } catch (e: unknown) {
+    const error = e as Error;
+    let errorType = 'Unknown';
+    if (error.message.includes('Not Found')) {
+      errorType = 'NotFound';
+    } else if (error.message.includes('Forbidden')) {
+      errorType = 'Forbidden';
+    } else if (error.message.includes('Invalid')) {
+      errorType = 'BadRequest';
+    }
+    const errorMsg = `Error updating object metadata: ${error.message}`;
+    logger.error(errorMsg);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error: errorMsg, error_type: errorType }),
+        },
+      ],
+    };
+  }
+}
 
 export const registerUpdateObjectMetadataTool = (server: McpServer) => {
   server.registerTool(
     'update_object_metadata',
     {
       description: 'Updates the metadata of an existing object.',
-      inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object to update.'),
-        metadata: z.record(z.string()).describe('A dictionary of metadata to set on the object.'),
-      },
+      inputSchema,
     },
-    async (params: {
-      bucket_name: string;
-      object_name: string;
-      metadata: Record<string, string>;
-    }) => {
-      try {
-        logger.info(
-          `Updating metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
-        );
-
-        const string_metadata: Record<string, string> = {};
-        for (const [key, value] of Object.entries(params.metadata)) {
-          string_metadata[String(key)] = String(value);
-        }
-
-        const storage = apiClientFactory.getStorageClient();
-        await storage
-          .bucket(params.bucket_name)
-          .file(params.object_name)
-          .setMetadata({ metadata: string_metadata });
-
-        const result = {
-          success: true,
-          message: `Metadata for object ${params.object_name} updated successfully`,
-          bucket: params.bucket_name,
-          object: params.object_name,
-          updated_metadata: string_metadata,
-        };
-        logger.info(`Successfully updated metadata for object ${params.object_name}`);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-        };
-      } catch (e: unknown) {
-        const error = e as Error;
-        let errorType = 'Unknown';
-        if (error.message.includes('Not Found')) {
-          errorType = 'NotFound';
-        } else if (error.message.includes('Forbidden')) {
-          errorType = 'Forbidden';
-        } else if (error.message.includes('Invalid')) {
-          errorType = 'BadRequest';
-        }
-        const errorMsg = `Error updating object metadata: ${error.message}`;
-        logger.error(errorMsg);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({ error: errorMsg, error_type: errorType }),
-            },
-          ],
-        };
-      }
-    },
+    updateObjectMetadata,
   );
 };

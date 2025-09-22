@@ -14,72 +14,81 @@
  * limitations under the License.
  */
 
+import { BucketMetadata } from '@google-cloud/storage';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
-import { BucketMetadata } from '@google-cloud/storage';
+
+const inputSchema = {
+  bucket_name: z.string().describe('The name of the bucket.'),
+  labels: z.record(z.string()).describe('Dictionary of labels to set on the bucket.'),
+};
+
+type UpdateBucketLabelsParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function updateBucketLabels(
+  params: UpdateBucketLabelsParams,
+): Promise<CallToolResult> {
+  try {
+    logger.info(`Updating labels for bucket: ${params.bucket_name}`);
+    const storage = apiClientFactory.getStorageClient();
+    const bucket = storage.bucket(params.bucket_name);
+    const [metadata] = await bucket.setLabels(params.labels);
+
+    logger.info(`Successfully updated labels for bucket ${params.bucket_name}`);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              message: `Labels for bucket ${params.bucket_name} updated successfully`,
+              bucket_name: params.bucket_name,
+              updated_labels: (metadata as BucketMetadata).labels,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  } catch (e: unknown) {
+    const error = e as Error;
+    let errorType = 'Unknown';
+    if (error.message.includes('Not Found')) {
+      errorType = 'NotFound';
+    } else if (error.message.includes('Forbidden')) {
+      errorType = 'Forbidden';
+    } else if (error.message.includes('Invalid')) {
+      errorType = 'BadRequest';
+    }
+    const errorMsg = `Error updating bucket labels: ${error.message}`;
+    logger.error(errorMsg);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: false,
+            error: errorMsg,
+            error_type: errorType,
+          }),
+        },
+      ],
+    };
+  }
+}
 
 export const registerUpdateBucketLabelsTool = (server: McpServer) => {
   server.registerTool(
     'update_bucket_labels',
     {
       description: 'Updates labels for a bucket.',
-      inputSchema: {
-        bucket_name: z.string().describe('The name of the bucket.'),
-        labels: z.record(z.string()).describe('Dictionary of labels to set on the bucket.'),
-      },
+      inputSchema,
     },
-    async (params: { bucket_name: string; labels: Record<string, string> }) => {
-      try {
-        logger.info(`Updating labels for bucket: ${params.bucket_name}`);
-        const storage = apiClientFactory.getStorageClient();
-        const bucket = storage.bucket(params.bucket_name);
-        const [metadata] = await bucket.setLabels(params.labels);
-
-        logger.info(`Successfully updated labels for bucket ${params.bucket_name}`);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  success: true,
-                  message: `Labels for bucket ${params.bucket_name} updated successfully`,
-                  bucket_name: params.bucket_name,
-                  updated_labels: (metadata as BucketMetadata).labels,
-                },
-                null,
-                2,
-              ),
-            },
-          ],
-        };
-      } catch (e: unknown) {
-        const error = e as Error;
-        let errorType = 'Unknown';
-        if (error.message.includes('Not Found')) {
-          errorType = 'NotFound';
-        } else if (error.message.includes('Forbidden')) {
-          errorType = 'Forbidden';
-        } else if (error.message.includes('Invalid')) {
-          errorType = 'BadRequest';
-        }
-        const errorMsg = `Error updating bucket labels: ${error.message}`;
-        logger.error(errorMsg);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: false,
-                error: errorMsg,
-                error_type: errorType,
-              }),
-            },
-          ],
-        };
-      }
-    },
+    updateBucketLabels,
   );
 };

@@ -15,70 +15,79 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
+
+const inputSchema = {
+  bucket_name: z.string().describe('The name of the GCS bucket.'),
+  permissions: z.array(z.string()).describe('List of permissions to test.'),
+};
+
+type CheckIamPermissionsParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function checkIamPermissions(
+  params: CheckIamPermissionsParams,
+): Promise<CallToolResult> {
+  try {
+    logger.info(`Testing IAM permissions for bucket: ${params.bucket_name}`);
+    const storage = apiClientFactory.getStorageClient();
+    const bucket = storage.bucket(params.bucket_name);
+    const [allowedPermissions] = await bucket.iam.testPermissions(params.permissions);
+
+    logger.info(`Successfully tested IAM permissions for bucket ${params.bucket_name}`);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              bucket_name: params.bucket_name,
+              requested_permissions: params.permissions,
+              allowed_permissions: allowedPermissions,
+              denied_permissions: params.permissions.filter(
+                (p) => Array.isArray(allowedPermissions) && !allowedPermissions.includes(p),
+              ),
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  } catch (e: unknown) {
+    const error = e as Error;
+    let errorType = 'Unknown';
+    if (error.message.includes('Not Found')) {
+      errorType = 'NotFound';
+    } else if (error.message.includes('Forbidden')) {
+      errorType = 'Forbidden';
+    }
+    const errorMsg = `Error testing IAM permissions: ${error.message}`;
+    logger.error(errorMsg);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: false,
+            error: errorMsg,
+            error_type: errorType,
+          }),
+        },
+      ],
+    };
+  }
+}
 
 export const registerCheckIamPermissionsTool = (server: McpServer) => {
   server.registerTool(
     'check_iam_permissions',
     {
       description: 'Tests IAM permissions for a bucket.',
-      inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
-        permissions: z.array(z.string()).describe('List of permissions to test.'),
-      },
+      inputSchema,
     },
-    async (params: { bucket_name: string; permissions: string[] }) => {
-      try {
-        logger.info(`Testing IAM permissions for bucket: ${params.bucket_name}`);
-        const storage = apiClientFactory.getStorageClient();
-        const bucket = storage.bucket(params.bucket_name);
-        const [allowedPermissions] = await bucket.iam.testPermissions(params.permissions);
-
-        logger.info(`Successfully tested IAM permissions for bucket ${params.bucket_name}`);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  bucket_name: params.bucket_name,
-                  requested_permissions: params.permissions,
-                  allowed_permissions: allowedPermissions,
-                  denied_permissions: params.permissions.filter(
-                    (p) => Array.isArray(allowedPermissions) && !allowedPermissions.includes(p),
-                  ),
-                },
-                null,
-                2,
-              ),
-            },
-          ],
-        };
-      } catch (e: unknown) {
-        const error = e as Error;
-        let errorType = 'Unknown';
-        if (error.message.includes('Not Found')) {
-          errorType = 'NotFound';
-        } else if (error.message.includes('Forbidden')) {
-          errorType = 'Forbidden';
-        }
-        const errorMsg = `Error testing IAM permissions: ${error.message}`;
-        logger.error(errorMsg);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: false,
-                error: errorMsg,
-                error_type: errorType,
-              }),
-            },
-          ],
-        };
-      }
-    },
+    checkIamPermissions,
   );
 };

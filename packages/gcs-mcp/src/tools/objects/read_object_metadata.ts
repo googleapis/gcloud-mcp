@@ -15,70 +15,79 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
-import { logger } from '../../utility/logger.js';
 import { formatFileMetadataResponse } from '../../utility/gcs_helpers.js';
+import { logger } from '../../utility/logger.js';
+
+const inputSchema = {
+  bucket_name: z.string().describe('The name of the GCS bucket.'),
+  object_name: z.string().describe('The name of the object.'),
+};
+
+type ReadObjectMetadataParams = z.infer<z.ZodObject<typeof inputSchema>>;
+
+export async function readObjectMetadata(
+  params: ReadObjectMetadataParams,
+): Promise<CallToolResult> {
+  try {
+    logger.info(
+      `Reading metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
+    );
+    const storage = apiClientFactory.getStorageClient();
+    const [file] = await storage.bucket(params.bucket_name).file(params.object_name).get();
+
+    if (!file) {
+      const errorMsg = `Object ${params.object_name} not found in bucket ${params.bucket_name}`;
+      logger.warn(errorMsg);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ error: errorMsg, error_type: 'NotFound' }),
+          },
+        ],
+      };
+    }
+
+    logger.info(`Successfully retrieved metadata for object ${params.object_name}`);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(formatFileMetadataResponse(file.metadata), null, 2),
+        },
+      ],
+    };
+  } catch (e: unknown) {
+    const error = e as Error;
+    let errorType = 'Unknown';
+    if (error.message.includes('Not Found')) {
+      errorType = 'NotFound';
+    } else if (error.message.includes('Forbidden')) {
+      errorType = 'Forbidden';
+    }
+    const errorMsg = `Error reading object metadata: ${error.message}`;
+    logger.error(errorMsg);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error: errorMsg, error_type: errorType }),
+        },
+      ],
+    };
+  }
+}
 
 export const registerReadObjectMetadataTool = (server: McpServer) => {
   server.registerTool(
     'read_object_metadata',
     {
       description: 'Reads metadata for a specific object.',
-      inputSchema: {
-        bucket_name: z.string().describe('The name of the GCS bucket.'),
-        object_name: z.string().describe('The name of the object.'),
-      },
+      inputSchema,
     },
-    async (params: { bucket_name: string; object_name: string }) => {
-      try {
-        logger.info(
-          `Reading metadata for object: ${params.object_name} in bucket: ${params.bucket_name}`,
-        );
-        const storage = apiClientFactory.getStorageClient();
-        const [file] = await storage.bucket(params.bucket_name).file(params.object_name).get();
-
-        if (!file) {
-          const errorMsg = `Object ${params.object_name} not found in bucket ${params.bucket_name}`;
-          logger.warn(errorMsg);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({ error: errorMsg, error_type: 'NotFound' }),
-              },
-            ],
-          };
-        }
-
-        logger.info(`Successfully retrieved metadata for object ${params.object_name}`);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(formatFileMetadataResponse(file.metadata), null, 2),
-            },
-          ],
-        };
-      } catch (e: unknown) {
-        const error = e as Error;
-        let errorType = 'Unknown';
-        if (error.message.includes('Not Found')) {
-          errorType = 'NotFound';
-        } else if (error.message.includes('Forbidden')) {
-          errorType = 'Forbidden';
-        }
-        const errorMsg = `Error reading object metadata: ${error.message}`;
-        logger.error(errorMsg);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({ error: errorMsg, error_type: errorType }),
-            },
-          ],
-        };
-      }
-    },
+    readObjectMetadata,
   );
 };

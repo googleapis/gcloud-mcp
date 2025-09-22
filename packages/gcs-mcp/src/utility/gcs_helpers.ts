@@ -74,6 +74,7 @@ export const formatFileMetadataResponse = (metadata: FileMetadata) => ({
   time_created: metadata.timeCreated,
   updated: metadata.updated,
   storage_class: metadata.storageClass,
+  metadata: metadata.metadata,
 });
 
 export const validateBase64Content = (content: string) => {

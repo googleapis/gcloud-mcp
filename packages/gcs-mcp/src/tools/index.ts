@@ -25,8 +25,6 @@ export * from './buckets/check_iam_permissions.js';
 
 export * from './objects/copy_object.js';
 export * from './objects/delete_object.js';
-export * from './objects/generate_download_signed_url.js';
-export * from './objects/generate_upload_signed_url.js';
 export * from './objects/list_objects.js';
 export * from './objects/move_object.js';
 export * from './objects/read_object_content.js';

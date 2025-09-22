@@ -28,8 +28,6 @@ import {
   registerUpdateObjectMetadataTool,
   registerCopyObjectTool,
   registerMoveObjectTool,
-  registerGenerateDownloadSignedUrlTool,
-  registerGenerateUploadSignedUrlTool,
   registerCreateBucketTool,
   registerDeleteBucketTool,
   registerGetBucketMetadataTool,
@@ -78,8 +76,6 @@ const main = async () => {
   registerUpdateObjectMetadataTool(server);
   registerCopyObjectTool(server);
   registerMoveObjectTool(server);
-  registerGenerateDownloadSignedUrlTool(server);
-  registerGenerateUploadSignedUrlTool(server);
   registerCreateBucketTool(server);
   registerDeleteBucketTool(server);
   registerGetBucketMetadataTool(server);

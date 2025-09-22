@@ -63,7 +63,7 @@ export async function readObjectMetadata(
   } catch (e: unknown) {
     const error = e as Error;
     let errorType = 'Unknown';
-    if (error.message.includes('Not Found')) {
+    if (error.message.includes('Not Found') || error.message.includes('No such object')) {
       errorType = 'NotFound';
     } else if (error.message.includes('Forbidden')) {
       errorType = 'Forbidden';

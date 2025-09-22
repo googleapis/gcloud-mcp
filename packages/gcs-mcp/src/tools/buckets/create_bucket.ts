@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import { CreateBucketRequest } from '@google-cloud/storage';
+import { CreateBucketRequest, Storage } from '@google-cloud/storage';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 
 const inputSchema = {
@@ -48,14 +47,13 @@ type CreateBucketParams = z.infer<z.ZodObject<typeof inputSchema>>;
 export async function createBucket(params: CreateBucketParams): Promise<CallToolResult> {
   try {
     logger.info(`Creating bucket: ${params.bucket_name} in project: ${params.project_id}`);
-    const storage = apiClientFactory.getStorageClient();
+    const storage = new Storage({ projectId: params.project_id });
     const options: CreateBucketRequest = {
       location: params.location,
       storageClass: params.storage_class,
       versioning: {
         enabled: params.versioning_enabled,
       },
-      userProject: params.project_id,
       requesterPays: params.requester_pays,
     };
     if (params.labels) {

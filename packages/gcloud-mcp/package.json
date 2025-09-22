@@ -2,14 +2,14 @@
   "name": "@google-cloud/gcloud-mcp",
   "version": "0.1.1",
   "type": "module",
-  "main": "dist/src/index.js",
+  "files": ["dist"],
   "bin": {
-    "gcloud-mcp": "./dist/src/index.js"
+    "gcloud-mcp": "./dist/bundle.js"
   },
   "scripts": {
     "build": "tsc --noemit && node build.js && cp ../../README.md .",
     "test": "vitest run",
-    "start": "node dist/src/index.js",
+    "start": "node dist/bundle.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",
     "fix": "prettier --write . && eslint . --fix",
     "prepare": "npm run build",

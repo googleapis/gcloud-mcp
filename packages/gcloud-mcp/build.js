@@ -23,7 +23,4 @@ build({
   bundle: true,
   outfile: 'dist/bundle.js',
   platform: 'node',
-  loader: {
-    '.md': 'text', // Treat markdown file imports as strings
-  },
 }).catch(() => process.exit(1));

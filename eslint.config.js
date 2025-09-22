@@ -147,10 +147,5 @@ export default tseslint.config(
       ],
     },
   },
-  {
-    // Allow type files to declare a default export for markdown files.
-    files: ['**/*.d.ts'],
-    rules: { 'import/no-default-export': 'off' },
-  },
   prettierConfig,
 );

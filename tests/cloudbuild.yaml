@@ -19,7 +19,7 @@ steps:
         gcloud info
 
         echo "--- Installing Node dependencies and building ---"
-        npm install
+        npm ci
         cd packages/gcloud-mcp
         npm link
         cd ../..

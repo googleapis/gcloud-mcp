@@ -7,7 +7,7 @@
     "gcs-mcp": "./dist/src/index.js"
   },
   "scripts": {
-    "build": "tsc -p . && cp GEMINI-extension.md dist/ && cp ../../README.md .",
+    "build": "tsc -p . && cp GEMINI-extension.md dist/",
     "test": "vitest run",
     "start": "node dist/src/index.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",

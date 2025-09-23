@@ -15,22 +15,22 @@
  */
 
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
-import { createBucket } from '../../src/tools/buckets/create_bucket';
-import { deleteBucket } from '../../src/tools/buckets/delete_bucket';
-import { getBucketMetadata } from '../../src/tools/buckets/get_bucket_metadata';
-import { updateBucketLabels } from '../../src/tools/buckets/update_bucket_labels';
-import { viewIamPolicy } from '../../src/tools/buckets/view_iam_policy';
-import { checkIamPermissions } from '../../src/tools/buckets/check_iam_permissions';
-import { writeObject } from '../../src/tools/objects/write_object';
-import { readObjectContent } from '../../src/tools/objects/read_object_content';
-import { deleteObject } from '../../src/tools/objects/delete_object';
-import { readObjectMetadata } from '../../src/tools/objects/read_object_metadata';
-import { uploadObject } from '../../src/tools/objects/upload_object';
-import { listObjects } from '../../src/tools/objects/list_objects';
-import { moveObject } from '../../src/tools/objects/move_object';
-import { getBucketLocation } from '../../src/tools/buckets/get_bucket_location';
-import { copyObject } from '../../src/tools/objects/copy_object';
-import { updateObjectMetadata } from '../../src/tools/objects/update_object_metadata';
+import { createBucket } from '../../src/tools/buckets/create_bucket.js';
+import { deleteBucket } from '../../src/tools/buckets/delete_bucket.js';
+import { getBucketMetadata } from '../../src/tools/buckets/get_bucket_metadata.js';
+import { updateBucketLabels } from '../../src/tools/buckets/update_bucket_labels.js';
+import { viewIamPolicy } from '../../src/tools/buckets/view_iam_policy.js';
+import { checkIamPermissions } from '../../src/tools/buckets/check_iam_permissions.js';
+import { writeObject } from '../../src/tools/objects/write_object.js';
+import { readObjectContent } from '../../src/tools/objects/read_object_content.js';
+import { deleteObject } from '../../src/tools/objects/delete_object.js';
+import { readObjectMetadata } from '../../src/tools/objects/read_object_metadata.js';
+import { uploadObject } from '../../src/tools/objects/upload_object.js';
+import { listObjects } from '../../src/tools/objects/list_objects.js';
+import { moveObject } from '../../src/tools/objects/move_object.js';
+import { getBucketLocation } from '../../src/tools/buckets/get_bucket_location.js';
+import { copyObject } from '../../src/tools/objects/copy_object.js';
+import { updateObjectMetadata } from '../../src/tools/objects/update_object_metadata.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -38,7 +38,7 @@ import * as path from 'path';
 // and application default credentials to be set up.
 // The test will create a bucket, perform some operations, and then delete the bucket.
 
-const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID;
+const projectId = process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
 if (!projectId) {
   throw new Error('GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable not set');
 }
@@ -55,8 +55,15 @@ describe('GCS Integration Tests', () => {
     const result = await createBucket({
       project_id: projectId,
       bucket_name: bucketName,
+      location: 'US',
+      storage_class: 'STANDARD',
+      versioning_enabled: false,
+      requester_pays: false,
     });
-    const resultText = JSON.parse(result.content[0].text!);
+    if (!result?.content?.[0]?.text) {
+      throw new Error('Create bucket failed');
+    }
+    const resultText = JSON.parse(result.content[0].text as string);
     if (!resultText.success) {
       console.error('Create bucket failed:', resultText.error);
     }
@@ -65,7 +72,10 @@ describe('GCS Integration Tests', () => {
 
   afterAll(async () => {
     const result = await deleteBucket({ bucket_name: bucketName, force: true });
-    const resultText = JSON.parse(result.content[0].text!);
+    if (!result?.content?.[0]?.text) {
+      throw new Error('Delete bucket failed');
+    }
+    const resultText = JSON.parse(result.content[0].text as string);
     if (!resultText.success) {
       console.error('Delete bucket failed:', resultText.error);
     }
@@ -77,25 +87,37 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       labels: testLabel,
     });
-    const updateResultText = JSON.parse(updateResult.content[0].text!);
+    if (!updateResult?.content?.[0]?.text) {
+      throw new Error('Update bucket labels failed');
+    }
+    const updateResultText = JSON.parse(updateResult.content[0].text as string);
     expect(updateResultText.success).toBe(true);
     expect(updateResultText.updated_labels).toEqual(testLabel);
 
     const metadataResult = await getBucketMetadata({ bucket_name: bucketName });
-    const metadata = JSON.parse(metadataResult.content[0].text!);
+    if (!metadataResult?.content?.[0]?.text) {
+      throw new Error('Get bucket metadata failed');
+    }
+    const metadata = JSON.parse(metadataResult.content[0].text as string);
     expect(metadata.labels).toEqual(testLabel);
   });
 
   it('should view IAM policy and check permissions', async () => {
     const policyResult = await viewIamPolicy({ bucket_name: bucketName });
-    const policy = JSON.parse(policyResult.content[0].text!);
+    if (!policyResult?.content?.[0]?.text) {
+      throw new Error('View IAM policy failed');
+    }
+    const policy = JSON.parse(policyResult.content[0].text as string);
     expect(policy.iam_policy.bindings).toBeDefined();
 
     const permissionsResult = await checkIamPermissions({
       bucket_name: bucketName,
       permissions: ['storage.objects.list'],
     });
-    const permissions = JSON.parse(permissionsResult.content[0].text!);
+    if (!permissionsResult?.content?.[0]?.text) {
+      throw new Error('Check IAM permissions failed');
+    }
+    const permissions = JSON.parse(permissionsResult.content[0].text as string);
     expect(permissions.allowed_permissions['storage.objects.list']).toBe(true);
   });
 
@@ -106,7 +128,10 @@ describe('GCS Integration Tests', () => {
       object_name: testObjectName,
       content: Buffer.from(testObjectContent).toString('base64'),
     });
-    const writeResultText = JSON.parse(writeResult.content[0].text!);
+    if (!writeResult?.content?.[0]?.text) {
+      throw new Error('Write object failed');
+    }
+    const writeResultText = JSON.parse(writeResult.content[0].text as string);
     expect(writeResultText.success).toBe(true);
 
     // Read
@@ -114,7 +139,10 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       object_name: testObjectName,
     });
-    const readResultText = JSON.parse(readResult.content[0].text!);
+    if (!readResult?.content?.[0]?.text) {
+      throw new Error('Read object content failed');
+    }
+    const readResultText = JSON.parse(readResult.content[0].text as string);
     expect(readResultText.content).toBe(testObjectContent);
 
     // Delete
@@ -122,7 +150,10 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       object_name: testObjectName,
     });
-    const deleteResultText = JSON.parse(deleteResult.content[0].text!);
+    if (!deleteResult?.content?.[0]?.text) {
+      throw new Error('Delete object failed');
+    }
+    const deleteResultText = JSON.parse(deleteResult.content[0].text as string);
     expect(deleteResultText.success).toBe(true);
 
     // Verify deletion
@@ -130,7 +161,10 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       object_name: testObjectName,
     });
-    const metadata = JSON.parse(metadataResult.content[0].text!);
+    if (!metadataResult?.content?.[0]?.text) {
+      throw new Error('Read object metadata failed');
+    }
+    const metadata = JSON.parse(metadataResult.content[0].text as string);
     expect(metadata.error_type).toBe('NotFound');
   });
 
@@ -142,13 +176,19 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       file_path: uploadFilePath,
     });
-    const uploadResultText = JSON.parse(uploadResult.content[0].text!);
+    if (!uploadResult?.content?.[0]?.text) {
+      throw new Error('Upload object failed');
+    }
+    const uploadResultText = JSON.parse(uploadResult.content[0].text as string);
     expect(uploadResultText.success).toBe(true);
     fs.unlinkSync(uploadFilePath);
 
     // List
     const listResult = await listObjects({ bucket_name: bucketName });
-    const listResultText = JSON.parse(listResult.content[0].text!);
+    if (!listResult?.content?.[0]?.text) {
+      throw new Error('List objects failed');
+    }
+    const listResultText = JSON.parse(listResult.content[0].text as string);
     expect(listResultText.objects).toContain(testUploadFileName);
 
     // Move
@@ -158,19 +198,28 @@ describe('GCS Integration Tests', () => {
       destination_bucket_name: bucketName,
       destination_object_name: movedObjectName,
     });
-    const moveResultText = JSON.parse(moveResult.content[0].text!);
+    if (!moveResult?.content?.[0]?.text) {
+      throw new Error('Move object failed');
+    }
+    const moveResultText = JSON.parse(moveResult.content[0].text as string);
     expect(moveResultText.success).toBe(true);
 
     // Verify move
     const newListResult = await listObjects({ bucket_name: bucketName });
-    const newListResultText = JSON.parse(newListResult.content[0].text!);
+    if (!newListResult?.content?.[0]?.text) {
+      throw new Error('List objects after move failed');
+    }
+    const newListResultText = JSON.parse(newListResult.content[0].text as string);
     expect(newListResultText.objects).toContain(movedObjectName);
     expect(newListResultText.objects).not.toContain(testUploadFileName);
   });
 
   it('should get bucket location', async () => {
     const result = await getBucketLocation({ bucket_name: bucketName });
-    const resultText = JSON.parse(result.content[0].text!);
+    if (!result?.content?.[0]?.text) {
+      throw new Error('Get bucket location failed');
+    }
+    const resultText = JSON.parse(result.content[0].text as string);
     expect(resultText.location).toBeDefined();
     expect(typeof resultText.location).toBe('string');
   });
@@ -185,7 +234,10 @@ describe('GCS Integration Tests', () => {
       object_name: objectName,
       content: Buffer.from(testObjectContent).toString('base64'),
     });
-    const writeResultText = JSON.parse(writeResult.content[0].text!);
+    if (!writeResult?.content?.[0]?.text) {
+      throw new Error('Write object for metadata test failed');
+    }
+    const writeResultText = JSON.parse(writeResult.content[0].text as string);
     expect(writeResultText.success).toBe(true);
 
     // Update metadata
@@ -194,7 +246,10 @@ describe('GCS Integration Tests', () => {
       object_name: objectName,
       metadata: customMetadata,
     });
-    const updateResultText = JSON.parse(updateResult.content[0].text!);
+    if (!updateResult?.content?.[0]?.text) {
+      throw new Error('Update object metadata failed');
+    }
+    const updateResultText = JSON.parse(updateResult.content[0].text as string);
     expect(updateResultText.success).toBe(true);
 
     // Verify metadata
@@ -202,7 +257,10 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       object_name: objectName,
     });
-    const metadata = JSON.parse(metadataResult.content[0].text!);
+    if (!metadataResult?.content?.[0]?.text) {
+      throw new Error('Read object metadata for verification failed');
+    }
+    const metadata = JSON.parse(metadataResult.content[0].text as string);
     expect(metadata.metadata).toEqual(customMetadata);
 
     // Cleanup
@@ -219,7 +277,10 @@ describe('GCS Integration Tests', () => {
       object_name: objectName,
       content: Buffer.from(testObjectContent).toString('base64'),
     });
-    const writeResultText = JSON.parse(writeResult.content[0].text!);
+    if (!writeResult?.content?.[0]?.text) {
+      throw new Error('Write object for copy test failed');
+    }
+    const writeResultText = JSON.parse(writeResult.content[0].text as string);
     expect(writeResultText.success).toBe(true);
 
     // Copy object
@@ -229,12 +290,18 @@ describe('GCS Integration Tests', () => {
       destination_bucket_name: bucketName,
       destination_object_name: copiedObjectName,
     });
-    const copyResultText = JSON.parse(copyResult.content[0].text!);
+    if (!copyResult?.content?.[0]?.text) {
+      throw new Error('Copy object failed');
+    }
+    const copyResultText = JSON.parse(copyResult.content[0].text as string);
     expect(copyResultText.success).toBe(true);
 
     // Verify copy
     const listResult = await listObjects({ bucket_name: bucketName });
-    const listResultText = JSON.parse(listResult.content[0].text!);
+    if (!listResult?.content?.[0]?.text) {
+      throw new Error('List objects for copy verification failed');
+    }
+    const listResultText = JSON.parse(listResult.content[0].text as string);
     expect(listResultText.objects).toContain(objectName);
     expect(listResultText.objects).toContain(copiedObjectName);
 

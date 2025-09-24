@@ -76,7 +76,6 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
           toolLogger.info('Executing run_gcloud_command');
           // Build MCP metrics
           const mcpMetrics = buildMcpMetric(server, RUN_GCLOUD_TOOL_NAME);
-          console.error(`Found the final mcp metrics thing: ${mcpMetrics}`);
           ({ code, stdout, stderr } = await gcloud.invoke(args,mcpMetrics));
           // If the exit status is not zero, an error occurred and the output may be
           // incomplete unless the command documentation notes otherwise. For example,

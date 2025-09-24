@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,7 +65,7 @@ describe('GCS Integration Tests', () => {
     }
     const resultText = JSON.parse(result.content[0].text as string);
     if (!resultText.success) {
-      console.error('Create bucket failed:', resultText.error);
+      throw new Error(`Create bucket failed: ${resultText.error}`);
     }
     expect(resultText.success).toBe(true);
   });
@@ -77,7 +77,7 @@ describe('GCS Integration Tests', () => {
     }
     const resultText = JSON.parse(result.content[0].text as string);
     if (!resultText.success) {
-      console.error('Delete bucket failed:', resultText.error);
+      throw new Error(`Delete bucket failed: ${resultText.error}`);
     }
     expect(resultText.success).toBe(true);
   });
@@ -310,6 +310,152 @@ describe('GCS Integration Tests', () => {
     await deleteObject({
       bucket_name: bucketName,
       object_name: copiedObjectName,
+    });
+  });
+});
+
+const mimeTypeBucketName = `gcs-mcp-mime-type-test-${Date.now()}`;
+
+describe('readObjectContent MIME type tests', () => {
+  beforeAll(async () => {
+    const result = await createBucket({
+      project_id: projectId,
+      bucket_name: mimeTypeBucketName,
+      location: 'US',
+      storage_class: 'STANDARD',
+      versioning_enabled: false,
+      requester_pays: false,
+    });
+    if (!result?.content?.[0]?.text) {
+      throw new Error('Create bucket failed');
+    }
+    const resultText = JSON.parse(result.content[0].text as string);
+    if (!resultText.success) {
+      throw new Error(`Create bucket failed: ${resultText.error}`);
+    }
+    expect(resultText.success).toBe(true);
+  });
+
+  afterAll(async () => {
+    const result = await deleteBucket({ bucket_name: mimeTypeBucketName, force: true });
+    if (!result?.content?.[0]?.text) {
+      throw new Error('Delete bucket failed');
+    }
+    const resultText = JSON.parse(result.content[0].text as string);
+    if (!resultText.success) {
+      throw new Error(`Delete bucket failed: ${resultText.error}`);
+    }
+    expect(resultText.success).toBe(true);
+  });
+  const testFiles = [
+    {
+      name: 'test.txt',
+      content: 'This is a text file.',
+      contentType: 'text/plain',
+      shouldBeText: true,
+    },
+    {
+      name: 'test.json',
+      content: '{"key": "value"}',
+      contentType: 'application/json',
+      shouldBeText: true,
+    },
+    {
+      name: 'test.xml',
+      content: '<root><child>value</child></root>',
+      contentType: 'application/xml',
+      shouldBeText: true,
+    },
+    {
+      name: 'test.png',
+      content:
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      contentType: 'image/png',
+      shouldBeText: false,
+    },
+    {
+      name: 'test.zip',
+      content:
+        'UEsDBAoAAAAAAACp/1MAAAAAAAAAAAAAAAwDAAAAAFRFU1QudHh0VVQJAAMHo35lB6N+ZXV4CwABBPUBAAAEFAAAAE9iamVjdCBjb250ZW50UEsBAh4DCgAAAAAAAKn/UwAAAAAAAAAAAAAAAAwDAAAAAFRFU1QudHh0VVQFAAMHo35ldXgLAAEE9QEAAAQUAAAAUEsFBgAAAAABAAEATgAAAEcAAAAAAA==',
+      contentType: 'application/zip',
+      shouldBeText: false,
+      unsupported: true,
+    },
+    {
+      name: 'test.bin',
+      content: 'c29tZWJpbmFyeWRhdGE=',
+      contentType: 'application/octet-stream',
+      shouldBeText: false,
+      unsupported: true,
+    },
+    {
+      name: 'test.gif',
+      content: 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+      contentType: 'image/gif',
+      shouldBeText: false,
+      unsupported: true,
+    },
+  ];
+
+  beforeAll(() => {
+    testFiles.forEach((file) => {
+      const filePath = path.join(__dirname, file.name);
+      const content = !file.shouldBeText ? Buffer.from(file.content, 'base64') : file.content;
+      fs.writeFileSync(filePath, content);
+    });
+  });
+
+  afterAll(() => {
+    testFiles.forEach((file) => {
+      const filePath = path.join(__dirname, file.name);
+      fs.unlinkSync(filePath);
+    });
+  });
+
+  testFiles.forEach((file) => {
+    it(`should handle ${file.name} (${file.contentType})`, async () => {
+      const filePath = path.join(__dirname, file.name);
+
+      // Upload the file
+      const uploadResult = await uploadObject({
+        bucket_name: mimeTypeBucketName,
+        file_path: filePath,
+        object_name: file.name,
+        content_type: file.contentType,
+      });
+      if (!uploadResult?.content?.[0]?.text) {
+        throw new Error('Upload object failed');
+      }
+      const uploadResultText = JSON.parse(uploadResult.content[0].text as string);
+      expect(uploadResultText.success).toBe(true);
+
+      // Read the object content
+      const readResult = await readObjectContent({
+        bucket_name: mimeTypeBucketName,
+        object_name: file.name,
+      });
+      if (!readResult?.content?.[0]) {
+        throw new Error('Read object content failed');
+      }
+
+      if (file.unsupported) {
+        const readResultText = JSON.parse(readResult.content[0].text as string);
+        expect(readResultText.error_type).toBe('UnsupportedContentType');
+      } else if (file.shouldBeText) {
+        const readResultText = JSON.parse(readResult.content[0].text as string);
+        expect(readResultText.content).toBe(file.content);
+        expect(readResultText.content_type).toBe(file.contentType);
+      } else {
+        // For binary files, we expect a resource object
+        const resourceResult = readResult.content[0];
+        if (resourceResult.type === 'resource') {
+          expect(resourceResult.resource.mimeType).toBe(file.contentType);
+          expect(resourceResult.resource.blob).toBeDefined();
+        }
+      }
+
+      // Cleanup the object
+      await deleteObject({ bucket_name: mimeTypeBucketName, object_name: file.name });
     });
   });
 });

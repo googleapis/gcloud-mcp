@@ -91,32 +91,32 @@ For more information regarding installing the repository locally, please see
 
 ### Object Tools
 
-| Tool                             | Description                                               |
-| :------------------------------- | :-------------------------------------------------------- |
-| `list_objects`                   | Lists objects in a GCS bucket.                            |
-| `read_object_metadata`           | Reads comprehensive metadata for a specific object.       |
-| `read_object_content`            | Reads the content of a specific object.                   |
-| `delete_object`                  | Deletes a specific object from a bucket.                  |
-| `write_object`                   | Writes a new object to a bucket.                          |
-| `update_object_metadata`         | Updates the custom metadata of an existing object.        |
-| `copy_object`                    | Copies an object from one bucket to another.              |
-| `move_object`                    | Moves an object from one bucket to another.               |
-| `generate_download_signed_url`   | Generates a signed URL for downloading an object.         |
-| `generate_upload_signed_url`     | Generates a signed URL for uploading an object.           |
-| `upload_object`                    | Uploads a file to a GCS bucket.                           |
+| Tool                           | Description                                         |
+| :----------------------------- | :-------------------------------------------------- |
+| `list_objects`                 | Lists objects in a GCS bucket.                      |
+| `read_object_metadata`         | Reads comprehensive metadata for a specific object. |
+| `read_object_content`          | Reads the content of a specific object.             |
+| `delete_object`                | Deletes a specific object from a bucket.            |
+| `write_object`                 | Writes a new object to a bucket.                    |
+| `update_object_metadata`       | Updates the custom metadata of an existing object.  |
+| `copy_object`                  | Copies an object from one bucket to another.        |
+| `move_object`                  | Moves an object from one bucket to another.         |
+| `generate_download_signed_url` | Generates a signed URL for downloading an object.   |
+| `generate_upload_signed_url`   | Generates a signed URL for uploading an object.     |
+| `upload_object`                | Uploads a file to a GCS bucket.                     |
 
 ### Bucket Tools
 
-| Tool                      | Description                                        |
-| :------------------------ | :------------------------------------------------- |
-| `list_buckets`            | Lists all buckets in a project.                    |
-| `create_bucket`           | Creates a new bucket.                              |
-| `delete_bucket`           | Deletes a bucket.                                  |
-| `get_bucket_metadata`     | Gets comprehensive metadata for a specific bucket. |
-| `update_bucket_labels`    | Updates labels for a bucket.                       |
-| `get_bucket_location`     | Gets the location of a bucket.                     |
-| `view_iam_policy`         | Views the IAM policy for a bucket.                 |
-| `check_iam_permissions`   | Tests IAM permissions for a bucket.                |
+| Tool                    | Description                                        |
+| :---------------------- | :------------------------------------------------- |
+| `list_buckets`          | Lists all buckets in a project.                    |
+| `create_bucket`         | Creates a new bucket.                              |
+| `delete_bucket`         | Deletes a bucket.                                  |
+| `get_bucket_metadata`   | Gets comprehensive metadata for a specific bucket. |
+| `update_bucket_labels`  | Updates labels for a bucket.                       |
+| `get_bucket_location`   | Gets the location of a bucket.                     |
+| `view_iam_policy`       | Views the IAM policy for a bucket.                 |
+| `check_iam_permissions` | Tests IAM permissions for a bucket.                |
 
 ## 🔑 MCP Permissions
 

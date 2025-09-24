@@ -102,6 +102,7 @@ test('should correctly handle stdout and stderr', async () => {
 
   expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: expect.any(Object),
   });
   expect(result.code).toBe(0);
   expect(result.stdout).toContain('Standard output');
@@ -133,6 +134,7 @@ test('should correctly non-zero exit codes', async () => {
 
   expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: expect.any(Object),
   });
   expect(result.code).toBe(1);
   expect(result.stdout).toContain('Standard output');
@@ -156,6 +158,7 @@ test('should reject when process fails to start', async () => {
   await expect(resultPromise).rejects.toThrow('Failed to start');
   expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['some-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: expect.any(Object),
   });
 });
 
@@ -190,7 +193,7 @@ test('should correctly call lint double quotes', async () => {
       '--command-string',
       'gcloud compute instances list --project "cloud123"',
     ],
-    { stdio: ['ignore', 'pipe', 'pipe'] },
+    { stdio: ['ignore', 'pipe', 'pipe'], env: expect.any(Object) },
   );
   expect(result.code).toBe(0);
   expect(result.stdout).toContain('Standard output');
@@ -228,7 +231,7 @@ test('should correctly call lint single quotes', async () => {
       '--command-string',
       "gcloud compute instances list --project 'cloud123'",
     ],
-    { stdio: ['ignore', 'pipe', 'pipe'] },
+    { stdio: ['ignore', 'pipe', 'pipe'], env: expect.any(Object) },
   );
   expect(result.code).toBe(0);
   expect(result.stdout).toContain('Standard output');

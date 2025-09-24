@@ -19,11 +19,14 @@ import * as gcloud from '../gcloud.js';
 import { deniedCommands } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
+import { buildMcpMetric } from '../utility/metrics.js';
+
+const RUN_GCLOUD_TOOL_NAME = 'run_gcloud_command';
 
 export const createRunGcloudCommand = (denylist: string[] = []) => ({
   register: (server: McpServer) => {
     server.registerTool(
-      'run_gcloud_command',
+      RUN_GCLOUD_TOOL_NAME,
       {
         title: 'Run gcloud command',
         inputSchema: {
@@ -47,7 +50,7 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
 - **No redirection**: Do not use redirection operators (e.g., >, >>, <)`,
       },
       async ({ args }) => {
-        const toolLogger = log.mcp('run_gcloud_command', args);
+        const toolLogger = log.mcp(RUN_GCLOUD_TOOL_NAME, args);
         const command = args.join(' ');
         try {
           // Lint parses and isolates the gcloud command from flags and positionals.
@@ -71,7 +74,10 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
           }
 
           toolLogger.info('Executing run_gcloud_command');
-          ({ code, stdout, stderr } = await gcloud.invoke(args));
+          // Build MCP metrics
+          const mcpMetrics = buildMcpMetric(server, RUN_GCLOUD_TOOL_NAME);
+          console.error(`Found the final mcp metrics thing: ${mcpMetrics}`);
+          ({ code, stdout, stderr } = await gcloud.invoke(args,mcpMetrics));
           // If the exit status is not zero, an error occurred and the output may be
           // incomplete unless the command documentation notes otherwise. For example,
           // a command that creates multiple resources may only create a few, list them

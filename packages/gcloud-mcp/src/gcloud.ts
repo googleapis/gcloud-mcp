@@ -32,14 +32,17 @@ export interface GcloudInvocationResult {
   stdout: string;
   stderr: string;
 }
-const GCLOUD_MCP_ENV_VAR_NAME = "CLOUDSDK_MCP_METRICS";
+const GCLOUD_MCP_ENV_VAR_NAME = 'CLOUDSDK_MCP_METRICS';
 
-export const invoke = (args: string[], mcpMetrics: string = ""): Promise<GcloudInvocationResult> =>
+export const invoke = (args: string[], mcpMetrics: string = ''): Promise<GcloudInvocationResult> =>
   new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
 
-    const gcloud = child_process.spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, [GCLOUD_MCP_ENV_VAR_NAME]: mcpMetrics }});
+    const gcloud = child_process.spawn('gcloud', args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, [GCLOUD_MCP_ENV_VAR_NAME]: mcpMetrics },
+    });
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();

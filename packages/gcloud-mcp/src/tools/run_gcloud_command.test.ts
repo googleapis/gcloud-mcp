@@ -49,9 +49,11 @@ const createTool = (denylist: string[] = []) => {
 const mockGcloudLint = (args: string[]) => {
   (gcloud.lint as Mock).mockResolvedValue({
     code: 0,
-    stdout: JSON.stringify([{
-      command_string_no_args: `gcloud ${args.join(' ')}`,
-    }]),
+    stdout: JSON.stringify([
+      {
+        command_string_no_args: `gcloud ${args.join(' ')}`,
+      },
+    ]),
     stderr: '',
   });
 };
@@ -155,7 +157,7 @@ describe('createRunGcloudCommand', () => {
       mockGcloudInvoke('output', 'error');
 
       const result = await tool({ args: inputArgs });
-      const expectedMetricsString = "goog-mcp/test-agent/test-server/1.0.0/run_gcloud_command";
+      const expectedMetricsString = 'goog-mcp/test-agent/test-server/1.0.0/run_gcloud_command';
 
       expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs, expectedMetricsString);
       expect(result).toEqual({
@@ -176,7 +178,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs,expect.any(String));
+      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs, expect.any(String));
       expect(result).toEqual({
         content: [{ type: 'text', text: 'gcloud error' }],
         isError: true,
@@ -191,7 +193,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs,expect.any(String));
+      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs, expect.any(String));
       expect(result).toEqual({
         content: [{ type: 'text', text: 'An unknown error occurred.' }],
         isError: true,

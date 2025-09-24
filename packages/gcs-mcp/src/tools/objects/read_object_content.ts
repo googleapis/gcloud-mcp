@@ -26,6 +26,35 @@ const inputSchema = {
   object_name: z.string().describe('The name of the object.'),
 };
 
+// For non-text files, check against a list of supported MIME types.
+// See https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro
+const supportedMimeTypes = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'application/pdf',
+  'video/x-flv',
+  'video/quicktime',
+  'video/mpeg',
+  'video/mpegs',
+  'video/mpg',
+  'video/mp4',
+  'video/webm',
+  'video/wmv',
+  'video/3gpp',
+  'audio/x-aac',
+  'audio/flac',
+  'audio/mp3',
+  'audio/m4a',
+  'audio/mpeg',
+  'audio/mpga',
+  'audio/mp4',
+  'audio/opus',
+  'audio/pcm',
+  'audio/wav',
+  'audio/webm',
+];
+
 type ReadObjectContentParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function readObjectContent(params: ReadObjectContentParams): Promise<CallToolResult> {
@@ -66,7 +95,11 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
     const [buffer] = await file.download();
 
     // Check if it's a text document
-    if (contentType.startsWith('text/')) {
+    if (
+      contentType.startsWith('text/') ||
+      contentType === 'application/json' ||
+      contentType === 'application/xml'
+    ) {
       try {
         // Try to decode as text.
         const content = buffer.toString('utf8');
@@ -89,7 +122,23 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
       }
     }
 
-    // Treat everything else (non-text or text that failed to decode) as a raw resource
+    if (!supportedMimeTypes.includes(contentType)) {
+      const errorMsg = `Unsupported content type: ${contentType}.`;
+      logger.error(errorMsg);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: errorMsg,
+              error_type: 'UnsupportedContentType',
+            }),
+          },
+        ],
+      };
+    }
+
+    // Treat supported non-text (or text that failed to decode) as a raw resource
     const contentBase64 = buffer.toString('base64');
     logger.info(`Successfully read raw content for object ${params.object_name} (${size} bytes)`);
     return {

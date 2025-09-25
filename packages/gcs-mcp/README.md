@@ -101,9 +101,8 @@ For more information regarding installing the repository locally, please see
 | `update_object_metadata`       | Updates the custom metadata of an existing object.  |
 | `copy_object`                  | Copies an object from one bucket to another.        |
 | `move_object`                  | Moves an object from one bucket to another.         |
-| `generate_download_signed_url` | Generates a signed URL for downloading an object.   |
-| `generate_upload_signed_url`   | Generates a signed URL for uploading an object.     |
 | `upload_object`                | Uploads a file to a GCS bucket.                     |
+| `download_object`              | Downloads an object from GCS to a local file.       |
 
 ### Bucket Tools
 

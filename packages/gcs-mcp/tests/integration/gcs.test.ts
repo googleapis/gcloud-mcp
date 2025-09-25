@@ -31,6 +31,7 @@ import { moveObject } from '../../src/tools/objects/move_object.js';
 import { getBucketLocation } from '../../src/tools/buckets/get_bucket_location.js';
 import { copyObject } from '../../src/tools/objects/copy_object.js';
 import { updateObjectMetadata } from '../../src/tools/objects/update_object_metadata.js';
+import { downloadObject } from '../../src/tools/objects/download_object.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -311,6 +312,43 @@ describe('GCS Integration Tests', () => {
       bucket_name: bucketName,
       object_name: copiedObjectName,
     });
+  });
+
+  it('should download an object', async () => {
+    const objectName = 'download-test-object.txt';
+    const downloadFilePath = path.join(__dirname, 'downloaded-file.txt');
+
+    // Write an object to GCS
+    const writeResult = await writeObject({
+      bucket_name: bucketName,
+      object_name: objectName,
+      content: Buffer.from(testObjectContent).toString('base64'),
+    });
+    if (!writeResult?.content?.[0]?.text) {
+      throw new Error('Write object for download test failed');
+    }
+    const writeResultText = JSON.parse(writeResult.content[0].text as string);
+    expect(writeResultText.success).toBe(true);
+
+    // Download the object
+    const downloadResult = await downloadObject({
+      bucket_name: bucketName,
+      object_name: objectName,
+      file_path: downloadFilePath,
+    });
+    if (!downloadResult?.content?.[0]?.text) {
+      throw new Error('Download object failed');
+    }
+    const downloadResultText = JSON.parse(downloadResult.content[0].text as string);
+    expect(downloadResultText.success).toBe(true);
+
+    // Verify the downloaded file
+    const downloadedContent = fs.readFileSync(downloadFilePath, 'utf-8');
+    expect(downloadedContent).toBe(testObjectContent);
+
+    // Cleanup
+    fs.unlinkSync(downloadFilePath);
+    await deleteObject({ bucket_name: bucketName, object_name: objectName });
   });
 });
 

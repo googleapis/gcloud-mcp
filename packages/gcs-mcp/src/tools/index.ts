@@ -32,3 +32,4 @@ export * from './objects/read_object_metadata.js';
 export * from './objects/update_object_metadata.js';
 export * from './objects/write_object.js';
 export * from './objects/upload_object.js';
+export * from './objects/download_object.js';

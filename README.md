@@ -153,13 +153,17 @@ For more information regarding installing the repository locally, please see
 |               | `write_object`            | Writes a new object to a bucket.                                                                                                                          |
 |               | `update_object_metadata`  | Updates the custom metadata of an existing object.                                                                                                        |
 |               | `copy_object`             | Copies an object from one bucket to another.                                                                                                              |
-|               | `move_object`             | Moves an object from one bucket to another.                                                                                                               |     |
+|               | `move_object`             | Moves an object from one bucket to another.                                                                                                               |
+|               | `upload_object`           | Uploads a file to a GCS bucket.                                                                                                                           |
+|               | `download_object`         | Downloads an object from GCS to a local file.                                                                                                             |
 |               | `list_buckets`            | Lists all buckets in a project.                                                                                                                           |
 |               | `create_bucket`           | Creates a new bucket.                                                                                                                                     |
 |               | `delete_bucket`           | Deletes a bucket.                                                                                                                                         |
-|               | `get_bucket_metadata`     | Gets comprehensive metadata for a specific bucket.                                                                                                        |     |
+|               | `get_bucket_metadata`     | Gets comprehensive metadata for a specific bucket.                                                                                                        |
 |               | `update_bucket_labels`    | Updates labels for a bucket.                                                                                                                              |
 |               | `get_bucket_location`     | Gets the location of a bucket.                                                                                                                            |
+|               | `view_iam_policy`         | Views the IAM policy for a bucket.                                                                                                                        |
+|               | `check_iam_permissions`   | Tests IAM permissions for a bucket.                                                                                                                       |
 
 ## 🔑 MCP Permissions
 

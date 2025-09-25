@@ -6,7 +6,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "resolveJsonModule": true,
     "declaration": true,
     "incremental": true,
@@ -18,6 +18,6 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "./package.json"],
-  "exclude": ["dist", "**/node_modules"]
+  "include": ["src/**/*.ts", "./package.json"],
+  "exclude": ["dist", "**/node_modules", "**/*.test.ts"]
 }

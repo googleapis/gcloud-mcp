@@ -50,11 +50,11 @@ export async function createBucket(params: CreateBucketParams): Promise<CallTool
     const storage = new Storage({ projectId: params.project_id });
     const options: CreateBucketRequest = {
       location: params.location,
-      storageClass: params.storage_class,
+      storageClass: params.storage_class || 'STANDARD',
       versioning: {
-        enabled: params.versioning_enabled,
+        enabled: params.versioning_enabled || false,
       },
-      requesterPays: params.requester_pays,
+      requesterPays: params.requester_pays || false,
     };
     if (params.labels) {
       options.labels = params.labels;

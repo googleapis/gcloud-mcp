@@ -33,7 +33,8 @@ type DeleteBucketParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function deleteBucket(params: DeleteBucketParams): Promise<CallToolResult> {
   try {
-    logger.info(`Deleting bucket: ${params.bucket_name}, force: ${params.force}`);
+    const force = params.force || false;
+    logger.info(`Deleting bucket: ${params.bucket_name}, force: ${force}`);
     const storage = apiClientFactory.getStorageClient();
     const bucket = storage.bucket(params.bucket_name);
 
@@ -55,7 +56,7 @@ export async function deleteBucket(params: DeleteBucketParams): Promise<CallTool
       };
     }
 
-    if (params.force) {
+    if (force) {
       logger.info(`Force deleting all objects in bucket ${params.bucket_name}`);
       await bucket.deleteFiles({ force: true });
     }
@@ -71,7 +72,7 @@ export async function deleteBucket(params: DeleteBucketParams): Promise<CallTool
             success: true,
             message: `Bucket ${params.bucket_name} deleted successfully`,
             bucket_name: params.bucket_name,
-            force_delete: params.force,
+            force_delete: force,
           }),
         },
       ],

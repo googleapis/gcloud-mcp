@@ -20,8 +20,8 @@ import { defineConfig } from 'vitest/config';
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
   test: {
-    include: ['**/src/**/*.test.ts', '**/src/**/*.test.js', '**/tests/**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/integration/**'],
+    include: ['**/src/**/*.test.ts', '**/src/**/*.test.js'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
     environment: 'node',
     globals: true,
     reporters: ['default', 'junit'],

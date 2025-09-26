@@ -16,7 +16,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as gcloud from '../gcloud.js';
-import { allowedCommands, deniedCommands } from '../denylist.js';
+import { allowCommands, denyCommands } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
 
@@ -59,7 +59,7 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
           const commandNoArgs = parsedJson[0]['command_string_no_args'];
           const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
 
-          if (allowlist.length > 0 && !allowedCommands(allowlist).matches(commandArgsNoGcloud)) {
+          if (allowlist.length > 0 && !allowCommands(allowlist).matches(commandArgsNoGcloud)) {
             return {
               content: [
                 {
@@ -70,7 +70,7 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
             };
           }
 
-          if (deniedCommands(denylist).matches(commandArgsNoGcloud)) {
+          if (denyCommands(denylist).matches(commandArgsNoGcloud)) {
             return {
               content: [
                 {

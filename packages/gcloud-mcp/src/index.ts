@@ -28,7 +28,7 @@ import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
 
-export const default_denylist: string[] = [
+export const default_deny: string[] = [
   'compute start-iap-tunnel',
   'compute connect-to-serial-port',
   'compute tpus tpu-vm ssh',
@@ -50,8 +50,8 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 });
 
 interface McpConfig {
-  allowlist?: string[];
-  denylist?: string[];
+  allow?: string[];
+  deny?: string[];
 }
 
 const main = async () => {
@@ -73,7 +73,7 @@ const main = async () => {
     process.exit(1);
   }
 
-  let denylist = default_denylist;
+  let denylist = default_deny;
   let allowlist: string[] = [];
 
   const configFile = argv.config ?? process.env['GCLOUD_MCP_CONFIG_FILE'];
@@ -83,8 +83,8 @@ const main = async () => {
       const configPath = path.resolve(configFile);
       const configFileContent = fs.readFileSync(configPath, 'utf-8');
       const config: McpConfig = JSON.parse(configFileContent);
-      denylist = config.denylist ?? denylist;
-      allowlist = config.allowlist ?? allowlist;
+      denylist = config.deny ?? denylist;
+      allowlist = config.allow ?? allowlist;
       log.info(`Loaded configuration from ${configPath}`);
     } catch (error) {
       log.error(

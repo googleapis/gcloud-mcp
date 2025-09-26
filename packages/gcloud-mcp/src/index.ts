@@ -25,6 +25,8 @@ import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
 import { log } from './utility/logger.js';
+import fs from 'fs';
+import path from 'path';
 
 export const default_denylist: string[] = [
   'compute start-iap-tunnel',
@@ -47,10 +49,20 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
   },
 });
 
+interface McpConfig {
+  allowlist?: string[];
+  denylist?: string[];
+}
+
 const main = async () => {
-  await yargs(hideBin(process.argv))
+  const argv = await yargs(hideBin(process.argv))
     .command('$0', 'Run the gcloud mcp server')
     .command(exitProcessAfter(init))
+    .option('config', {
+      type: 'string',
+      description: 'Path to a JSON configuration file for allow/deny lists.',
+      alias: 'c',
+    })
     .version(pkg.version)
     .help()
     .parse();
@@ -61,6 +73,26 @@ const main = async () => {
     process.exit(1);
   }
 
+  let denylist = default_denylist;
+  let allowlist: string[] = [];
+
+  if (argv.config) {
+    try {
+      const configPath = path.resolve(argv.config);
+      const configFile = fs.readFileSync(configPath, 'utf-8');
+      const config: McpConfig = JSON.parse(configFile);
+      denylist = config.denylist ?? denylist;
+      allowlist = config.allowlist ?? allowlist;
+      log.info(`Loaded configuration from ${configPath}`);
+    } catch (error) {
+      log.error(
+        `Error reading or parsing config file: ${argv.config}`,
+        error instanceof Error ? error : undefined,
+      );
+      process.exit(1);
+    }
+  }
+
   const server = new McpServer(
     {
       name: 'gcloud-mcp-server',
@@ -68,7 +100,7 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  createRunGcloudCommand(default_denylist).register(server);
+  createRunGcloudCommand(denylist, allowlist).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 

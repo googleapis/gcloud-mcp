@@ -20,6 +20,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
 import * as gcloud from './gcloud.js';
 import { init } from './commands/init.js';
+import fs from 'fs';
 
 vi.mock('../package.json', () => ({
   default: {
@@ -86,8 +87,54 @@ test('should start the McpServer if gcloud is available', async () => {
     },
     { capabilities: { tools: {} } },
   );
-  expect(createRunGcloudCommand).toHaveBeenCalledWith(default_denylist);
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(default_denylist, []);
   expect(registerToolSpy).toHaveBeenCalledWith(vi.mocked(McpServer).mock.instances[0]);
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance!.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));
+});
+
+test('should load denylist and allowlist from config file', async () => {
+  process.argv = ['node', 'index.js', '--config', 'test-config.json'];
+  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  const config = {
+    denylist: ['gcloud secrets'],
+    allowlist: ['gcloud compute instances list'],
+  };
+  vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(config));
+
+  await import('./index.js');
+
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(config.denylist, config.allowlist);
+});
+
+test('should exit if config file is not found', async () => {
+  process.argv = ['node', 'index.js', '--config', 'not-found.json'];
+  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
+    throw new Error('File not found');
+  });
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+
+  await import('./index.js');
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining('ERROR: Error reading or parsing config file: not-found.json'),
+  );
+  expect(process.exit).toHaveBeenCalledWith(1);
+});
+
+test('should exit if config file is invalid JSON', async () => {
+  process.argv = ['node', 'index.js', '--config', 'invalid.json'];
+  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.spyOn(fs, 'readFileSync').mockReturnValue('invalid json');
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+
+  await import('./index.js');
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining('ERROR: Error reading or parsing config file: invalid.json'),
+  );
+  expect(process.exit).toHaveBeenCalledWith(1);
 });

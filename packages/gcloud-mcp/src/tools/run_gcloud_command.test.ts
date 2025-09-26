@@ -31,8 +31,8 @@ const getToolImplementation = () => {
   return (mockServer.registerTool as Mock).mock.calls[0]![2];
 };
 
-const createTool = (denylist: string[] = []) => {
-  createRunGcloudCommand(denylist).register(mockServer);
+const createTool = (denylist: string[] = [], allowlist: string[] = []) => {
+  createRunGcloudCommand(denylist, allowlist).register(mockServer);
   return getToolImplementation();
 };
 
@@ -96,9 +96,48 @@ describe('createRunGcloudCommand', () => {
     });
   });
 
+  describe('with allowlist', () => {
+    test('invokes gcloud for allowlisted command', async () => {
+      const tool = createTool([], ['compute list']);
+      const inputArgs = ['compute', 'list'];
+      mockGcloudLint(inputArgs);
+      mockGcloudInvoke('output');
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: 'output',
+          },
+        ],
+      });
+    });
+
+    test('returns error for non-allowlisted command', async () => {
+      const tool = createTool([], ['compute list']);
+      const inputArgs = ['compute', 'create'];
+      mockGcloudLint(inputArgs);
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Command is not part of this tool's current allowlist of enabled commands.`,
+          },
+        ],
+      });
+    });
+  });
+
   describe('with allowlist and denylist', () => {
     test('returns error for command in both lists', async () => {
-      const tool = createTool(['a b']);
+      const tool = createTool(['a b'], ['a b']);
       const inputArgs = ['a', 'b', 'c'];
       mockGcloudLint(inputArgs);
 

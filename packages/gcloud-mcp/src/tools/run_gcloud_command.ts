@@ -16,11 +16,11 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as gcloud from '../gcloud.js';
-import { deniedCommands } from '../denylist.js';
+import { allowedCommands, deniedCommands } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
 
-export const createRunGcloudCommand = (denylist: string[] = []) => ({
+export const createRunGcloudCommand = (denylist: string[] = [], allowlist: string[] = []) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -58,6 +58,17 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
           const parsedJson = JSON.parse(stdout);
           const commandNoArgs = parsedJson[0]['command_string_no_args'];
           const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
+
+          if (allowlist.length > 0 && !allowedCommands(allowlist).matches(commandArgsNoGcloud)) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Command is not part of this tool's current allowlist of enabled commands.`,
+                },
+              ],
+            };
+          }
 
           if (deniedCommands(denylist).matches(commandArgsNoGcloud)) {
             return {

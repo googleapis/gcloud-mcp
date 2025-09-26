@@ -15,6 +15,7 @@
  */
 
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
+import { expectSuccess } from './helpers.js';
 import { createBucket } from '../../src/tools/buckets/create_bucket.js';
 import { deleteBucket } from '../../src/tools/buckets/delete_bucket.js';
 import { getBucketMetadata } from '../../src/tools/buckets/get_bucket_metadata.js';
@@ -32,6 +33,7 @@ import { getBucketLocation } from '../../src/tools/buckets/get_bucket_location.j
 import { copyObject } from '../../src/tools/objects/copy_object.js';
 import { updateObjectMetadata } from '../../src/tools/objects/update_object_metadata.js';
 import { downloadObject } from '../../src/tools/objects/download_object.js';
+import { listBuckets } from '../../src/tools/buckets/list_buckets.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -53,119 +55,87 @@ const movedObjectName = 'moved-object.txt';
 
 describe('GCS Integration Tests', () => {
   beforeAll(async () => {
-    const result = await createBucket({
-      project_id: projectId,
-      bucket_name: bucketName,
-      location: 'US',
-      storage_class: 'STANDARD',
-      versioning_enabled: false,
-      requester_pays: false,
-    });
-    if (!result?.content?.[0]?.text) {
-      throw new Error('Create bucket failed');
-    }
-    const resultText = JSON.parse(result.content[0].text as string);
-    if (!resultText.success) {
-      throw new Error(`Create bucket failed: ${resultText.error}`);
-    }
-    expect(resultText.success).toBe(true);
+    await expectSuccess(
+      createBucket({
+        project_id: projectId,
+        bucket_name: bucketName,
+        location: 'US',
+        storage_class: 'STANDARD',
+        versioning_enabled: false,
+        requester_pays: false,
+      })
+    );
   });
 
   afterAll(async () => {
-    const result = await deleteBucket({ bucket_name: bucketName, force: true });
-    if (!result?.content?.[0]?.text) {
-      throw new Error('Delete bucket failed');
-    }
-    const resultText = JSON.parse(result.content[0].text as string);
-    if (!resultText.success) {
-      throw new Error(`Delete bucket failed: ${resultText.error}`);
-    }
-    expect(resultText.success).toBe(true);
+    await expectSuccess(deleteBucket({ bucket_name: bucketName, force: true }));
   });
 
   it('should update bucket labels and get metadata', async () => {
-    const updateResult = await updateBucketLabels({
-      bucket_name: bucketName,
-      labels: testLabel,
-    });
-    if (!updateResult?.content?.[0]?.text) {
-      throw new Error('Update bucket labels failed');
-    }
-    const updateResultText = JSON.parse(updateResult.content[0].text as string);
+    const updateResultText = await expectSuccess(
+      updateBucketLabels({
+        bucket_name: bucketName,
+        labels: testLabel,
+      })
+    );
     expect(updateResultText.success).toBe(true);
     expect(updateResultText.updated_labels).toEqual(testLabel);
 
-    const metadataResult = await getBucketMetadata({ bucket_name: bucketName });
-    if (!metadataResult?.content?.[0]?.text) {
-      throw new Error('Get bucket metadata failed');
-    }
-    const metadata = JSON.parse(metadataResult.content[0].text as string);
+    const metadata = await expectSuccess(
+      getBucketMetadata({ bucket_name: bucketName })
+    );
     expect(metadata.labels).toEqual(testLabel);
   });
 
   it('should view IAM policy and check permissions', async () => {
-    const policyResult = await viewIamPolicy({ bucket_name: bucketName });
-    if (!policyResult?.content?.[0]?.text) {
-      throw new Error('View IAM policy failed');
-    }
-    const policy = JSON.parse(policyResult.content[0].text as string);
+    const policy = await expectSuccess(viewIamPolicy({ bucket_name: bucketName }));
     expect(policy.iam_policy.bindings).toBeDefined();
 
-    const permissionsResult = await checkIamPermissions({
-      bucket_name: bucketName,
-      permissions: ['storage.objects.list'],
-    });
-    if (!permissionsResult?.content?.[0]?.text) {
-      throw new Error('Check IAM permissions failed');
-    }
-    const permissions = JSON.parse(permissionsResult.content[0].text as string);
+    const permissions = await expectSuccess(
+      checkIamPermissions({
+        bucket_name: bucketName,
+        permissions: ['storage.objects.list'],
+      })
+    );
     expect(permissions.allowed_permissions['storage.objects.list']).toBe(true);
   });
 
   it('should write, read, and delete an object', async () => {
     // Write
-    const writeResult = await writeObject({
-      bucket_name: bucketName,
-      object_name: testObjectName,
-      content: Buffer.from(testObjectContent).toString('base64'),
-    });
-    if (!writeResult?.content?.[0]?.text) {
-      throw new Error('Write object failed');
-    }
-    const writeResultText = JSON.parse(writeResult.content[0].text as string);
-    expect(writeResultText.success).toBe(true);
+    const writeResult = await expectSuccess(
+      writeObject({
+        bucket_name: bucketName,
+        object_name: testObjectName,
+        content: Buffer.from(testObjectContent).toString('base64'),
+      })
+    );
+    expect(writeResult.success).toBe(true);
 
     // Read
-    const readResult = await readObjectContent({
-      bucket_name: bucketName,
-      object_name: testObjectName,
-    });
-    if (!readResult?.content?.[0]?.text) {
-      throw new Error('Read object content failed');
-    }
-    const readResultText = JSON.parse(readResult.content[0].text as string);
+    const readResultText = await expectSuccess(
+      readObjectContent({
+        bucket_name: bucketName,
+        object_name: testObjectName,
+      })
+    );
     expect(readResultText.content).toBe(testObjectContent);
 
     // Delete
-    const deleteResult = await deleteObject({
-      bucket_name: bucketName,
-      object_name: testObjectName,
-    });
-    if (!deleteResult?.content?.[0]?.text) {
-      throw new Error('Delete object failed');
-    }
-    const deleteResultText = JSON.parse(deleteResult.content[0].text as string);
-    expect(deleteResultText.success).toBe(true);
+    const deleteResult = await expectSuccess(
+      deleteObject({
+        bucket_name: bucketName,
+        object_name: testObjectName,
+      })
+    );
+    expect(deleteResult.success).toBe(true);
 
     // Verify deletion
-    const metadataResult = await readObjectMetadata({
-      bucket_name: bucketName,
-      object_name: testObjectName,
-    });
-    if (!metadataResult?.content?.[0]?.text) {
-      throw new Error('Read object metadata failed');
-    }
-    const metadata = JSON.parse(metadataResult.content[0].text as string);
+    const metadata = await expectSuccess(
+      readObjectMetadata({
+        bucket_name: bucketName,
+        object_name: testObjectName,
+      })
+    );
     expect(metadata.error_type).toBe('NotFound');
   });
 
@@ -173,54 +143,44 @@ describe('GCS Integration Tests', () => {
     // Upload
     const uploadFilePath = path.join(__dirname, testUploadFileName);
     fs.writeFileSync(uploadFilePath, testObjectContent);
-    const uploadResult = await uploadObject({
-      bucket_name: bucketName,
-      file_path: uploadFilePath,
-    });
-    if (!uploadResult?.content?.[0]?.text) {
-      throw new Error('Upload object failed');
-    }
-    const uploadResultText = JSON.parse(uploadResult.content[0].text as string);
-    expect(uploadResultText.success).toBe(true);
+    const uploadResult = await expectSuccess(
+      uploadObject({
+        bucket_name: bucketName,
+        file_path: uploadFilePath,
+      })
+    );
+    expect(uploadResult.success).toBe(true);
     fs.unlinkSync(uploadFilePath);
 
     // List
-    const listResult = await listObjects({ bucket_name: bucketName });
-    if (!listResult?.content?.[0]?.text) {
-      throw new Error('List objects failed');
-    }
-    const listResultText = JSON.parse(listResult.content[0].text as string);
+    const listResultText = await expectSuccess(
+      listObjects({ bucket_name: bucketName })
+    );
     expect(listResultText.objects).toContain(testUploadFileName);
 
     // Move
-    const moveResult = await moveObject({
-      source_bucket_name: bucketName,
-      source_object_name: testUploadFileName,
-      destination_bucket_name: bucketName,
-      destination_object_name: movedObjectName,
-    });
-    if (!moveResult?.content?.[0]?.text) {
-      throw new Error('Move object failed');
-    }
-    const moveResultText = JSON.parse(moveResult.content[0].text as string);
-    expect(moveResultText.success).toBe(true);
+    const moveResult = await expectSuccess(
+      moveObject({
+        source_bucket_name: bucketName,
+        source_object_name: testUploadFileName,
+        destination_bucket_name: bucketName,
+        destination_object_name: movedObjectName,
+      })
+    );
+    expect(moveResult.success).toBe(true);
 
     // Verify move
-    const newListResult = await listObjects({ bucket_name: bucketName });
-    if (!newListResult?.content?.[0]?.text) {
-      throw new Error('List objects after move failed');
-    }
-    const newListResultText = JSON.parse(newListResult.content[0].text as string);
+    const newListResultText = await expectSuccess(
+      listObjects({ bucket_name: bucketName })
+    );
     expect(newListResultText.objects).toContain(movedObjectName);
     expect(newListResultText.objects).not.toContain(testUploadFileName);
   });
 
   it('should get bucket location', async () => {
-    const result = await getBucketLocation({ bucket_name: bucketName });
-    if (!result?.content?.[0]?.text) {
-      throw new Error('Get bucket location failed');
-    }
-    const resultText = JSON.parse(result.content[0].text as string);
+    const resultText = await expectSuccess(
+      getBucketLocation({ bucket_name: bucketName })
+    );
     expect(resultText.location).toBeDefined();
     expect(typeof resultText.location).toBe('string');
   });
@@ -230,42 +190,39 @@ describe('GCS Integration Tests', () => {
     const customMetadata = { 'test-key': 'test-value' };
 
     // Write
-    const writeResult = await writeObject({
-      bucket_name: bucketName,
-      object_name: objectName,
-      content: Buffer.from(testObjectContent).toString('base64'),
-    });
-    if (!writeResult?.content?.[0]?.text) {
-      throw new Error('Write object for metadata test failed');
-    }
-    const writeResultText = JSON.parse(writeResult.content[0].text as string);
-    expect(writeResultText.success).toBe(true);
+    const writeResult = await expectSuccess(
+      writeObject({
+        bucket_name: bucketName,
+        object_name: objectName,
+        content: Buffer.from(testObjectContent).toString('base64'),
+      })
+    );
+    expect(writeResult.success).toBe(true);
 
     // Update metadata
-    const updateResult = await updateObjectMetadata({
-      bucket_name: bucketName,
-      object_name: objectName,
-      metadata: customMetadata,
-    });
-    if (!updateResult?.content?.[0]?.text) {
-      throw new Error('Update object metadata failed');
-    }
-    const updateResultText = JSON.parse(updateResult.content[0].text as string);
-    expect(updateResultText.success).toBe(true);
+    const updateResult = await expectSuccess(
+      updateObjectMetadata({
+        bucket_name: bucketName,
+        object_name: objectName,
+        metadata: customMetadata,
+      })
+    );
+    expect(updateResult.success).toBe(true);
 
     // Verify metadata
-    const metadataResult = await readObjectMetadata({
-      bucket_name: bucketName,
-      object_name: objectName,
-    });
-    if (!metadataResult?.content?.[0]?.text) {
-      throw new Error('Read object metadata for verification failed');
-    }
-    const metadata = JSON.parse(metadataResult.content[0].text as string);
+    const metadata = await expectSuccess(
+      readObjectMetadata({
+        bucket_name: bucketName,
+        object_name: objectName,
+      })
+    );
     expect(metadata.metadata).toEqual(customMetadata);
 
     // Cleanup
-    await deleteObject({ bucket_name: bucketName, object_name: objectName });
+    const deleteResult = await expectSuccess(
+      deleteObject({ bucket_name: bucketName, object_name: objectName })
+    );
+    expect(deleteResult.success).toBe(true);
   });
 
   it('should copy an object', async () => {
@@ -273,45 +230,45 @@ describe('GCS Integration Tests', () => {
     const copiedObjectName = 'copied-copy-test-object.txt';
 
     // Write
-    const writeResult = await writeObject({
-      bucket_name: bucketName,
-      object_name: objectName,
-      content: Buffer.from(testObjectContent).toString('base64'),
-    });
-    if (!writeResult?.content?.[0]?.text) {
-      throw new Error('Write object for copy test failed');
-    }
-    const writeResultText = JSON.parse(writeResult.content[0].text as string);
-    expect(writeResultText.success).toBe(true);
+    const writeResult = await expectSuccess(
+      writeObject({
+        bucket_name: bucketName,
+        object_name: objectName,
+        content: Buffer.from(testObjectContent).toString('base64'),
+      })
+    );
+    expect(writeResult.success).toBe(true);
 
     // Copy object
-    const copyResult = await copyObject({
-      source_bucket_name: bucketName,
-      source_object_name: objectName,
-      destination_bucket_name: bucketName,
-      destination_object_name: copiedObjectName,
-    });
-    if (!copyResult?.content?.[0]?.text) {
-      throw new Error('Copy object failed');
-    }
-    const copyResultText = JSON.parse(copyResult.content[0].text as string);
-    expect(copyResultText.success).toBe(true);
+    const copyResult = await expectSuccess(
+      copyObject({
+        source_bucket_name: bucketName,
+        source_object_name: objectName,
+        destination_bucket_name: bucketName,
+        destination_object_name: copiedObjectName,
+      })
+    );
+    expect(copyResult.success).toBe(true);
 
     // Verify copy
-    const listResult = await listObjects({ bucket_name: bucketName });
-    if (!listResult?.content?.[0]?.text) {
-      throw new Error('List objects for copy verification failed');
-    }
-    const listResultText = JSON.parse(listResult.content[0].text as string);
+    const listResultText = await expectSuccess(
+      listObjects({ bucket_name: bucketName })
+    );
     expect(listResultText.objects).toContain(objectName);
     expect(listResultText.objects).toContain(copiedObjectName);
 
     // Cleanup
-    await deleteObject({ bucket_name: bucketName, object_name: objectName });
-    await deleteObject({
-      bucket_name: bucketName,
-      object_name: copiedObjectName,
-    });
+    const deleteResult1 = await expectSuccess(
+      deleteObject({ bucket_name: bucketName, object_name: objectName })
+    );
+    expect(deleteResult1.success).toBe(true);
+    const deleteResult2 = await expectSuccess(
+      deleteObject({
+        bucket_name: bucketName,
+        object_name: copiedObjectName,
+      })
+    );
+    expect(deleteResult2.success).toBe(true);
   });
 
   it('should download an object', async () => {
@@ -319,28 +276,24 @@ describe('GCS Integration Tests', () => {
     const downloadFilePath = path.join(__dirname, 'downloaded-file.txt');
 
     // Write an object to GCS
-    const writeResult = await writeObject({
-      bucket_name: bucketName,
-      object_name: objectName,
-      content: Buffer.from(testObjectContent).toString('base64'),
-    });
-    if (!writeResult?.content?.[0]?.text) {
-      throw new Error('Write object for download test failed');
-    }
-    const writeResultText = JSON.parse(writeResult.content[0].text as string);
-    expect(writeResultText.success).toBe(true);
+    const writeResult = await expectSuccess(
+      writeObject({
+        bucket_name: bucketName,
+        object_name: objectName,
+        content: Buffer.from(testObjectContent).toString('base64'),
+      })
+    );
+    expect(writeResult.success).toBe(true);
 
     // Download the object
-    const downloadResult = await downloadObject({
-      bucket_name: bucketName,
-      object_name: objectName,
-      file_path: downloadFilePath,
-    });
-    if (!downloadResult?.content?.[0]?.text) {
-      throw new Error('Download object failed');
-    }
-    const downloadResultText = JSON.parse(downloadResult.content[0].text as string);
-    expect(downloadResultText.success).toBe(true);
+    const downloadResult = await expectSuccess(
+      downloadObject({
+        bucket_name: bucketName,
+        object_name: objectName,
+        file_path: downloadFilePath,
+      })
+    );
+    expect(downloadResult.success).toBe(true);
 
     // Verify the downloaded file
     const downloadedContent = fs.readFileSync(downloadFilePath, 'utf-8');
@@ -348,7 +301,15 @@ describe('GCS Integration Tests', () => {
 
     // Cleanup
     fs.unlinkSync(downloadFilePath);
-    await deleteObject({ bucket_name: bucketName, object_name: objectName });
+    const deleteResult = await expectSuccess(
+      deleteObject({ bucket_name: bucketName, object_name: objectName })
+    );
+    expect(deleteResult.success).toBe(true);
+  });
+
+  it('should list buckets', async () => {
+    const buckets = await expectSuccess(listBuckets({ project_id: projectId }));
+    expect(buckets.split('\n')).toContain(bucketName);
   });
 });
 
@@ -356,34 +317,22 @@ const mimeTypeBucketName = `gcs-mcp-mime-type-test-${Date.now()}`;
 
 describe('readObjectContent MIME type tests', () => {
   beforeAll(async () => {
-    const result = await createBucket({
-      project_id: projectId,
-      bucket_name: mimeTypeBucketName,
-      location: 'US',
-      storage_class: 'STANDARD',
-      versioning_enabled: false,
-      requester_pays: false,
-    });
-    if (!result?.content?.[0]?.text) {
-      throw new Error('Create bucket failed');
-    }
-    const resultText = JSON.parse(result.content[0].text as string);
-    if (!resultText.success) {
-      throw new Error(`Create bucket failed: ${resultText.error}`);
-    }
-    expect(resultText.success).toBe(true);
+    await expectSuccess(
+      createBucket({
+        project_id: projectId,
+        bucket_name: mimeTypeBucketName,
+        location: 'US',
+        storage_class: 'STANDARD',
+        versioning_enabled: false,
+        requester_pays: false,
+      })
+    );
   });
 
   afterAll(async () => {
-    const result = await deleteBucket({ bucket_name: mimeTypeBucketName, force: true });
-    if (!result?.content?.[0]?.text) {
-      throw new Error('Delete bucket failed');
-    }
-    const resultText = JSON.parse(result.content[0].text as string);
-    if (!resultText.success) {
-      throw new Error(`Delete bucket failed: ${resultText.error}`);
-    }
-    expect(resultText.success).toBe(true);
+    await expectSuccess(
+      deleteBucket({ bucket_name: mimeTypeBucketName, force: true })
+    );
   });
   const testFiles = [
     {
@@ -455,45 +404,41 @@ describe('readObjectContent MIME type tests', () => {
       const filePath = path.join(__dirname, file.name);
 
       // Upload the file
-      const uploadResult = await uploadObject({
-        bucket_name: mimeTypeBucketName,
-        file_path: filePath,
-        object_name: file.name,
-        content_type: file.contentType,
-      });
-      if (!uploadResult?.content?.[0]?.text) {
-        throw new Error('Upload object failed');
-      }
-      const uploadResultText = JSON.parse(uploadResult.content[0].text as string);
-      expect(uploadResultText.success).toBe(true);
+      const uploadResult = await expectSuccess(
+        uploadObject({
+          bucket_name: mimeTypeBucketName,
+          file_path: filePath,
+          object_name: file.name,
+          content_type: file.contentType,
+        })
+      );
+      expect(uploadResult.success).toBe(true);
 
       // Read the object content
-      const readResult = await readObjectContent({
-        bucket_name: mimeTypeBucketName,
-        object_name: file.name,
-      });
-      if (!readResult?.content?.[0]) {
-        throw new Error('Read object content failed');
-      }
+      const readResult = await expectSuccess(
+        readObjectContent({
+          bucket_name: mimeTypeBucketName,
+          object_name: file.name,
+        })
+      );
 
       if (file.unsupported) {
-        const readResultText = JSON.parse(readResult.content[0].text as string);
-        expect(readResultText.error_type).toBe('UnsupportedContentType');
+        expect(readResult.error_type).toBe('UnsupportedContentType');
       } else if (file.shouldBeText) {
-        const readResultText = JSON.parse(readResult.content[0].text as string);
-        expect(readResultText.content).toBe(file.content);
-        expect(readResultText.content_type).toBe(file.contentType);
+        expect(readResult.content).toBe(file.content);
+        expect(readResult.content_type).toBe(file.contentType);
       } else {
-        // For binary files, we expect a resource object
-        const resourceResult = readResult.content[0];
-        if (resourceResult.type === 'resource') {
-          expect(resourceResult.resource.mimeType).toBe(file.contentType);
-          expect(resourceResult.resource.blob).toBeDefined();
-        }
+        // For binary files, the `expectSuccess` helper returns a `resource` object.
+        // This part of the helper is used here to handle the binary content.
+        expect(readResult.mimeType).toBe(file.contentType);
+        expect(readResult.blob).toBeDefined();
       }
 
       // Cleanup the object
-      await deleteObject({ bucket_name: mimeTypeBucketName, object_name: file.name });
+      const deleteResult = await expectSuccess(
+        deleteObject({ bucket_name: mimeTypeBucketName, object_name: file.name })
+      );
+      expect(deleteResult.success).toBe(true);
     });
   });
 });

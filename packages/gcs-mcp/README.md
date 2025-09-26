@@ -87,6 +87,15 @@ for a single project or your global user settings file for all projects:
 For more information regarding installing the repository locally, please see
 [development.md](doc/DEVELOPMENT.md)
 
+### Testing
+
+To run the integration tests, you will need to set the `GOOGLE_CLOUD_PROJECT` or `GCP_PROJECT_ID` environment variable to a valid Google Cloud project ID.
+
+```shell
+export GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+npm run test:integration --workspace=packages/gcs-mcp
+```
+
 ## 🧰 Available MCP Tools
 
 ### Object Tools

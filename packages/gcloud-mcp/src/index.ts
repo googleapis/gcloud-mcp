@@ -76,17 +76,19 @@ const main = async () => {
   let denylist = default_denylist;
   let allowlist: string[] = [];
 
-  if (argv.config) {
+  const configFile = argv.config ?? process.env['GCLOUD_MCP_CONFIG_FILE'];
+
+  if (configFile) {
     try {
-      const configPath = path.resolve(argv.config);
-      const configFile = fs.readFileSync(configPath, 'utf-8');
-      const config: McpConfig = JSON.parse(configFile);
+      const configPath = path.resolve(configFile);
+      const configFileContent = fs.readFileSync(configPath, 'utf-8');
+      const config: McpConfig = JSON.parse(configFileContent);
       denylist = config.denylist ?? denylist;
       allowlist = config.allowlist ?? allowlist;
       log.info(`Loaded configuration from ${configPath}`);
     } catch (error) {
       log.error(
-        `Error reading or parsing config file: ${argv.config}`,
+        `Error reading or parsing config file: ${configFile}`,
         error instanceof Error ? error : undefined,
       );
       process.exit(1);

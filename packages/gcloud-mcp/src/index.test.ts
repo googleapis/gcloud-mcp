@@ -21,6 +21,7 @@ import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
 import * as gcloud from './gcloud.js';
 import { init } from './commands/init.js';
 import fs from 'fs';
+import { default_deny } from './index.js';
 
 vi.mock('../package.json', () => ({
   default: {
@@ -107,7 +108,11 @@ test('should load deny and allow from config file', async () => {
 
   await import('./index.js');
 
-  expect(createRunGcloudCommand).toHaveBeenCalledWith(config.deny, config.allow);
+  const expectedDeny = [...new Set([...default_deny, ...config.deny])];
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(
+    expectedDeny,
+    config.allow,
+  );
 });
 
 test('should exit if config file is not found', async () => {
@@ -155,7 +160,11 @@ test('should load deny and allow from config file using env var', async () => {
 
   await import('./index.js');
 
-  expect(createRunGcloudCommand).toHaveBeenCalledWith(config.deny, config.allow);
+  const expectedDeny = [...new Set([...default_deny, ...config.deny])];
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(
+    expectedDeny,
+    config.allow,
+  );
   delete process.env['GCLOUD_MCP_CONFIG_FILE'];
 });
 
@@ -186,6 +195,10 @@ test('should prioritize config from args over env var', async () => {
 
   await import('./index.js');
 
-  expect(createRunGcloudCommand).toHaveBeenCalledWith(priorityConfig.deny, priorityConfig.allow);
+  const expectedDeny = [...new Set([...default_deny, ...priorityConfig.deny])];
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(
+    expectedDeny,
+    priorityConfig.allow,
+  );
   delete process.env['GCLOUD_MCP_CONFIG_FILE'];
 });

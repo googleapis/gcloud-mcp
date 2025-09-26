@@ -86,7 +86,7 @@ const main = async () => {
       }
       const configFileContent = fs.readFileSync(configFile, 'utf-8');
       const config: McpConfig = JSON.parse(configFileContent);
-      denylist = config.deny ?? denylist;
+      denylist = [...new Set([...default_deny, ...(config.deny ?? [])])];
       allowlist = config.allow ?? allowlist;
       log.info(`Loaded configuration from ${configFile}`);
     } catch (error) {

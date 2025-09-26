@@ -49,7 +49,7 @@ beforeEach(() => {
 
 test('should initialize Gemini CLI when gcloud-mcp init --agent=gemini-cli is called', async () => {
   process.argv = ['node', 'index.js', 'init', '--agent=gemini-cli'];
-  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
   await import('./index.js');
 
@@ -61,7 +61,7 @@ test('should exit if gcloud is not available', async () => {
   process.argv = ['node', 'index.js'];
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(false);
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
   await import('./index.js');
 
@@ -78,7 +78,9 @@ test('should exit if gcloud is not available', async () => {
 test('should start the McpServer if gcloud is available', async () => {
   process.argv = ['node', 'index.js'];
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
   const { default_deny } = await import('./index.js');
+  await import('./index.js');
   expect(gcloud.isAvailable).toHaveBeenCalled();
   expect(McpServer).toHaveBeenCalledWith(
     {
@@ -96,6 +98,7 @@ test('should start the McpServer if gcloud is available', async () => {
 test('should load deny and allow from config file', async () => {
   process.argv = ['node', 'index.js', '--config', 'test-config.json'];
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
   const config = {
     deny: ['gcloud secrets'],
     allow: ['gcloud compute instances list'],
@@ -114,7 +117,7 @@ test('should exit if config file is not found', async () => {
     throw new Error('File not found');
   });
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
   await import('./index.js');
 
@@ -129,7 +132,7 @@ test('should exit if config file is invalid JSON', async () => {
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   vi.spyOn(fs, 'readFileSync').mockReturnValue('invalid json');
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  vi.stubGlobal('process', { ...process, exit: vi.fn() });
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
   await import('./index.js');
 
@@ -143,6 +146,7 @@ test('should load deny and allow from config file using env var', async () => {
   process.argv = ['node', 'index.js'];
   process.env['GCLOUD_MCP_CONFIG_FILE'] = 'test-config.json';
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
   const config = {
     deny: ['gcloud secrets'],
     allow: ['gcloud compute instances list'],
@@ -159,6 +163,7 @@ test('should prioritize config from args over env var', async () => {
   process.argv = ['node', 'index.js', '--config', 'priority-config.json'];
   process.env['GCLOUD_MCP_CONFIG_FILE'] = 'env-config.json';
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
   const priorityConfig = {
     deny: ['priority deny'],

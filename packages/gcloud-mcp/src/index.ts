@@ -80,12 +80,15 @@ const main = async () => {
 
   if (configFile) {
     try {
-      const configPath = path.resolve(configFile);
-      const configFileContent = fs.readFileSync(configPath, 'utf-8');
+      if (!path.isAbsolute(configFile)) {
+        log.error(`Config file path must be absolute: ${configFile}`);
+        process.exit(1);
+      }
+      const configFileContent = fs.readFileSync(configFile, 'utf-8');
       const config: McpConfig = JSON.parse(configFileContent);
       denylist = config.deny ?? denylist;
       allowlist = config.allow ?? allowlist;
-      log.info(`Loaded configuration from ${configPath}`);
+      log.info(`Loaded configuration from ${configFile}`);
     } catch (error) {
       log.error(
         `Error reading or parsing config file: ${configFile}`,

@@ -63,7 +63,7 @@ describe('GCS Integration Tests', () => {
         storage_class: 'STANDARD',
         versioning_enabled: false,
         requester_pays: false,
-      })
+      }),
     );
   });
 
@@ -76,14 +76,12 @@ describe('GCS Integration Tests', () => {
       updateBucketLabels({
         bucket_name: bucketName,
         labels: testLabel,
-      })
+      }),
     );
     expect(updateResultText.success).toBe(true);
     expect(updateResultText.updated_labels).toEqual(testLabel);
 
-    const metadata = await expectSuccess(
-      getBucketMetadata({ bucket_name: bucketName })
-    );
+    const metadata = await expectSuccess(getBucketMetadata({ bucket_name: bucketName }));
     expect(metadata.labels).toEqual(testLabel);
   });
 
@@ -95,7 +93,7 @@ describe('GCS Integration Tests', () => {
       checkIamPermissions({
         bucket_name: bucketName,
         permissions: ['storage.objects.list'],
-      })
+      }),
     );
     expect(permissions.allowed_permissions['storage.objects.list']).toBe(true);
   });
@@ -107,7 +105,7 @@ describe('GCS Integration Tests', () => {
         bucket_name: bucketName,
         object_name: testObjectName,
         content: Buffer.from(testObjectContent).toString('base64'),
-      })
+      }),
     );
     expect(writeResult.success).toBe(true);
 
@@ -116,7 +114,7 @@ describe('GCS Integration Tests', () => {
       readObjectContent({
         bucket_name: bucketName,
         object_name: testObjectName,
-      })
+      }),
     );
     expect(readResultText.content).toBe(testObjectContent);
 
@@ -125,7 +123,7 @@ describe('GCS Integration Tests', () => {
       deleteObject({
         bucket_name: bucketName,
         object_name: testObjectName,
-      })
+      }),
     );
     expect(deleteResult.success).toBe(true);
 
@@ -134,7 +132,7 @@ describe('GCS Integration Tests', () => {
       readObjectMetadata({
         bucket_name: bucketName,
         object_name: testObjectName,
-      })
+      }),
     );
     expect(metadata.error_type).toBe('NotFound');
   });
@@ -147,15 +145,13 @@ describe('GCS Integration Tests', () => {
       uploadObject({
         bucket_name: bucketName,
         file_path: uploadFilePath,
-      })
+      }),
     );
     expect(uploadResult.success).toBe(true);
     fs.unlinkSync(uploadFilePath);
 
     // List
-    const listResultText = await expectSuccess(
-      listObjects({ bucket_name: bucketName })
-    );
+    const listResultText = await expectSuccess(listObjects({ bucket_name: bucketName }));
     expect(listResultText.objects).toContain(testUploadFileName);
 
     // Move
@@ -165,22 +161,18 @@ describe('GCS Integration Tests', () => {
         source_object_name: testUploadFileName,
         destination_bucket_name: bucketName,
         destination_object_name: movedObjectName,
-      })
+      }),
     );
     expect(moveResult.success).toBe(true);
 
     // Verify move
-    const newListResultText = await expectSuccess(
-      listObjects({ bucket_name: bucketName })
-    );
+    const newListResultText = await expectSuccess(listObjects({ bucket_name: bucketName }));
     expect(newListResultText.objects).toContain(movedObjectName);
     expect(newListResultText.objects).not.toContain(testUploadFileName);
   });
 
   it('should get bucket location', async () => {
-    const resultText = await expectSuccess(
-      getBucketLocation({ bucket_name: bucketName })
-    );
+    const resultText = await expectSuccess(getBucketLocation({ bucket_name: bucketName }));
     expect(resultText.location).toBeDefined();
     expect(typeof resultText.location).toBe('string');
   });
@@ -195,7 +187,7 @@ describe('GCS Integration Tests', () => {
         bucket_name: bucketName,
         object_name: objectName,
         content: Buffer.from(testObjectContent).toString('base64'),
-      })
+      }),
     );
     expect(writeResult.success).toBe(true);
 
@@ -205,7 +197,7 @@ describe('GCS Integration Tests', () => {
         bucket_name: bucketName,
         object_name: objectName,
         metadata: customMetadata,
-      })
+      }),
     );
     expect(updateResult.success).toBe(true);
 
@@ -214,13 +206,13 @@ describe('GCS Integration Tests', () => {
       readObjectMetadata({
         bucket_name: bucketName,
         object_name: objectName,
-      })
+      }),
     );
     expect(metadata.metadata).toEqual(customMetadata);
 
     // Cleanup
     const deleteResult = await expectSuccess(
-      deleteObject({ bucket_name: bucketName, object_name: objectName })
+      deleteObject({ bucket_name: bucketName, object_name: objectName }),
     );
     expect(deleteResult.success).toBe(true);
   });
@@ -235,7 +227,7 @@ describe('GCS Integration Tests', () => {
         bucket_name: bucketName,
         object_name: objectName,
         content: Buffer.from(testObjectContent).toString('base64'),
-      })
+      }),
     );
     expect(writeResult.success).toBe(true);
 
@@ -246,27 +238,25 @@ describe('GCS Integration Tests', () => {
         source_object_name: objectName,
         destination_bucket_name: bucketName,
         destination_object_name: copiedObjectName,
-      })
+      }),
     );
     expect(copyResult.success).toBe(true);
 
     // Verify copy
-    const listResultText = await expectSuccess(
-      listObjects({ bucket_name: bucketName })
-    );
+    const listResultText = await expectSuccess(listObjects({ bucket_name: bucketName }));
     expect(listResultText.objects).toContain(objectName);
     expect(listResultText.objects).toContain(copiedObjectName);
 
     // Cleanup
     const deleteResult1 = await expectSuccess(
-      deleteObject({ bucket_name: bucketName, object_name: objectName })
+      deleteObject({ bucket_name: bucketName, object_name: objectName }),
     );
     expect(deleteResult1.success).toBe(true);
     const deleteResult2 = await expectSuccess(
       deleteObject({
         bucket_name: bucketName,
         object_name: copiedObjectName,
-      })
+      }),
     );
     expect(deleteResult2.success).toBe(true);
   });
@@ -281,7 +271,7 @@ describe('GCS Integration Tests', () => {
         bucket_name: bucketName,
         object_name: objectName,
         content: Buffer.from(testObjectContent).toString('base64'),
-      })
+      }),
     );
     expect(writeResult.success).toBe(true);
 
@@ -291,7 +281,7 @@ describe('GCS Integration Tests', () => {
         bucket_name: bucketName,
         object_name: objectName,
         file_path: downloadFilePath,
-      })
+      }),
     );
     expect(downloadResult.success).toBe(true);
 
@@ -302,7 +292,7 @@ describe('GCS Integration Tests', () => {
     // Cleanup
     fs.unlinkSync(downloadFilePath);
     const deleteResult = await expectSuccess(
-      deleteObject({ bucket_name: bucketName, object_name: objectName })
+      deleteObject({ bucket_name: bucketName, object_name: objectName }),
     );
     expect(deleteResult.success).toBe(true);
   });
@@ -325,14 +315,12 @@ describe('readObjectContent MIME type tests', () => {
         storage_class: 'STANDARD',
         versioning_enabled: false,
         requester_pays: false,
-      })
+      }),
     );
   });
 
   afterAll(async () => {
-    await expectSuccess(
-      deleteBucket({ bucket_name: mimeTypeBucketName, force: true })
-    );
+    await expectSuccess(deleteBucket({ bucket_name: mimeTypeBucketName, force: true }));
   });
   const testFiles = [
     {
@@ -410,7 +398,7 @@ describe('readObjectContent MIME type tests', () => {
           file_path: filePath,
           object_name: file.name,
           content_type: file.contentType,
-        })
+        }),
       );
       expect(uploadResult.success).toBe(true);
 
@@ -419,7 +407,7 @@ describe('readObjectContent MIME type tests', () => {
         readObjectContent({
           bucket_name: mimeTypeBucketName,
           object_name: file.name,
-        })
+        }),
       );
 
       if (file.unsupported) {
@@ -436,7 +424,7 @@ describe('readObjectContent MIME type tests', () => {
 
       // Cleanup the object
       const deleteResult = await expectSuccess(
-        deleteObject({ bucket_name: mimeTypeBucketName, object_name: file.name })
+        deleteObject({ bucket_name: mimeTypeBucketName, object_name: file.name }),
       );
       expect(deleteResult.success).toBe(true);
     });

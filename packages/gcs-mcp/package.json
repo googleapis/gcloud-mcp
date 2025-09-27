@@ -10,6 +10,7 @@
     "build": "tsc -p . && cp GEMINI-extension.md dist/",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.config.integration.ts",
+    "test:e2e": "vitest run --config vitest.config.e2e.ts",
     "start": "node dist/src/index.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",
     "fix": "prettier --write . && eslint . --fix",

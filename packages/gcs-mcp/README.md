@@ -89,29 +89,32 @@ For more information regarding installing the repository locally, please see
 
 ### Testing
 
-To run the integration tests, you will need to set the `GOOGLE_CLOUD_PROJECT` or `GCP_PROJECT_ID` environment variable to a valid Google Cloud project ID.
+To run the integration or E2E tests, you will need to set the
+`GOOGLE_CLOUD_PROJECT` or `GCP_PROJECT_ID` environment variable to a valid
+Google Cloud project ID.
 
 ```shell
 export GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 npm run test:integration --workspace=packages/gcs-mcp
+npm run test:e2e --workspace=packages/gcs-mcp
 ```
 
 ## 🧰 Available MCP Tools
 
 ### Object Tools
 
-| Tool                           | Description                                         |
-| :----------------------------- | :-------------------------------------------------- |
-| `list_objects`                 | Lists objects in a GCS bucket.                      |
-| `read_object_metadata`         | Reads comprehensive metadata for a specific object. |
-| `read_object_content`          | Reads the content of a specific object.             |
-| `delete_object`                | Deletes a specific object from a bucket.            |
-| `write_object`                 | Writes a new object to a bucket.                    |
-| `update_object_metadata`       | Updates the custom metadata of an existing object.  |
-| `copy_object`                  | Copies an object from one bucket to another.        |
-| `move_object`                  | Moves an object from one bucket to another.         |
-| `upload_object`                | Uploads a file to a GCS bucket.                     |
-| `download_object`              | Downloads an object from GCS to a local file.       |
+| Tool                     | Description                                         |
+| :----------------------- | :-------------------------------------------------- |
+| `list_objects`           | Lists objects in a GCS bucket.                      |
+| `read_object_metadata`   | Reads comprehensive metadata for a specific object. |
+| `read_object_content`    | Reads the content of a specific object.             |
+| `delete_object`          | Deletes a specific object from a bucket.            |
+| `write_object`           | Writes a new object to a bucket.                    |
+| `update_object_metadata` | Updates the custom metadata of an existing object.  |
+| `copy_object`            | Copies an object from one bucket to another.        |
+| `move_object`            | Moves an object from one bucket to another.         |
+| `upload_object`          | Uploads a file to a GCS bucket.                     |
+| `download_object`        | Downloads an object from GCS to a local file.       |
 
 ### Bucket Tools
 

@@ -23,8 +23,10 @@
  * @param promise A promise that resolves to the result of an MCP tool call.
  * @returns The extracted and processed content from the tool's result.
  */
-export async function expectSuccess(promise: Promise<any>): Promise<any> {
-  const result = await promise;
+export async function expectSuccess(promise: Promise<unknown>): Promise<unknown> {
+  const result = (await promise) as {
+    content?: Array<{ type: string; text?: string; resource?: unknown }>;
+  };
   const content = result.content?.[0];
 
   if (!content) {
@@ -43,7 +45,7 @@ export async function expectSuccess(promise: Promise<any>): Promise<any> {
         throw new Error(`API call failed: ${resultText.error}`);
       }
       return resultText;
-    } catch (e) {
+    } catch (_e) {
       // If parsing fails, assume it's a plain text response.
       return content.text;
     }

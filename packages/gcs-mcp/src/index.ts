@@ -18,23 +18,10 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
-  registerListBucketsTool,
-  registerListObjectsTool,
-  registerReadObjectMetadataTool,
-  registerReadObjectContentTool,
-  registerDeleteObjectTool,
-  registerWriteObjectTool,
-  registerUploadObjectTool,
-  registerUpdateObjectMetadataTool,
-  registerCopyObjectTool,
-  registerMoveObjectTool,
-  registerCreateBucketTool,
-  registerDeleteBucketTool,
-  registerGetBucketMetadataTool,
-  registerViewIamPolicyTool,
-  registerCheckIamPermissionsTool,
-  registerUpdateBucketLabelsTool,
-  registerGetBucketLocationTool,
+  commonSafeTools,
+  destructiveWriteTools,
+  otherDestructiveTools,
+  safeWriteTools,
 } from './tools/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
@@ -52,8 +39,14 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 });
 
 const main = async () => {
-  await yargs(hideBin(process.argv))
-    .command('$0', 'Run the gcs mcp server')
+  const argv = await yargs(hideBin(process.argv))
+    .command('$0', 'Run the gcs mcp server', (yargs) => {
+      yargs.option('enable-destructive-tools', {
+        describe: 'Enable tools that can modify or delete existing GCS content.',
+        type: 'boolean',
+        default: false,
+      });
+    })
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
@@ -66,26 +59,32 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  registerListBucketsTool(server);
-  registerListObjectsTool(server);
-  registerReadObjectMetadataTool(server);
-  registerReadObjectContentTool(server);
-  registerDeleteObjectTool(server);
-  registerWriteObjectTool(server);
-  registerUploadObjectTool(server);
-  registerUpdateObjectMetadataTool(server);
-  registerCopyObjectTool(server);
-  registerMoveObjectTool(server);
-  registerCreateBucketTool(server);
-  registerDeleteBucketTool(server);
-  registerGetBucketMetadataTool(server);
-  registerViewIamPolicyTool(server);
-  registerCheckIamPermissionsTool(server);
-  registerUpdateBucketLabelsTool(server);
-  registerGetBucketLocationTool(server);
+
+  // Start with the common tools that are always safe and registered.
+  const allTools = [...commonSafeTools];
+
+  if (argv['enable-destructive-tools']) {
+    // In destructive mode, add the overwriting tools and other destructive tools.
+    allTools.push(...destructiveWriteTools);
+    allTools.push(...otherDestructiveTools);
+    log.warn(
+      'WARNING: Destructive tools are enabled. The agent can now modify and delete GCS data.',
+    );
+  } else {
+    // In safe mode (default), add only the safe, non-overwriting write tools.
+    allTools.push(...safeWriteTools);
+  }
+
+  for (const registerTool of allTools) {
+    registerTool(server);
+  }
 
   await server.connect(new StdioServerTransport());
-  log.info('🚀 gcs mcp server started');
+  log.info(
+    `🚀 gcs mcp server started in ${
+      argv['enable-destructive-tools'] ? 'destructive' : 'safe'
+    } mode`,
+  );
 
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();

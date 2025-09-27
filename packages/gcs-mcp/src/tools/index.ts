@@ -14,22 +14,61 @@
  * limitations under the License.
  */
 
-export * from './buckets/create_bucket.js';
-export * from './buckets/delete_bucket.js';
-export * from './buckets/get_bucket_location.js';
-export * from './buckets/get_bucket_metadata.js';
-export * from './buckets/list_buckets.js';
-export * from './buckets/update_bucket_labels.js';
-export * from './buckets/view_iam_policy.js';
-export * from './buckets/check_iam_permissions.js';
+import {
+  registerCheckIamPermissionsTool,
+  registerCreateBucketTool,
+  registerDeleteBucketTool,
+  registerGetBucketLocationTool,
+  registerGetBucketMetadataTool,
+  registerListBucketsTool,
+  registerUpdateBucketLabelsTool,
+  registerViewIamPolicyTool,
+} from './buckets/index.js';
+import {
+  registerCopyObjectTool,
+  registerCopyObjectSafeTool,
+  registerDeleteObjectTool,
+  registerDownloadObjectTool,
+  registerListObjectsTool,
+  registerMoveObjectTool,
+  registerReadObjectContentTool,
+  registerReadObjectMetadataTool,
+  registerUpdateObjectMetadataTool,
+  registerUploadObjectTool,
+  registerUploadObjectSafeTool,
+  registerWriteObjectTool,
+  registerWriteObjectSafeTool,
+} from './objects/index.js';
 
-export * from './objects/copy_object.js';
-export * from './objects/delete_object.js';
-export * from './objects/list_objects.js';
-export * from './objects/move_object.js';
-export * from './objects/read_object_content.js';
-export * from './objects/read_object_metadata.js';
-export * from './objects/update_object_metadata.js';
-export * from './objects/write_object.js';
-export * from './objects/upload_object.js';
-export * from './objects/download_object.js';
+export const commonSafeTools = [
+  registerListBucketsTool,
+  registerGetBucketLocationTool,
+  registerGetBucketMetadataTool,
+  registerViewIamPolicyTool,
+  registerCheckIamPermissionsTool,
+  registerCreateBucketTool,
+  registerListObjectsTool,
+  registerReadObjectContentTool,
+  registerReadObjectMetadataTool,
+  registerDownloadObjectTool,
+  registerDeleteObjectTool,
+];
+
+export const safeWriteTools = [
+  registerWriteObjectSafeTool,
+  registerUploadObjectSafeTool,
+  registerCopyObjectSafeTool,
+];
+
+export const destructiveWriteTools = [
+  registerWriteObjectTool,
+  registerUploadObjectTool,
+  registerCopyObjectTool,
+];
+
+export const otherDestructiveTools = [
+  registerDeleteBucketTool,
+  registerUpdateBucketLabelsTool,
+  registerMoveObjectTool,
+  registerUpdateObjectMetadataTool,
+];

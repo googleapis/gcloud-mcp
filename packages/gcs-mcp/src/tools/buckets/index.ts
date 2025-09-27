@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
-export * from './api_client_factory.js';
-export * from './gcs_helpers.js';
-export * from './logger.js';
+export * from './check_iam_permissions.js';
+export * from './create_bucket.js';
+export * from './delete_bucket.js';
+export * from './get_bucket_location.js';
+export * from './get_bucket_metadata.js';
+export * from './list_buckets.js';
+export * from './update_bucket_labels.js';
+export * from './view_iam_policy.js';

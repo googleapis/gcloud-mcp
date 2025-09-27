@@ -45,6 +45,14 @@ gemini mcp list
 > ✓ gcs: npx -y @google-cloud/gcs-mcp (stdio) - Connected
 ```
 
+By default, the server only enables safe, non-destructive tools. To enable
+tools that can modify or delete existing data, use the
+`--enable-destructive-tools` flag:
+
+```shell
+npx @google-cloud/gcs-mcp init --agent=gemini-cli --enable-destructive-tools
+```
+
 ### For other AI clients
 
 To use the GCS MCP server with other clients, add the following snippet to their
@@ -101,33 +109,51 @@ npm run test:e2e --workspace=packages/gcs-mcp
 
 ## 🧰 Available MCP Tools
 
-### Object Tools
+The GCS MCP server offers two sets of tools: **Safe Tools** and
+**Destructive Tools**. By default, only the safe tools are enabled to prevent
+accidental data loss.
 
-| Tool                     | Description                                         |
-| :----------------------- | :-------------------------------------------------- |
-| `list_objects`           | Lists objects in a GCS bucket.                      |
-| `read_object_metadata`   | Reads comprehensive metadata for a specific object. |
-| `read_object_content`    | Reads the content of a specific object.             |
-| `delete_object`          | Deletes a specific object from a bucket.            |
-| `write_object`           | Writes a new object to a bucket.                    |
-| `update_object_metadata` | Updates the custom metadata of an existing object.  |
-| `copy_object`            | Copies an object from one bucket to another.        |
-| `move_object`            | Moves an object from one bucket to another.         |
-| `upload_object`          | Uploads a file to a GCS bucket.                     |
-| `download_object`        | Downloads an object from GCS to a local file.       |
+### Safe Tools
 
-### Bucket Tools
+Safe tools are read-only or only create new objects without affecting existing
+ones. They will never modify or delete existing data in GCS.
 
-| Tool                    | Description                                        |
-| :---------------------- | :------------------------------------------------- |
-| `list_buckets`          | Lists all buckets in a project.                    |
-| `create_bucket`         | Creates a new bucket.                              |
-| `delete_bucket`         | Deletes a bucket.                                  |
-| `get_bucket_metadata`   | Gets comprehensive metadata for a specific bucket. |
-| `update_bucket_labels`  | Updates labels for a bucket.                       |
-| `get_bucket_location`   | Gets the location of a bucket.                     |
-| `view_iam_policy`       | Views the IAM policy for a bucket.                 |
-| `check_iam_permissions` | Tests IAM permissions for a bucket.                |
+| Tool                    | Description                                                                     |
+| :---------------------- | :------------------------------------------------------------------------------ |
+| `list_buckets`          | Lists all buckets in a project.                                                 |
+| `get_bucket_metadata`   | Gets comprehensive metadata for a specific bucket.                              |
+| `get_bucket_location`   | Gets the location of a bucket.                                                  |
+| `view_iam_policy`       | Views the IAM policy for a bucket.                                              |
+| `check_iam_permissions` | Tests IAM permissions for a bucket.                                             |
+| `create_bucket`         | Creates a new bucket. Fails if the bucket already exists.                       |
+| `list_objects`          | Lists objects in a GCS bucket.                                                  |
+| `read_object_metadata`  | Reads comprehensive metadata for a specific object.                             |
+| `read_object_content`   | Reads the content of a specific object.                                         |
+| `download_object`       | Downloads an object from GCS to a local file.                                   |
+| `write_object_new`      | Writes a new object. Fails if the object already exists.                        |
+| `upload_object_new`     | Uploads a file to a new object. Fails if the object already exists.             |
+| `copy_object_new`       | Copies an object to a new destination. Fails if the destination already exists. |
+
+### Destructive Tools
+
+**Warning:** These tools can permanently modify or delete existing data. Enable
+them only when you are confident that the agent should be allowed to perform
+these actions.
+
+You can enable them by running the `init` command with the
+`--enable-destructive-tools` flag. When enabled, these tools replace their safe
+counterparts (e.g., `write_object` is registered instead of `write_object_new`).
+
+| Tool                     | Description                                                |
+| :----------------------- | :--------------------------------------------------------- |
+| `delete_bucket`          | **Deletes** a bucket.                                      |
+| `update_bucket_labels`   | **Modifies** labels for a bucket.                          |
+| `delete_object`          | **Deletes** a specific object from a bucket.               |
+| `update_object_metadata` | **Modifies** the custom metadata of an existing object.    |
+| `move_object`            | **Moves** an object (copies then deletes the original).    |
+| `write_object`           | Writes an object, **overwriting** it if it already exists. |
+| `upload_object`          | Uploads a file, **overwriting** the destination object.    |
+| `copy_object`            | Copies an object, **overwriting** the destination object.  |
 
 ## 🔑 MCP Permissions
 

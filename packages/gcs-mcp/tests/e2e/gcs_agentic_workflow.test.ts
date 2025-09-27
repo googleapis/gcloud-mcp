@@ -89,9 +89,9 @@ describe('GCS Agentic Workflows: Full Resource Lifecycle', () => {
     );
     const [objectStillExists] = await storage.bucket(bucketName).file(objectName).exists();
     expect(objectStillExists).toBe(false);
-    
-    const [objects] = await storage.bucket(bucketName).getFiles()
-    expect(objects.length).toBe(0)
+
+    const [objects] = await storage.bucket(bucketName).getFiles();
+    expect(objects.length).toBe(0);
 
     runGeminiCommand(`Delete the GCS bucket named '${bucketName}' in project '${projectId}'.`);
     const [bucketStillExists] = await storage.bucket(bucketName).exists();

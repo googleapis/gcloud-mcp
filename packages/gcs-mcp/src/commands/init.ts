@@ -20,6 +20,7 @@ import { initializeGeminiCLI } from './init-gemini-cli.js';
 interface InstallArgs {
   agent: string;
   local: boolean;
+  'enable-destructive-tools': boolean;
 }
 
 export const init: CommandModule<object, InstallArgs> = {
@@ -37,10 +38,15 @@ export const init: CommandModule<object, InstallArgs> = {
         describe: '(Development only) Use a local build of the gcs-mcp server.',
         type: 'boolean',
         default: false,
+      })
+      .option('enable-destructive-tools', {
+        describe: 'Enable tools that can modify or delete existing GCS content.',
+        type: 'boolean',
+        default: false,
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(argv['local']);
+      await initializeGeminiCLI(argv['local'], argv['enable-destructive-tools']);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

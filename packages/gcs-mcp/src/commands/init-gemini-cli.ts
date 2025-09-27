@@ -21,7 +21,11 @@ import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 import os from 'os';
 
-export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile, writeFile }) => {
+export const initializeGeminiCLI = async (
+  local = false,
+  enableDestructiveTools = false,
+  fs = { mkdir, readFile, writeFile },
+) => {
   try {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
@@ -32,6 +36,10 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile,
 
     // Create gemini-extension.json
     const extensionFile = join(extensionDir, 'gemini-extension.json');
+    const commandArgs = local ? ['-y', 'gcs-mcp'] : ['-y', '@google-cloud/gcs-mcp'];
+    if (enableDestructiveTools) {
+      commandArgs.push('--enable-destructive-tools=true');
+    }
     const extensionJson = {
       name: 'gcs-mcp' + (local ? '-local' : ''),
       version: pkg.version,
@@ -40,7 +48,7 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile,
       mcpServers: {
         gcs: {
           command: 'npx',
-          args: local ? ['-y', 'gcs-mcp'] : ['-y', '@google-cloud/gcs-mcp'],
+          args: commandArgs,
         },
       },
     };

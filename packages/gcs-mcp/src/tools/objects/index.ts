@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
-export * from './api_client_factory.js';
-export * from './gcs_helpers.js';
-export * from './logger.js';
+export * from './copy_object.js';
+export * from './copy_object_safe.js';
+export * from './delete_object.js';
+export * from './download_object.js';
+export * from './list_objects.js';
+export * from './move_object.js';
+export * from './read_object_content.js';
+export * from './read_object_metadata.js';
+export * from './update_object_metadata.js';
+export * from './upload_object.js';
+export * from './upload_object_safe.js';
+export * from './write_object.js';
+export * from './write_object_safe.js';

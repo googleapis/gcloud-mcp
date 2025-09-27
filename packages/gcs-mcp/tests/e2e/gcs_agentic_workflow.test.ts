@@ -35,6 +35,15 @@ if (!projectId) {
 }
 const storage = new Storage({ projectId });
 
+const deleteBucket = async (bucketName: string) => {
+  const bucket = storage.bucket(bucketName);
+  const [exists] = await bucket.exists();
+  if (exists) {
+    await bucket.deleteFiles({ force: true });
+    await bucket.delete({ ignoreNotFound: true });
+  }
+};
+
 /**
  * ===================================================================================
  * E2E TEST: GCS Agentic Workflow Validation
@@ -54,7 +63,7 @@ describe('GCS Agentic Workflows: Full Resource Lifecycle', () => {
 
   afterAll(async () => {
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
-    await storage.bucket(bucketName).delete({ ignoreNotFound: true });
+    await deleteBucket(bucketName);
   });
 
   it('should create a bucket, upload, read, delete an object, and delete the bucket', async () => {
@@ -80,6 +89,9 @@ describe('GCS Agentic Workflows: Full Resource Lifecycle', () => {
     );
     const [objectStillExists] = await storage.bucket(bucketName).file(objectName).exists();
     expect(objectStillExists).toBe(false);
+    
+    const [objects] = await storage.bucket(bucketName).getFiles()
+    expect(objects.length).toBe(0)
 
     runGeminiCommand(`Delete the GCS bucket named '${bucketName}' in project '${projectId}'.`);
     const [bucketStillExists] = await storage.bucket(bucketName).exists();
@@ -97,7 +109,7 @@ describe('GCS Agentic Workflows: Metadata Modification', () => {
   });
 
   afterAll(async () => {
-    await storage.bucket(bucketName).delete({ ignoreNotFound: true });
+    await deleteBucket(bucketName);
   });
 
   it('should update an objects metadata', async () => {
@@ -123,9 +135,7 @@ describe('GCS Agentic Workflows: Data Organization', () => {
   });
 
   afterAll(async () => {
-    try {
-      await storage.bucket(bucketName).delete({ ignoreNotFound: true });
-    } catch (_e) {}
+    await deleteBucket(bucketName);
   });
 
   it('should copy an object', async () => {
@@ -159,9 +169,7 @@ describe('GCS Agentic Workflows: IAM and Permissions', () => {
   });
 
   afterAll(async () => {
-    try {
-      await storage.bucket(bucketName).delete({ ignoreNotFound: true });
-    } catch (_e) {}
+    await deleteBucket(bucketName);
   });
 
   it('should correctly extract specific information from an IAM policy', async () => {
@@ -212,7 +220,7 @@ describe('GCS Agentic Workflows: Multi-Factor Search', () => {
 
   afterAll(async () => {
     // Use force delete to remove the bucket and all its objects.
-    await storage.bucket(bucketName).delete({ ignoreNotFound: true });
+    await deleteBucket(bucketName);
   });
 
   it('should find the correct object using content and metadata clues', async () => {

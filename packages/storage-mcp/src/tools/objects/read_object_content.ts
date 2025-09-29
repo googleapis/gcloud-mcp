@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import chardet from 'chardet';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
-import { MAX_CONTENT_SIZE, STREAMING_THRESHOLD } from '../../utility/gcs_helpers.js';
+import { MAX_CONTENT_SIZE } from '../../utility/gcs_helpers.js';
 import { logger } from '../../utility/logger.js';
 
 const inputSchema = {
@@ -55,6 +56,8 @@ const supportedMimeTypes = [
   'audio/webm',
 ];
 
+const knownTextEncodings = ['UTF-8', 'UTF-16LE', 'UTF-16BE', 'ASCII', 'ISO-8859-1'];
+
 type ReadObjectContentParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function readObjectContent(params: ReadObjectContentParams): Promise<CallToolResult> {
@@ -86,23 +89,19 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
       };
     }
 
-    if (size > STREAMING_THRESHOLD) {
-      logger.warn(
-        `Object ${params.object_name} is large (${size} bytes). Consider using streaming for better performance.`,
-      );
-    }
-
     const [buffer] = await file.download();
 
-    // Check if it's a text document
+    // Try to detect character encoding for reasonably sized files
+    const encoding = chardet.detect(buffer);
+
     if (
-      contentType.startsWith('text/') ||
-      contentType === 'application/json' ||
-      contentType === 'application/xml'
+      encoding &&
+      knownTextEncodings.includes(encoding) &&
+      contentType !== 'application/octet-stream'
     ) {
       try {
         // Try to decode as text.
-        const content = buffer.toString('utf8');
+        const content = buffer.toString(encoding as BufferEncoding);
         const result = {
           bucket: params.bucket_name,
           object: params.object_name,
@@ -111,14 +110,16 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
           content,
         };
         logger.info(
-          `Successfully read text content for object ${params.object_name} (${size} bytes)`,
+          `Successfully read text content for object ${params.object_name} (${size} bytes) with detected encoding ${encoding}`,
         );
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
       } catch (_e) {
         // If decoding fails, fall through to treat as a raw resource.
-        logger.warn(`Failed to decode ${params.object_name} as text, treating as raw resource.`);
+        logger.warn(
+          `Failed to decode ${params.object_name} as text with detected encoding ${encoding}, treating as raw resource.`,
+        );
       }
     }
 

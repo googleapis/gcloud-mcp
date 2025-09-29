@@ -38,6 +38,7 @@
   "description": "Model Context Protocol (MCP) Server for interacting with GCS APIs",
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",
+    "@types/chardet": "^0.8.3",
     "@types/mime": "^3.0.4",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^24.2.1",
@@ -59,6 +60,7 @@
     "@google-cloud/storage": "^7.17.1",
     "@modelcontextprotocol/sdk": "^1.17.1",
     "@types/yargs": "^17.0.33",
+    "chardet": "^2.1.0",
     "google-auth-library": "^9.11.0",
     "googleapis": "^140.0.0",
     "mime-types": "^2.1.35",

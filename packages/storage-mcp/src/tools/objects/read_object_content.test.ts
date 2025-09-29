@@ -20,6 +20,9 @@ import { readObjectContent, registerReadObjectContentTool } from './read_object_
 import { apiClientFactory } from '../../utility/index.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
+import chardet from 'chardet';
+
+vi.mock('chardet');
 vi.mock('../../utility/index.js');
 vi.mock('../../utility/logger.js');
 
@@ -52,6 +55,7 @@ describe('readObjectContent', () => {
     };
 
     (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as vi.Mock).mockReturnValue('UTF-8');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -220,6 +224,7 @@ describe('readObjectContent', () => {
     };
 
     (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as vi.Mock).mockReturnValue(null);
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -304,6 +309,7 @@ describe('readObjectContent', () => {
     };
 
     (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as vi.Mock).mockReturnValue('UTF-8');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -350,6 +356,7 @@ describe('readObjectContent', () => {
     };
 
     (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as vi.Mock).mockReturnValue('UTF-8');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -369,45 +376,7 @@ describe('readObjectContent', () => {
         text: JSON.stringify(expectedJson, null, 2),
       },
     ]);
-  });
-
-  it('should log a warning for large files over the streaming threshold', async () => {
-    const mockContent = 'a'.repeat(10 * 1024 * 1024 + 1);
-    const mockDownload = vi.fn().mockResolvedValue([Buffer.from(mockContent)]);
-    const mockGet = vi.fn().mockResolvedValue([
-      {
-        metadata: {
-          size: mockContent.length,
-          contentType: 'text/plain',
-        },
-      },
-    ]);
-    const mockFile = vi.fn().mockReturnValue({
-      download: mockDownload,
-      get: mockGet,
-    });
-    const mockBucket = vi.fn().mockReturnValue({
-      file: mockFile,
-    });
-
-    const mockStorageClient = {
-      bucket: mockBucket,
-    };
-
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
-
-    const { logger } = await import('../../utility/logger.js');
-    const loggerSpy = vi.spyOn(logger, 'warn');
-
-    await readObjectContent({
-      bucket_name: 'test-bucket',
-      object_name: 'test-object',
-    });
-
-    expect(loggerSpy).toHaveBeenCalledWith(
-      `Object test-object is large (${mockContent.length} bytes). Consider using streaming for better performance.`,
-    );
-  });
+  }, 20000);
 });
 
 describe('registerReadObjectContentTool', () => {

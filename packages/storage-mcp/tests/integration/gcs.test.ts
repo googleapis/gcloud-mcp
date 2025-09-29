@@ -46,8 +46,8 @@ if (!projectId) {
   throw new Error('GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable not set');
 }
 
-const bucketName = `gcs-mcp-integration-test-${Date.now()}`;
-const testLabel = { 'gcs-mcp-test': 'true' };
+const bucketName = `storage-mcp-integration-test-${Date.now()}`;
+const testLabel = { 'storage-mcp-test': 'true' };
 const testObjectContent = 'This is a test object.';
 const testObjectName = 'test-object.txt';
 const testUploadFileName = 'test-upload.txt';

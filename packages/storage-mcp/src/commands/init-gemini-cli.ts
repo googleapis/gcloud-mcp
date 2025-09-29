@@ -31,17 +31,17 @@ export const initializeGeminiCLI = async (
     const __dirname = dirname(__filename);
 
     // Create directory
-    const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'gcs-mcp');
+    const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'storage-mcp');
     await fs.mkdir(extensionDir, { recursive: true });
 
     // Create gemini-extension.json
     const extensionFile = join(extensionDir, 'gemini-extension.json');
-    const commandArgs = local ? ['-y', 'gcs-mcp'] : ['-y', '@google-cloud/gcs-mcp'];
+    const commandArgs = local ? ['-y', 'storage-mcp'] : ['-y', '@google-cloud/storage-mcp'];
     if (enableDestructiveTools) {
       commandArgs.push('--enable-destructive-tools=true');
     }
     const extensionJson = {
-      name: 'gcs-mcp' + (local ? '-local' : ''),
+      name: 'storage-mcp' + (local ? '-local' : ''),
       version: pkg.version,
       description: 'Enable MCP-compatible AI agents to interact with Google Cloud Storage.',
       contextFileName: 'GEMINI.md',
@@ -67,9 +67,9 @@ export const initializeGeminiCLI = async (
     console.log(`Created: ${geminiMdDestPath}`);
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console
-    console.log(`🌱 gcs-mcp Gemini CLI extension initialized.`);
+    console.log(`🌱 storage-mcp Gemini CLI extension initialized.`);
   } catch (err: unknown) {
     const error = err instanceof Error ? err : undefined;
-    log.error('❌ gcs-mcp Gemini CLI extension initialized failed.', error);
+    log.error('❌ storage-mcp Gemini CLI extension initialized failed.', error);
   }
 };

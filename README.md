@@ -25,7 +25,7 @@ servers hosted outside of this repo are
 | :-------------- | :---------------------------------------------------------------------------- | :------------------ |
 | gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        |
 | observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` |
-| gcs             | Interact with Google Cloud Storage for bucket and object management.          | `gcs-mcp`           |
+| storage         | Interact with Google Cloud Storage for bucket and object management.          | `storage-mcp`       |
 
 ## 🚀 Getting Started
 
@@ -132,7 +132,7 @@ For more information regarding installing the repository locally, please see
 ## 🧰 Available MCP Tools
 
 | MCP Server    | Tool                      | Description                                                                                                                                               |
-| :------------ | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| :------------ | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | gcloud        | `run_gcloud_command`      | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [MCP Permissions](#-mcp-permissions) for more information. |
 | observability | `list_log_entries`        | Lists log entries from a project.                                                                                                                         |
 |               | `list_log_names`          | Lists log names from a project.                                                                                                                           |

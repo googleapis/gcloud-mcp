@@ -32,7 +32,7 @@ if (!projectId) {
   throw new Error('GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable not set');
 }
 
-const bucketName = `gcs-mcp-safe-integration-test-${Date.now()}`;
+const bucketName = `storage-mcp-safe-integration-test-${Date.now()}`;
 
 describe('GCS Safe Tools Integration Tests', () => {
   beforeAll(async () => {

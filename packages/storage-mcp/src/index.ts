@@ -40,7 +40,7 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 
 const main = async () => {
   const argv = await yargs(hideBin(process.argv))
-    .command('$0', 'Run the gcs mcp server', (yargs) => {
+    .command('$0', 'Run the storage mcp server', (yargs) => {
       yargs.option('enable-destructive-tools', {
         describe: 'Enable tools that can modify or delete existing GCS content.',
         type: 'boolean',
@@ -54,7 +54,7 @@ const main = async () => {
 
   const server = new McpServer(
     {
-      name: 'gcs-mcp-server',
+      name: 'storage-mcp-server',
       version: pkg.version,
     },
     { capabilities: { tools: {} } },
@@ -81,7 +81,7 @@ const main = async () => {
 
   await server.connect(new StdioServerTransport());
   log.info(
-    `🚀 gcs mcp server started in ${
+    `🚀 storage mcp server started in ${
       argv['enable-destructive-tools'] ? 'destructive' : 'safe'
     } mode`,
   );
@@ -110,6 +110,6 @@ const main = async () => {
 
 main().catch((err: unknown) => {
   const error = err instanceof Error ? err : undefined;
-  log.error('❌ Unable to start gcs-mcp server.', error);
+  log.error('❌ Unable to start storage-mcp server.', error);
   process.exit(1);
 });

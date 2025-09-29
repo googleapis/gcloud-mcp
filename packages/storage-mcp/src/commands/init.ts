@@ -35,7 +35,7 @@ export const init: CommandModule<object, InstallArgs> = {
         demandOption: true,
       })
       .option('local', {
-        describe: '(Development only) Use a local build of the gcs-mcp server.',
+        describe: '(Development only) Use a local build of the storage-mcp server.',
         type: 'boolean',
         default: false,
       })

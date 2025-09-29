@@ -1,10 +1,10 @@
 {
-  "name": "@google-cloud/gcs-mcp",
+  "name": "@google-cloud/storage-mcp",
   "version": "0.1.0",
   "type": "module",
   "main": "dist/src/index.js",
   "bin": {
-    "gcs-mcp": "./dist/src/index.js"
+    "storage-mcp": "./dist/src/index.js"
   },
   "scripts": {
     "build": "tsc -p . && cp GEMINI-extension.md dist/",
@@ -21,10 +21,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/googleapis/gcloud-mcp.git",
-    "directory": "packages/gcs-mcp"
+    "directory": "packages/storage-mcp"
   },
   "keywords": [
-    "gcs",
+    "storage",
     "gcp",
     "google cloud",
     "mcp",

@@ -1,9 +1,9 @@
-# GCS MCP Server ☁️
+# Storage MCP Server ☁️
 
-The GCS
+The Storage
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro)
 server enables AI assistants to easily interact with Google Cloud Storage for
-bucket and object management. With the GCS MCP server you can:
+bucket and object management. With the Storage MCP server you can:
 
 - **Interact with Google Cloud Storage using natural language.** Describe the
   outcome you want instead of memorizing complex command syntax, flags, and
@@ -27,22 +27,22 @@ bucket and object management. With the GCS MCP server you can:
 
 ### Gemini CLI and Gemini Code Assist
 
-To integrate the GCS MCP server with Gemini CLI or Gemini Code Assist, run the
+To integrate the Storage MCP server with Gemini CLI or Gemini Code Assist, run the
 setup command below. This will install the MCP server as a
 [Gemini CLI extension](https://github.com/google-gemini/gemini-cli/blob/main/docs/extension.md)
 for the current user, making it available for all your projects.
 
 ```shell
-npx @google-cloud/gcs-mcp init --agent=gemini-cli
+npx @google-cloud/storage-mcp init --agent=gemini-cli
 ```
 
-After the initialization process, you can verify that the gcs-mcp server is
+After the initialization process, you can verify that the storage-mcp server is
 configured correctly by running the following command:
 
 ```
 gemini mcp list
 
-> ✓ gcs: npx -y @google-cloud/gcs-mcp (stdio) - Connected
+> ✓ gcs: npx -y @google-cloud/storage-mcp (stdio) - Connected
 ```
 
 By default, the server only enables safe, non-destructive tools. To enable
@@ -50,18 +50,18 @@ tools that can modify or delete existing data, use the
 `--enable-destructive-tools` flag:
 
 ```shell
-npx @google-cloud/gcs-mcp init --agent=gemini-cli --enable-destructive-tools
+npx @google-cloud/storage-mcp init --agent=gemini-cli --enable-destructive-tools
 ```
 
 ### For other AI clients
 
-To use the GCS MCP server with other clients, add the following snippet to their
+To use the Storage MCP server with other clients, add the following snippet to their
 respective JSON configuration files:
 
 ```json
 "gcs": {
   "command": "npx",
-  "args": ["-y", "@google-cloud/gcs-mcp"]
+  "args": ["-y", "@google-cloud/storage-mcp"]
 }
 ```
 
@@ -85,7 +85,7 @@ for a single project or your global user settings file for all projects:
 "servers": {
   "gcs": {
     "command": "npx",
-    "args": ["-y", "@google-cloud/gcs-mcp"]
+    "args": ["-y", "@google-cloud/storage-mcp"]
   }
 }
 ```
@@ -103,13 +103,13 @@ Google Cloud project ID.
 
 ```shell
 export GOOGLE_CLOUD_PROJECT=your-gcp-project-id
-npm run test:integration --workspace=packages/gcs-mcp
-npm run test:e2e --workspace=packages/gcs-mcp
+npm run test:integration --workspace=packages/storage-mcp
+npm run test:e2e --workspace=packages/storage-mcp
 ```
 
 ## 🧰 Available MCP Tools
 
-The GCS MCP server offers two sets of tools: **Safe Tools** and
+The Storage MCP server offers two sets of tools: **Safe Tools** and
 **Destructive Tools**. By default, only the safe tools are enabled to prevent
 accidental data loss.
 
@@ -157,7 +157,7 @@ counterparts (e.g., `write_object` is registered instead of `write_object_new`).
 
 ## 🔑 MCP Permissions
 
-The permissions of the GCS MCP are directly tied to the permissions of the
+The permissions of the Storage MCP are directly tied to the permissions of the
 authenticated user or service account. To restrict permissions and operate with
 the principle of least privilege, you can
 [authorize gcloud as a service account](https://cloud.google.com/sdk/docs/authorizing#service-account)

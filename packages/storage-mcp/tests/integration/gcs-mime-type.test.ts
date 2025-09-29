@@ -29,7 +29,7 @@ if (!projectId) {
   throw new Error('GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable not set');
 }
 
-const mimeTypeBucketName = `gcs-mcp-mime-type-test-${Date.now()}`;
+const mimeTypeBucketName = `storage-mcp-mime-type-test-${Date.now()}`;
 
 describe('readObjectContent MIME type tests', () => {
   beforeAll(async () => {

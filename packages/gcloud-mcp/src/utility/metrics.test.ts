@@ -34,7 +34,7 @@ describe('buildMcpMetric', () => {
     } as unknown as McpServer;
 
     const toolName = 'test-tool';
-    const expectedMetric = 'goog-mcp/test-agent/test-server/1.0.0/test-tool';
+    const expectedMetric = 'goog-mcp/agent/test-agent/agent-version/1.2.3/mcp-server/test-server/mcp-version/1.0.0/mcp-tool/test-tool';
     const actualMetric = buildMcpMetric(mockMcpServer, toolName);
 
     expect(actualMetric).toBe(expectedMetric);
@@ -49,7 +49,7 @@ describe('buildMcpMetric', () => {
     } as unknown as McpServer;
 
     const toolName = 'test-tool';
-    const expectedMetric = 'goog-mcp////test-tool';
+    const expectedMetric = 'goog-mcp/agent//agent-version//mcp-server//mcp-version//mcp-tool/test-tool';
     const actualMetric = buildMcpMetric(mockMcpServer, toolName);
 
     expect(actualMetric).toBe(expectedMetric);

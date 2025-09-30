@@ -26,11 +26,12 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
  */
 function formatMcpMetric(
   agentName: string,
+  agentVersion: string,
   serverName: string,
   serverVersion: string,
   toolName: string,
 ): string {
-  return `goog-mcp/${agentName}/${serverName}/${serverVersion}/${toolName}`;
+  return `goog-mcp/agent/${agentName}/agent-version/${agentVersion}/mcp-server/${serverName}/mcp-version/${serverVersion}/mcp-tool/${toolName}`;
 }
 
 /**
@@ -46,6 +47,7 @@ export function buildMcpMetric(mcpServer: McpServer, toolName: string): string {
   const serverName = serverInfo?.name ?? '';
   const serverVersion = serverInfo?.version ?? '';
   const agentName = clientInfo?.name ?? '';
+  const agentVersion = clientInfo?.version ?? '';
 
-  return formatMcpMetric(agentName, serverName, serverVersion, toolName);
+  return formatMcpMetric(agentName, agentVersion, serverName, serverVersion, toolName);
 }

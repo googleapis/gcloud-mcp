@@ -55,17 +55,8 @@ gemini mcp list
 
 ### For other AI clients
 
-To use MCP servers in this repo with other clients, add the following snippet
+To use gcloud MCP servers with other clients, add the following snippet
 to their respective JSON configuration files for each MCP server:
-
-```json
-"[SERVER_NAME]": {
-  "command": "npx",
-  "args": ["-y", "@google-cloud/[PACKAGE_NAME]"]
-}
-```
-
-For example, for gcloud:
 
 ```json
 "gcloud": {

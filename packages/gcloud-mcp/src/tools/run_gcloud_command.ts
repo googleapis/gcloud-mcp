@@ -19,6 +19,7 @@ import * as gcloud from '../gcloud.js';
 import { allowCommands, denyCommands } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
+import { default_deny } from '../index.js';
 
 export const createRunGcloudCommand = (denylist: string[] = [], allowlist: string[] = []) => ({
   register: (server: McpServer) => {
@@ -59,14 +60,32 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
           const commandNoArgs = parsedJson[0]['command_string_no_args'];
           const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
 
+          const denylistMessage = `Execution denied: This command is on the deny list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+
+## Denylist Behavior:
+- A default deny list is ALWAYS active, blocking potentially interactive or sensitive commands.
+- A custom deny list can be provided via a configuration file, which is then merged with the default list.
+- Matching is done by prefix. The input command is normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
+- If a GA (General Availability) command is on the denylist, all of its release tracks (e.g., alpha, beta) are denied as well.
+
+### Default Denied Commands:
+The following commands are always denied:
+${default_deny.map((command) => `-  '${command}'`).join('\n')}`;
+
           if (allowlist.length > 0 && !allowCommands(allowlist).matches(commandArgsNoGcloud)) {
+            const allowlistMessage = `Execution denied: This command is not on the allow list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+
+## Allowlist Behavior:
+- An allow list can be provided in the configuration file.
+- A configuration file cannot contain both an allow list and a custom deny list.`;
             return {
               content: [
                 {
                   type: 'text',
-                  text: `Command is not part of this tool's current allowlist of enabled commands.`,
+                  text: allowlistMessage,
                 },
               ],
+              isError: true,
             };
           }
 
@@ -75,9 +94,10 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
               content: [
                 {
                   type: 'text',
-                  text: `Command is part of this tool's current denylist of disabled commands.`,
+                  text: denylistMessage,
                 },
               ],
+              isError: true,
             };
           }
 

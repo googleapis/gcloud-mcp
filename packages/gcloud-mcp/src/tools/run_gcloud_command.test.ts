@@ -21,6 +21,9 @@ import { createRunGcloudCommand } from './run_gcloud_command.js';
 
 vi.mock('../gcloud.js');
 vi.mock('child_process');
+vi.mock('../index.js', () => ({
+  default_deny: ['interactive'],
+}));
 
 const mockServer = {
   registerTool: vi.fn(),
@@ -70,9 +73,20 @@ describe('createRunGcloudCommand', () => {
         content: [
           {
             type: 'text',
-            text: `Command is part of this tool's current denylist of disabled commands.`,
+            text: `Execution denied: This command is on the deny list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+
+## Denylist Behavior:
+- A default deny list is ALWAYS active, blocking potentially interactive or sensitive commands.
+- A custom deny list can be provided via a configuration file, which is then merged with the default list.
+- Matching is done by prefix. The input command is normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
+- If a GA (General Availability) command is on the denylist, all of its release tracks (e.g., alpha, beta) are denied as well.
+
+### Default Denied Commands:
+The following commands are always denied:
+-  'interactive'`,
           },
         ],
+        isError: true,
       });
     });
 
@@ -128,9 +142,14 @@ describe('createRunGcloudCommand', () => {
         content: [
           {
             type: 'text',
-            text: `Command is not part of this tool's current allowlist of enabled commands.`,
+            text: `Execution denied: This command is not on the allow list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+
+## Allowlist Behavior:
+- An allow list can be provided in the configuration file.
+- A configuration file cannot contain both an allow list and a custom deny list.`,
           },
         ],
+        isError: true,
       });
     });
   });
@@ -148,9 +167,20 @@ describe('createRunGcloudCommand', () => {
         content: [
           {
             type: 'text',
-            text: `Command is part of this tool's current denylist of disabled commands.`,
+            text: `Execution denied: This command is on the deny list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+
+## Denylist Behavior:
+- A default deny list is ALWAYS active, blocking potentially interactive or sensitive commands.
+- A custom deny list can be provided via a configuration file, which is then merged with the default list.
+- Matching is done by prefix. The input command is normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
+- If a GA (General Availability) command is on the denylist, all of its release tracks (e.g., alpha, beta) are denied as well.
+
+### Default Denied Commands:
+The following commands are always denied:
+-  'interactive'`,
           },
         ],
+        isError: true,
       });
     });
   });

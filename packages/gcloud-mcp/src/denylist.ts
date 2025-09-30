@@ -41,7 +41,7 @@ export const denyCommands = (deny: string[] = []) => ({
       return false; // No deny = all commands allowed
     }
 
-    // Deny'ing a GA command denys all release tracks.
+    // Deny'ing a GA command denies all release tracks.
     // Deny'ing a pre-GA command only denies the specified release track.
     const releaseTracks = ['', 'alpha ', 'beta ', 'preview '];
     const cmd = normalizeForComparison(command);

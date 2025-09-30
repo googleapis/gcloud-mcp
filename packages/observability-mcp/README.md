@@ -81,11 +81,13 @@ The server exposes the following tools:
 |                     | `get_trace`               | Gets a specific trace in a project.        |
 | **Error Reporting** | `list_group_stats`        | Lists the error groups for a project.      |
 
-## 🛡️ Important Notes
+## 📄 Important Notes
 
-This repository is currently in prerelease and may see breaking changes until the first stable release (v1.0).
-
-This repository is providing a solution, not an officially supported Google product. It may break when the MCP specification, other SDKs, or when other solutions and products change.
+This repository is currently in preview and may see breaking changes. This
+repository provides a solution, not an officially supported Google product. It
+is not covered under [Google Cloud Terms of Service](https://cloud.google.com/terms).
+It may break when the MCP specification, other SDKs, or when other solutions
+and products change. See also our [Security Policy](../../SECURITY.md).
 
 ## 👥 Contributing
 

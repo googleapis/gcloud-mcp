@@ -77,6 +77,8 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
           // Build MCP metrics
           const mcpMetrics = buildMcpMetric(server, RUN_GCLOUD_TOOL_NAME);
           ({ code, stdout, stderr } = await gcloud.invoke(args, mcpMetrics));
+          console.error(`server version is ${server.server.getClientVersion()?.version}`);
+          console.error(`server name is ${server.server.getClientVersion()?.name}`);
           // If the exit status is not zero, an error occurred and the output may be
           // incomplete unless the command documentation notes otherwise. For example,
           // a command that creates multiple resources may only create a few, list them

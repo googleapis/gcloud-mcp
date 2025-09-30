@@ -185,6 +185,7 @@ improving documentation, your contributions are welcome. Please read our
 ## 📄 Important Notes
 
 This repository is currently in preview and may see breaking changes. This
-repository is providing a solution, not an officially supported Google product.
+repository provides a solution, not an officially supported Google product. It
+is not covered under [Google Cloud Terms of Service](https://cloud.google.com/terms).
 It may break when the MCP specification, other SDKs, or when other solutions
 and products change. See also our [Security Policy](SECURITY.md).

@@ -35,12 +35,6 @@ will install the MCP server as a
 for the current user, making it available for all your projects.
 
 ```shell
-npx @google-cloud/[PACKAGE_NAME] init --agent=gemini-cli
-```
-
-For example, for the gcloud-mcp:
-
-```shell
 npx @google-cloud/gcloud-mcp init --agent=gemini-cli
 ```
 
@@ -55,7 +49,7 @@ gemini mcp list
 
 ### For other AI clients
 
-To use gcloud MCP servers with other clients, add the following snippet
+To use the gcloud-mcp server with other clients, add the following snippet
 to their respective JSON configuration files for each MCP server:
 
 ```json
@@ -82,25 +76,10 @@ for a single project or your global user settings file for all projects:
 
 ```json
 "servers": {
-  "[SERVER_NAME]": {
-    "command": "npx",
-    "args": ["-y", "@google-cloud/[PACKAGE_NAME]"]
-  }
-}
-```
-
-For example, for gcloud and observability:
-
-```json
-"servers": {
   "gcloud": {
     "command": "npx",
     "args": ["-y", "@google-cloud/gcloud-mcp"]
-  },
-  "observability": {
-    "command": "npx",
-    "args": ["-y", "@google-cloud/observability-mcp"]
-  },
+  }
 }
 ```
 
@@ -151,6 +130,7 @@ improving documentation, your contributions are welcome. Please read our
 ## 📄 Important Notes
 
 This repository is currently in preview and may see breaking changes. This
-repository is providing a solution, not an officially supported Google product.
+repository provides a solution, not an officially supported Google product. It
+is not covered under [Google Cloud Terms of Service](https://cloud.google.com/terms).
 It may break when the MCP specification, other SDKs, or when other solutions
 and products change. See also our [Security Policy](SECURITY.md).

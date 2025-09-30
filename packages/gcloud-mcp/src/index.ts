@@ -113,8 +113,6 @@ const main = async () => {
   createRunGcloudCommand(config).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
-  log.info(`ALLOW: ${config.allow ?? []}`);
-  log.info(`DENY: ${[...new Set([...default_deny, ...(config.deny ?? [])])]}`);
 
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();

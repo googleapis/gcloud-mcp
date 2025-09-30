@@ -19,9 +19,9 @@ import * as gcloud from '../gcloud.js';
 import { allowCommands, denyCommands } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
-import { default_deny } from '../index.js';
+import { McpConfig, default_deny } from '../index.js';
 
-export const createRunGcloudCommand = (denylist: string[] = [], allowlist: string[] = []) => ({
+export const createRunGcloudCommand = (config: McpConfig = {}) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -50,6 +50,21 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
       async ({ args }) => {
         const toolLogger = log.mcp('run_gcloud_command', args);
         const command = args.join(' ');
+        const userDeny = config.deny ?? [];
+        const userAllow = config.allow ?? [];
+        const fullDenylist = [...new Set([...default_deny, ...userDeny])];
+
+        if (command === 'gcloud-mcp debug config') {
+          let message = '# The user has the following commands denylisted:\n';
+          if (userAllow.length > 0) {
+            message = '# The user has the following commands allowlisted:\n';
+            message += userAllow.map((c) => `- ${c}`).join('\n');
+          } else {
+            message += userDeny.map((c) => `- ${c}`).join('\n');
+          }
+          return { content: [{ type: 'text', text: message }] };
+        }
+
         try {
           // Lint parses and isolates the gcloud command from flags and positionals.
           // Example
@@ -60,7 +75,16 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
           const commandNoArgs = parsedJson[0]['command_string_no_args'];
           const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
 
-          const denylistMessage = `Execution denied: This command is on the deny list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+          const userConfigMessage = (listType: 'allow' | 'deny') => `
+To get the user-specified ${listType} list, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
+
+          let denylistMessage = `Execution denied: This command is on the deny list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
+
+          if (userDeny.length > 0) {
+            denylistMessage += userConfigMessage('deny');
+          }
+
+          denylistMessage += `
 
 ## Denylist Behavior:
 - A default deny list is ALWAYS active, blocking potentially interactive or sensitive commands.
@@ -72,8 +96,14 @@ export const createRunGcloudCommand = (denylist: string[] = [], allowlist: strin
 The following commands are always denied:
 ${default_deny.map((command) => `-  '${command}'`).join('\n')}`;
 
-          if (allowlist.length > 0 && !allowCommands(allowlist).matches(commandArgsNoGcloud)) {
-            const allowlistMessage = `Execution denied: This command is not on the allow list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+          if (userAllow.length > 0 && !allowCommands(userAllow).matches(commandArgsNoGcloud)) {
+            let allowlistMessage = `Execution denied: This command is not on the allow list. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
+
+            if (userAllow.length > 0) {
+              allowlistMessage += userConfigMessage('allow');
+            }
+
+            allowlistMessage += `
 
 ## Allowlist Behavior:
 - An allow list can be provided in the configuration file.
@@ -89,7 +119,7 @@ ${default_deny.map((command) => `-  '${command}'`).join('\n')}`;
             };
           }
 
-          if (denyCommands(denylist).matches(commandArgsNoGcloud)) {
+          if (denyCommands(fullDenylist).matches(commandArgsNoGcloud)) {
             return {
               content: [
                 {

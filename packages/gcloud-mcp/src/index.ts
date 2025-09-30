@@ -54,6 +54,8 @@ interface McpConfig {
   deny?: string[];
 }
 
+export type { McpConfig };
+
 const main = async () => {
   const argv = await yargs(hideBin(process.argv))
     .command('$0', 'Run the gcloud mcp server')
@@ -73,9 +75,7 @@ const main = async () => {
     process.exit(1);
   }
 
-  let denylist = default_deny;
-  let allowlist: string[] = [];
-
+  let config: McpConfig = {};
   const configFile = argv.config ?? process.env['GCLOUD_MCP_CONFIG_FILE'];
 
   if (configFile) {
@@ -85,20 +85,13 @@ const main = async () => {
         process.exit(1);
       }
       const configFileContent = fs.readFileSync(configFile, 'utf-8');
-      const config: McpConfig = JSON.parse(configFileContent);
+      config = JSON.parse(configFileContent);
 
       if (config.allow && config.deny) {
         log.error(
           'Configuration can not specify both "allow" and "deny" lists. Please choose one.',
         );
         process.exit(1);
-      }
-
-      if (config.allow) {
-        allowlist = config.allow;
-      } else if (config.deny) {
-        denylist = [...new Set([...default_deny, ...(config.deny ?? [])])];
-        allowlist = []; // Ensure allowlist is empty if only deny is specified
       }
       log.info(`Loaded configuration from ${configFile}`);
     } catch (error) {
@@ -117,11 +110,11 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  createRunGcloudCommand(denylist, allowlist).register(server);
+  createRunGcloudCommand(config).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
-  log.info(`ALLOW: ${allowlist}`);
-  log.info(`DENY: ${denylist}`);
+  log.info(`ALLOW: ${config.allow ?? []}`);
+  log.info(`DENY: ${[...new Set([...default_deny, ...(config.deny ?? [])])]}`);
 
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();

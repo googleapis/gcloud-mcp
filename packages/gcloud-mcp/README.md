@@ -111,10 +111,9 @@ For more information regarding installing the repository locally, please see
 
 ## 🧰 Available MCP Tools
 
-| Tool                      | Description                                                                                                                                               |
-| :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `run_gcloud_command`      | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [MCP Permissions](#-mcp-permissions) for more information. |
-
+| Tool                 | Description                                                                                                                                               |
+| :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run_gcloud_command` | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [MCP Permissions](#-mcp-permissions) for more information. |
 
 ## 🔑 MCP Permissions
 

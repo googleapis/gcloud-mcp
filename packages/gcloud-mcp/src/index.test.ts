@@ -81,7 +81,7 @@ test('should start the McpServer if gcloud is available', async () => {
   process.argv = ['node', 'index.js'];
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
-  await import('./index.js');
+  const { default_deny } = await import('./index.js');
   expect(gcloud.isAvailable).toHaveBeenCalled();
   expect(McpServer).toHaveBeenCalledWith(
     {
@@ -90,7 +90,7 @@ test('should start the McpServer if gcloud is available', async () => {
     },
     { capabilities: { tools: {} } },
   );
-  expect(createRunGcloudCommand).toHaveBeenCalledWith({});
+  expect(createRunGcloudCommand).toHaveBeenCalledWith({}, default_deny);
   expect(registerToolSpy).toHaveBeenCalledWith(vi.mocked(McpServer).mock.instances[0]);
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance!.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));
@@ -162,9 +162,9 @@ test('should load allow from config file using env var', async () => {
   };
   vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(config));
 
-  await import('./index.js');
+  const { default_deny } = await import('./index.js');
 
-  expect(createRunGcloudCommand).toHaveBeenCalledWith(config);
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(config, default_deny);
   delete process.env['GCLOUD_MCP_CONFIG_FILE'];
 });
 
@@ -192,8 +192,8 @@ test('should prioritize config from args over env var', async () => {
     return '';
   });
 
-  await import('./index.js');
+  const { default_deny } = await import('./index.js');
 
-  expect(createRunGcloudCommand).toHaveBeenCalledWith(priorityConfig);
+  expect(createRunGcloudCommand).toHaveBeenCalledWith(priorityConfig, default_deny);
   delete process.env['GCLOUD_MCP_CONFIG_FILE'];
 });

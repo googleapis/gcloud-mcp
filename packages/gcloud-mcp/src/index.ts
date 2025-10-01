@@ -61,7 +61,7 @@ const main = async () => {
     .command('$0', 'Run the gcloud mcp server')
     .option('config', {
       type: 'string',
-      description: 'Path to a JSON configuration file for allow/deny lists.',
+      description: 'Path to a JSON configuration file for allowlist/denylist.',
       alias: 'c',
     })
     .command(exitProcessAfter(init))
@@ -110,7 +110,7 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  createRunGcloudCommand(config).register(server);
+  createRunGcloudCommand(config, default_deny).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 

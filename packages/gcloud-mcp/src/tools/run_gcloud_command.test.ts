@@ -157,7 +157,8 @@ describe('createRunGcloudCommand', () => {
       mockGcloudInvoke('output', 'error');
 
       const result = await tool({ args: inputArgs });
-      const expectedMetricsString = 'goog-mcp/agent/test-agent/agent-version/1.2.3/mcp-server/test-server/mcp-version/1.0.0/mcp-tool/run_gcloud_command';
+      const expectedMetricsString =
+        'goog-mcp/agent/test-agent/agent-version/1.2.3/mcp-server/test-server/mcp-version/1.0.0/mcp-tool/run_gcloud_command';
 
       expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs, expectedMetricsString);
       expect(result).toEqual({

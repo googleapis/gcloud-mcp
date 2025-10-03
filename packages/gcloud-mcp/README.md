@@ -47,6 +47,10 @@ gemini mcp list
 > ✓ gcloud: npx -y @google-cloud/gcloud-mcp (stdio) - Connected
 ```
 
+### Allowlist / Denylist Commands
+
+The gcloud MCP server also allows for allowlisting/denylisting commands. For more information, see the [denylist documentation](../../doc/denylist.md).
+
 ### For other AI clients
 
 To use the gcloud-mcp server with other clients, add the following snippet
@@ -86,7 +90,7 @@ for a single project or your global user settings file for all projects:
 ## 🛠 Local Development
 
 For more information regarding installing the repository locally, please see
-[development.md](doc/DEVELOPMENT.md)
+[development.md](../../doc/DEVELOPMENT.md)
 
 ## 🧰 Available MCP Tools
 
@@ -125,7 +129,7 @@ Google Cloud offers these other servers:
 
 We welcome contributions! Whether you're fixing bugs, sharing feedback, or
 improving documentation, your contributions are welcome. Please read our
-[Contributing Guide](CONTRIBUTING.md) to get started.
+[Contributing Guide](../../CONTRIBUTING.md) to get started.
 
 ## 📄 Important Notes
 
@@ -133,4 +137,4 @@ This repository is currently in preview and may see breaking changes. This
 repository provides a solution, not an officially supported Google product. It
 is not covered under [Google Cloud Terms of Service](https://cloud.google.com/terms).
 It may break when the MCP specification, other SDKs, or when other solutions
-and products change. See also our [Security Policy](SECURITY.md).
+and products change. See also our [Security Policy](../../SECURITY.md).

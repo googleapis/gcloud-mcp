@@ -17,6 +17,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"iter"
@@ -28,7 +29,9 @@ import (
 )
 
 var (
-	endpoint = flag.String("http", "", "if set, connect to this streamable endpoint rather than running a stdio server")
+	endpoint     = flag.String("http", "", "if set, connect to this streamable endpoint rather than running a stdio server")
+	toolName     = flag.String("tool", "", "if set, the tool to run")
+	toolArgsJSON = flag.String("toolargs", "{}", "the tool arguments in JSON format")
 )
 
 func main() {
@@ -62,16 +65,27 @@ func main() {
 	}
 	defer cs.Close()
 
-	if cs.InitializeResult().Capabilities.Tools != nil {
-		printSection("tools", cs.Tools(ctx, nil), func(t *mcp.Tool) string { return t.Name })
+	if *toolName != "" {
+		var toolArgs map[string]any
+		if err := json.Unmarshal([]byte(*toolArgsJSON), &toolArgs); err != nil {
+			log.Fatalf("invalid tool arguments: %v", err)
+		}
+		result, err := cs.CallTool(ctx, &mcp.CallToolParams{
+			Name:      *toolName,
+			Arguments: toolArgs,
+		})
+		if err != nil {
+			log.Fatalf("tool execution failed: %v", err)
+		}
+		resultJSON, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			log.Fatalf("failed to format tool result: %v", err)
+		}
+		fmt.Println(string(resultJSON))
+		return
 	}
-	if cs.InitializeResult().Capabilities.Resources != nil {
-		printSection("resources", cs.Resources(ctx, nil), func(r *mcp.Resource) string { return r.Name })
-		printSection("resource templates", cs.ResourceTemplates(ctx, nil), func(r *mcp.ResourceTemplate) string { return r.Name })
-	}
-	if cs.InitializeResult().Capabilities.Prompts != nil {
-		printSection("prompts", cs.Prompts(ctx, nil), func(p *mcp.Prompt) string { return p.Name })
-	}
+
+	printSection("tools", cs.Tools(ctx, nil), func(t *mcp.Tool) string { return t.Name })
 }
 
 func printSection[T any](name string, features iter.Seq2[T, error], featName func(T) string) {

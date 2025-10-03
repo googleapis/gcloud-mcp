@@ -9,7 +9,7 @@
     "gcloud-mcp": "./dist/bundle.js"
   },
   "scripts": {
-    "build": "tsc --noemit && node build.js && cp ../../README.md .",
+    "build": "tsc --noemit && node build.js",
     "test": "vitest run",
     "start": "node dist/bundle.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",

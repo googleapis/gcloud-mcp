@@ -18,9 +18,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Mock, beforeEach, describe, expect, test, vi } from 'vitest';
 import * as gcloud from '../gcloud.js';
 import { createRunGcloudCommand } from './run_gcloud_command.js';
+import { McpConfig } from '../index.js';
 
 vi.mock('../gcloud.js');
 vi.mock('child_process');
+vi.mock('../index.js', () => ({
+  default_deny: ['interactive'],
+}));
 
 const mockServer = {
   registerTool: vi.fn(),
@@ -31,8 +35,8 @@ const getToolImplementation = () => {
   return (mockServer.registerTool as Mock).mock.calls[0]![2];
 };
 
-const createTool = (denylist: string[] = []) => {
-  createRunGcloudCommand(denylist).register(mockServer);
+const createTool = (config: McpConfig = {}) => {
+  createRunGcloudCommand(config, ['interactive']).register(mockServer);
   return getToolImplementation();
 };
 
@@ -57,9 +61,49 @@ describe('createRunGcloudCommand', () => {
     vi.clearAllMocks();
   });
 
+  describe('gcloud-mcp debug config', () => {
+    test('returns user-configured denylist', async () => {
+      const tool = createTool({ deny: ['compute list'] });
+      const inputArgs = ['gcloud-mcp', 'debug', 'config'];
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.lint).not.toHaveBeenCalled();
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `# The user has the following commands denylisted:
+- compute list`,
+          },
+        ],
+      });
+    });
+
+    test('returns user-configured allowlist', async () => {
+      const tool = createTool({ allow: ['compute list'] });
+      const inputArgs = ['gcloud-mcp', 'debug', 'config'];
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.lint).not.toHaveBeenCalled();
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `# The user has the following commands allowlisted:
+- compute list`,
+          },
+        ],
+      });
+    });
+  });
+
   describe('with denylist', () => {
     test('returns error for denylisted command', async () => {
-      const tool = createTool(['compute list']);
+      const tool = createTool({ deny: ['compute list'] });
       const inputArgs = ['compute', 'list', '--zone', 'eastus1'];
       mockGcloudLint(inputArgs);
 
@@ -70,14 +114,26 @@ describe('createRunGcloudCommand', () => {
         content: [
           {
             type: 'text',
-            text: `Command is part of this tool's current denylist of disabled commands.`,
+            text: `Execution denied: This command is on the denylist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+To get the user-specified denylist, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]
+
+## Denylist Behavior:
+- The default denylist is ALWAYS active, blocking potentially interactive or sensitive commands.
+- A custom denylist can be provided via a configuration file, which is then merged with the default list.
+- Command matching is based on prefix. The input command is normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
+- If a GA (General Availability) command is on the denylist, all of its release tracks (e.g., alpha, beta) are denied as well.
+
+### Default Denied Commands:
+The following commands are always denied:
+-  'interactive'`,
           },
         ],
+        isError: true,
       });
     });
 
     test('invokes gcloud for non-denylisted command', async () => {
-      const tool = createTool(['compute list']);
+      const tool = createTool({ deny: ['compute list'] });
       const inputArgs = ['compute', 'create'];
       mockGcloudLint(inputArgs);
       mockGcloudInvoke('output');
@@ -96,9 +152,54 @@ describe('createRunGcloudCommand', () => {
     });
   });
 
+  describe('with allowlist', () => {
+    test('invokes gcloud for allowlisted command', async () => {
+      const tool = createTool({ allow: ['compute list'] });
+      const inputArgs = ['compute', 'list'];
+      mockGcloudLint(inputArgs);
+      mockGcloudInvoke('output');
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: 'output',
+          },
+        ],
+      });
+    });
+
+    test('returns error for non-allowlisted command', async () => {
+      const tool = createTool({ allow: ['compute list'] });
+      const inputArgs = ['compute', 'create'];
+      mockGcloudLint(inputArgs);
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: This command is not on the allowlist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+To get the user-specified allowlist, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]
+
+## Allowlist Behavior:
+- An allowlist can be provided in the configuration file.
+- A configuration file cannot contain both an allowlist and a custom denylist.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
   describe('with allowlist and denylist', () => {
     test('returns error for command in both lists', async () => {
-      const tool = createTool(['a b']);
+      const tool = createTool({ deny: ['a b'], allow: ['a b'] });
       const inputArgs = ['a', 'b', 'c'];
       mockGcloudLint(inputArgs);
 
@@ -109,9 +210,21 @@ describe('createRunGcloudCommand', () => {
         content: [
           {
             type: 'text',
-            text: `Command is part of this tool's current denylist of disabled commands.`,
+            text: `Execution denied: This command is on the denylist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.
+To get the user-specified denylist, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]
+
+## Denylist Behavior:
+- The default denylist is ALWAYS active, blocking potentially interactive or sensitive commands.
+- A custom denylist can be provided via a configuration file, which is then merged with the default list.
+- Command matching is based on prefix. The input command is normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
+- If a GA (General Availability) command is on the denylist, all of its release tracks (e.g., alpha, beta) are denied as well.
+
+### Default Denied Commands:
+The following commands are always denied:
+-  'interactive'`,
           },
         ],
+        isError: true,
       });
     });
   });

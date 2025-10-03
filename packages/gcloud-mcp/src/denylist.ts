@@ -19,14 +19,14 @@
 // For example: app and apphub
 const normalizeForComparison = (s: string): string => s.toLowerCase().trim() + ' ';
 
-export const allowedCommands = (allowlist: string[] = []) => ({
+export const allowCommands = (allow: string[] = []) => ({
   matches: (command: string): boolean => {
-    if (allowlist.length === 0) {
-      return true; // No allowlist = all commands allowed
+    if (allow.length === 0) {
+      return true; // No allow = all commands allowed
     }
 
     const cmd = normalizeForComparison(command);
-    for (const allowedCommand of allowlist) {
+    for (const allowedCommand of allow) {
       if (cmd.startsWith(normalizeForComparison(allowedCommand))) {
         return true;
       }
@@ -35,17 +35,17 @@ export const allowedCommands = (allowlist: string[] = []) => ({
   },
 });
 
-export const deniedCommands = (denylist: string[] = []) => ({
+export const denyCommands = (deny: string[] = []) => ({
   matches: (command: string): boolean => {
-    if (denylist.length === 0) {
-      return false; // No denylist = all commands allowed
+    if (deny.length === 0) {
+      return false; // No deny = all commands allowed
     }
 
-    // Denylist'ing a GA command denylists all release tracks.
-    // Denylist'ing a pre-GA command only denies the specified release track.
+    // Deny'ing a GA command denies all release tracks.
+    // Deny'ing a pre-GA command only denies the specified release track.
     const releaseTracks = ['', 'alpha ', 'beta ', 'preview '];
     const cmd = normalizeForComparison(command);
-    for (const deniedCommand of denylist) {
+    for (const deniedCommand of deny) {
       for (const release of releaseTracks) {
         if (cmd.startsWith(normalizeForComparison(`${release}${deniedCommand}`))) {
           return true;

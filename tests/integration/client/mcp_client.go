@@ -1,7 +1,7 @@
 // Copyright 2025 The Go MCP SDK Authors. All rights reserved.
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
-package main
+package client
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func invokeMCPTool(args []string, toolName string, toolArgsJSON string) (string, error) {
+func InvokeMCPTool(args []string, toolName string, toolArgsJSON string) (string, error) {
 	if len(args) == 0 {
 		return "", fmt.Errorf("usage: listfeatures <command> [<args>]")
 	}

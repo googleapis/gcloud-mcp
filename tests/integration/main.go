@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"integration/client"
 	"os"
 	"os/exec"
 	"strings"
@@ -40,7 +41,7 @@ func testCallGcloudMCPTool() error {
 	args := []string{"gcloud-mcp"}
 	toolName := "run_gcloud_command"
 	toolArgsJSON := `{"args": ["config", "list", "--format=json"]}`
-	output, err := invokeMCPTool(args, toolName, toolArgsJSON)
+	output, err := client.InvokeMCPTool(args, toolName, toolArgsJSON)
 	if err != nil {
 		return fmt.Errorf("error executing command: %v\nOutput:\n%s", err, string(output))
 	}

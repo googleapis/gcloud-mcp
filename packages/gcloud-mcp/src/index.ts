@@ -57,17 +57,18 @@ interface McpConfig {
 export type { McpConfig };
 
 const main = async () => {
-  const argv = await yargs(hideBin(process.argv))
-    .command('$0', 'Run the gcloud mcp server')
-    .option('config', {
-      type: 'string',
-      description: 'Path to a JSON configuration file for allowlist/denylist.',
-      alias: 'c',
-    })
+  const argv = (await yargs(hideBin(process.argv))
+    .command('$0', 'Run the gcloud mcp server', (yargs) =>
+      yargs.option('config', {
+        type: 'string',
+        description: 'Path to a JSON configuration file for allowlist/denylist.',
+        alias: 'c',
+      }),
+    )
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
-    .parse();
+    .parse()) as { config?: string; [key: string]: unknown };
 
   const isAvailable = await gcloud.isAvailable();
   if (!isAvailable) {
@@ -76,7 +77,7 @@ const main = async () => {
   }
 
   let config: McpConfig = {};
-  const configFile = argv.config ?? process.env['GCLOUD_MCP_CONFIG_FILE'];
+  const configFile = argv.config;
 
   if (configFile) {
     try {

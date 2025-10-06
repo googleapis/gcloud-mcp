@@ -12,15 +12,19 @@ https://github.com/googleapis/gcloud-mcp/blob/db103694232825be66227bd80029e9afaa
 
 You can configure the allow/denylist by providing a JSON configuration file. The path to this file can be specified using the `-c` or `--config` command-line flag. The path must be an absolute path.
 
-Example `settings.json`:
+Example `~/.gemini/extensions/gcloud/gemini-extension.json` or `settings.json`:
 
 ```json
 {
-  "servers": {
-    "gcloud": {
-      "command": "npx",
-      "args": ["-y", "@google-cloud/gcloud-mcp", "-c", "/abs/path/to/config.json"]
-    }
+  // ...
+  "gcloud": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@google-cloud/gcloud-mcp",
+      "-c",
+      "/abs/path/to/config.json" // Path must be absolute
+    ]
   }
 }
 ```

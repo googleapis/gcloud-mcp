@@ -9,8 +9,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func InvokeMCPTool(serverArgs []string, toolName string, toolArgs any) (string, error) {
-	if len(serverArgs) == 0 {
+func InvokeMCPTool(serverCmd []string, toolName string, toolArgs any) (string, error) {
+	if len(serverCmd) == 0 {
 		return "", fmt.Errorf("no server args provided. Usage: server_name [<args>]")
 	}
 
@@ -19,7 +19,7 @@ func InvokeMCPTool(serverArgs []string, toolName string, toolArgs any) (string, 
 		transport mcp.Transport
 	)
 
-	cmd := exec.Command(serverArgs[0], serverArgs[1:]...)
+	cmd := exec.Command(serverCmd[0], serverCmd[1:]...)
 	transport = &mcp.CommandTransport{Command: cmd}
 	client := mcp.NewClient(&mcp.Implementation{Name: "mcp-client", Version: "v1.0.0"}, nil)
 	cs, err := client.Connect(ctx, transport, nil)

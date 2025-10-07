@@ -1,0 +1,5 @@
+# Ignore script output folder
+/out
+
+# Ignore generated output folder
+/src/generated

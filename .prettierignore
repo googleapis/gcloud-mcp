@@ -1,1 +1,3 @@
 packages/**/CHANGELOG.md
+packages/**/out
+packages/**/src/generated

@@ -5,6 +5,6 @@
         "outDir": "out",
     },
     // Tell tsc to only compile the files listed here
-    "include": ["scripts"],
+    "include": ["src/scripts"],
     "exclude": []
 }

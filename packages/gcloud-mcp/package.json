@@ -9,7 +9,7 @@
     "gcloud-mcp": "./dist/bundle.js"
   },
   "scripts": {
-    "prebuild": "tsc --project tsconfig.scripts.json && node out/scripts/generate-readonly.js",
+    "prebuild": "tsc --project tsconfig.scripts.json && node out/src/scripts/generate-readonly.js",
     "build": "tsc --noemit && node build.js",
     "test": "vitest run",
     "start": "node dist/bundle.js",

@@ -68,7 +68,7 @@ const removeCommandGroups = (unsortedCommands: string[]): string[] => {
 };
 
 // removePrereleaseCommands filters out commands that start with "alpha", "beta", or "preview".
-const removePrereleaseCommands = (commands: string[]): string[] =>
+export const removePrereleaseCommands = (commands: string[]): string[] =>
   commands.filter(
     (cmd) => !cmd.startsWith('alpha ') && !cmd.startsWith('beta ') && !cmd.startsWith('preview '),
   );

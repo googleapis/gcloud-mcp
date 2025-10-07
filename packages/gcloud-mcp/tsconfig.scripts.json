@@ -1,10 +1,10 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "noEmit": false,
-        "outDir": "out",
-    },
-    // Tell tsc to only compile the files listed here
-    "include": ["src/scripts"],
-    "exclude": []
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "out"
+  },
+  // Tell tsc to only compile the files listed here
+  "include": ["src/scripts"],
+  "exclude": []
 }

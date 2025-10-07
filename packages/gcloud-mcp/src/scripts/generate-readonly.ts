@@ -17,40 +17,39 @@
 /* eslint-disable no-console */ // Scripts may use console.
 
 import * as fs from 'fs';
+import * as path from 'path';
 
-// getAllCommands fetches the gcloud reference documentation, processes it,
+// getAllCommands processes a reference documentation page's links
 // and returns a list of unique gcloud commands.
-async function getAllCommands(): Promise<string[]> {
-  const body = await fetchHTML('https://cloud.google.com/sdk/gcloud/reference');
+const getAllCommands = async (html: string): Promise<string[]> => {
+  // Matches with double-quote enclosed "/sdk/gcloud/reference/..." strings
   const referenceDocPaths = /"\/sdk\/gcloud\/reference\/[^"]*"/g;
 
-  const uniqueMatches = removeDuplicates(body.match(referenceDocPaths) || []);
+  const uniqueMatches = removeDuplicates(html.match(referenceDocPaths) || []);
   const processedMatches = uniqueMatches.map((match) => {
     let trimmedMatch = match.replace(`"/sdk/gcloud/reference/`, '');
-    trimmedMatch = trimmedMatch.slice(0, -1);
-    return trimmedMatch.replace(/\//g, ' ');
+    trimmedMatch = trimmedMatch.slice(0, -1); // Removing trailing '"'
+    return trimmedMatch.replace(/\//g, ' '); // Replace '/' with ' '
   });
 
   return removeCommandGroups(processedMatches);
-}
+};
 
 // fetchHTML fetches the content of a URL and returns it as a string.
-async function fetchHTML(url: string): Promise<string> {
+const fetchHTML = async (url: string): Promise<string> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`failed to fetch HTML: ${response.statusText}`);
   }
   return await response.text();
-}
+};
 
 // removeDuplicates removes duplicate strings from a slice.
-function removeDuplicates(elements: string[]): string[] {
-  return [...new Set(elements)];
-}
+const removeDuplicates = (elements: string[]): string[] => [...new Set(elements)];
 
 // removeCommandGroups filters out command groups from a list of commands.
 // A command is considered a group if it is a prefix of another command in the list.
-function removeCommandGroups(unsortedCommands: string[]): string[] {
+const removeCommandGroups = (unsortedCommands: string[]): string[] => {
   const commands = [...unsortedCommands];
   commands.sort();
 
@@ -66,16 +65,15 @@ function removeCommandGroups(unsortedCommands: string[]): string[] {
     result.push(cmd);
   }
   return result;
-}
+};
 
 // removePrereleaseCommands filters out commands that start with "alpha", "beta", or "preview".
-function removePrereleaseCommands(commands: string[]): string[] {
-  return commands.filter(
-    (cmd) => !cmd.startsWith('alpha') && !cmd.startsWith('beta') && !cmd.startsWith('preview'),
+const removePrereleaseCommands = (commands: string[]): string[] =>
+  commands.filter(
+    (cmd) => !cmd.startsWith('alpha ') && !cmd.startsWith('beta ') && !cmd.startsWith('preview '),
   );
-}
 
-function classifyCommand(command: string): 'readonly' | 'unknown' {
+const isReadonly = (command: string): boolean => {
   const readonlyPrefixes: string[] = [
     'cat',
     'describe',
@@ -101,37 +99,43 @@ function classifyCommand(command: string): 'readonly' | 'unknown' {
   const lastPart = parts[parts.length - 1] ?? '';
 
   for (const keyword of readonlyPrefixes) {
-    if (lastPart === keyword || lastPart.startsWith(keyword + '-')) {
-      return 'readonly';
-    }
+    if (lastPart === keyword) return true;
+    if (lastPart.startsWith(keyword + '-')) return true;
   }
 
-  return 'unknown';
-}
+  return false;
+};
 
-async function main() {
+const main = async () => {
   try {
-    const commands = await getAllCommands();
+    const reference = await fetchHTML('https://cloud.google.com/sdk/gcloud/reference');
+    const commands = await getAllCommands(reference);
     const filteredCommands = removePrereleaseCommands(commands);
 
     const readonly: string[] = [];
-    const unknown: string[] = [];
-
+    const unclassified: string[] = [];
     for (const cmd of filteredCommands) {
-      if (classifyCommand(cmd) === 'readonly') {
+      if (isReadonly(cmd) === true) {
         readonly.push(cmd);
       } else {
-        unknown.push(cmd);
+        unclassified.push(cmd);
       }
     }
 
-    fs.mkdirSync('src/generated/', { recursive: true });
-    fs.writeFileSync('src/generated/readonly.json', JSON.stringify({ allow: readonly }, null, 2));
-    fs.writeFileSync('src/generated/unknown.json', JSON.stringify({ allow: unknown }, null, 2));
+    const outputDir = path.join('src', 'generated');
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(outputDir, 'readonly-commands.json'),
+      JSON.stringify({ allow: readonly }, null, 2),
+    );
+    fs.writeFileSync(
+      path.join(outputDir, 'unclassified-commands.json'),
+      JSON.stringify({ allow: unclassified }, null, 2),
+    );
   } catch (err) {
     console.error('Error getting commands:', err);
     process.exit(1);
   }
-}
+};
 
 main();

@@ -40,29 +40,44 @@ func testCallGcloudMCPTool() error {
 	fmt.Println("🚀 Starting gcloud-mcp tool call integration test...")
 	args := []string{"gcloud-mcp"}
 	toolName := "run_gcloud_command"
-	toolArgsJSON := `{"args": ["config", "list", "--format=json"]}`
-	output, err := client.InvokeMCPTool(args, toolName, toolArgsJSON)
+	toolArgs := map[string]any{
+		"args": []string{"config", "list", "--format=json"},
+	}
+	output, err := client.InvokeMCPTool(args, toolName, toolArgs)
 	if err != nil {
 		return fmt.Errorf("error executing command: %v\nOutput:\n%s", err, string(output))
 	}
-	configJSON := map[string]interface{}{}
-	if err := json.Unmarshal([]byte(output), &configJSON); err != nil {
-		return fmt.Errorf("error parsing JSON output: %v", err)
+	type mcpOutput struct {
+		Content []struct {
+			Text string `json:"text"`
+		} `json:"content"`
+	}
+	type gcloudConfig struct {
+		Core struct {
+			Project string `json:"project"`
+		} `json:"core"`
 	}
 
-	content := configJSON["content"].([]interface{})
-	res := (content[0].(map[string]interface{}))
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(res["text"].(string)), &result); err != nil {
-		return fmt.Errorf("error parsing JSON output: %v", err)
+	var parsedOutput mcpOutput
+	if err := json.Unmarshal([]byte(output), &parsedOutput); err != nil {
+		return fmt.Errorf("error parsing MCP output: %v", err)
 	}
 
-	if result != nil && result["core"] != nil && result["core"].(map[string]interface{})["project"] == "gcloud-mcp-testing" {
+	if len(parsedOutput.Content) == 0 {
+		return fmt.Errorf("MCP output content is empty")
+	}
+
+	var config gcloudConfig
+	if err := json.Unmarshal([]byte(parsedOutput.Content[0].Text), &config); err != nil {
+		return fmt.Errorf("error parsing gcloud config from MCP output: %v", err)
+	}
+
+	if config.Core.Project == "gcloud-mcp-testing" {
 		fmt.Printf("✅ Assertion passed: Tool call was successful\n")
 		return nil
 	}
 
-	return fmt.Errorf("assertion failed: Tool call was not successful. Tool call content: %s", content)
+	return fmt.Errorf("assertion failed: Tool call was not successful. Tool call content: %s", output)
 }
 
 func run() int {

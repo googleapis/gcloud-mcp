@@ -45,7 +45,7 @@ const fetchHTML = async (url: string): Promise<string> => {
 };
 
 // removeDuplicates removes duplicate strings from a slice.
-const removeDuplicates = (elements: string[]): string[] => [...new Set(elements)];
+export const removeDuplicates = (elements: string[]): string[] => [...new Set(elements)];
 
 // removeCommandGroups filters out command groups from a list of commands.
 // A command is considered a group if it is a prefix of another command in the list.

@@ -15,7 +15,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { removePrereleaseCommands, removeCommandGroups } from './generate-readonly.js';
+import {
+  removePrereleaseCommands,
+  removeCommandGroups,
+  removeDuplicates,
+} from './generate-readonly.js';
 
 describe('removePrereleaseCommands', () => {
   it('should remove commands that start with alpha, beta, or preview', () => {
@@ -81,5 +85,32 @@ describe('removeCommandGroups', () => {
     const commands = ['auth login', 'compute instances list'];
     const result = removeCommandGroups(commands);
     expect(result).toEqual(['auth login', 'compute instances list']);
+  });
+});
+
+describe('removeDuplicates', () => {
+  it('should remove duplicate strings from an array', () => {
+    const elements = ['a', 'b', 'a', 'c', 'b'];
+    const result = removeDuplicates(elements);
+    expect(result).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should not modify the original array', () => {
+    const elements = ['a', 'b', 'a'];
+    const result = removeDuplicates(elements);
+    expect(elements).toHaveLength(3);
+    expect(result).toHaveLength(2);
+  });
+
+  it('should handle an empty array', () => {
+    const elements: string[] = [];
+    const result = removeDuplicates(elements);
+    expect(result).toEqual([]);
+  });
+
+  it('should handle an array with no duplicates', () => {
+    const elements = ['a', 'b', 'c'];
+    const result = removeDuplicates(elements);
+    expect(result).toEqual(['a', 'b', 'c']);
   });
 });

@@ -110,21 +110,27 @@ export const isReadonly = (command: string): boolean => {
   return false;
 };
 
+export const categorizeCommands = (
+  commands: string[],
+): { readonly: string[]; unclassified: string[] } => {
+  const readonly: string[] = [];
+  const unclassified: string[] = [];
+  for (const cmd of commands) {
+    if (isReadonly(cmd)) {
+      readonly.push(cmd);
+    } else {
+      unclassified.push(cmd);
+    }
+  }
+  return { readonly, unclassified };
+};
+
 const main = async () => {
   try {
     const reference = await fetchHTML('https://cloud.google.com/sdk/gcloud/reference');
     const commands = await getAllCommands(reference);
     const filteredCommands = removePrereleaseCommands(commands);
-
-    const readonly: string[] = [];
-    const unclassified: string[] = [];
-    for (const cmd of filteredCommands) {
-      if (isReadonly(cmd) === true) {
-        readonly.push(cmd);
-      } else {
-        unclassified.push(cmd);
-      }
-    }
+    const { readonly, unclassified } = categorizeCommands(filteredCommands);
 
     const outputDir = path.join('src', 'generated');
     fs.mkdirSync(outputDir, { recursive: true });

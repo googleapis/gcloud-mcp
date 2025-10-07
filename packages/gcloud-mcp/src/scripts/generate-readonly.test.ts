@@ -21,6 +21,7 @@ import {
   removeDuplicates,
   getAllCommands,
   isReadonly,
+  categorizeCommands,
 } from './generate-readonly.js';
 
 describe('getAllCommands', () => {
@@ -168,5 +169,25 @@ describe('isReadonly', () => {
 
   it('should handle an empty string', () => {
     expect(isReadonly('')).toBe(false);
+  });
+});
+
+describe('categorizeCommands', () => {
+  it('should categorize commands into readonly and unclassified', () => {
+    const commands = [
+      'compute instances list',
+      'compute instances create',
+      'projects get-iam-policy',
+      'projects delete',
+    ];
+    const { readonly, unclassified } = categorizeCommands(commands);
+    expect(readonly).toEqual(['compute instances list', 'projects get-iam-policy']);
+    expect(unclassified).toEqual(['compute instances create', 'projects delete']);
+  });
+
+  it('should handle an empty array', () => {
+    const { readonly, unclassified } = categorizeCommands([]);
+    expect(readonly).toEqual([]);
+    expect(unclassified).toEqual([]);
   });
 });

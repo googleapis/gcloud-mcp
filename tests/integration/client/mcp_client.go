@@ -9,8 +9,14 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func InvokeMCPTool(serverCmd []string, toolName string, toolArgs any) (string, error) {
-	if len(serverCmd) == 0 {
+type ToolCall struct {
+	ServerCmd []string
+	ToolName  string
+	ToolArgs  any
+}
+
+func InvokeMCPTool(toolCall ToolCall) (string, error) {
+	if len(toolCall.ServerCmd) == 0 {
 		return "", fmt.Errorf("no server args provided. Usage: server_name [<args>]")
 	}
 
@@ -19,7 +25,7 @@ func InvokeMCPTool(serverCmd []string, toolName string, toolArgs any) (string, e
 		transport mcp.Transport
 	)
 
-	cmd := exec.Command(serverCmd[0], serverCmd[1:]...)
+	cmd := exec.Command(toolCall.ServerCmd[0], toolCall.ServerCmd[1:]...)
 	transport = &mcp.CommandTransport{Command: cmd}
 	client := mcp.NewClient(&mcp.Implementation{Name: "mcp-client", Version: "v1.0.0"}, nil)
 	cs, err := client.Connect(ctx, transport, nil)
@@ -28,10 +34,10 @@ func InvokeMCPTool(serverCmd []string, toolName string, toolArgs any) (string, e
 	}
 	defer cs.Close()
 
-	if toolName != "" {
+	if toolCall.ToolName != "" {
 		result, err := cs.CallTool(ctx, &mcp.CallToolParams{
-			Name:      toolName,
-			Arguments: toolArgs,
+			Name:      toolCall.ToolName,
+			Arguments: toolCall.ToolArgs,
 		})
 		if err != nil {
 			return "", fmt.Errorf("tool execution failed: %w", err)

@@ -38,12 +38,15 @@ func testGeminiMcpList() error {
 
 func testCallGcloudMCPTool() error {
 	fmt.Println("🚀 Starting gcloud-mcp tool call integration test...")
-	args := []string{"gcloud-mcp"}
-	toolName := "run_gcloud_command"
-	toolArgs := map[string]any{
-		"args": []string{"config", "list", "--format=json"},
+	gcloudToolCall := client.ToolCall{
+		ServerCmd: []string{"gcloud-mcp"},
+		ToolName:  "run_gcloud_command",
+		ToolArgs: map[string]any{
+			"args": []string{"config", "list", "--format=json"},
+		},
 	}
-	output, err := client.InvokeMCPTool(args, toolName, toolArgs)
+
+	output, err := client.InvokeMCPTool(gcloudToolCall)
 	if err != nil {
 		return fmt.Errorf("error executing command: %v\nOutput:\n%s", err, string(output))
 	}

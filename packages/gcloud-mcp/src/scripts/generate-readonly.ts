@@ -49,7 +49,7 @@ const removeDuplicates = (elements: string[]): string[] => [...new Set(elements)
 
 // removeCommandGroups filters out command groups from a list of commands.
 // A command is considered a group if it is a prefix of another command in the list.
-const removeCommandGroups = (unsortedCommands: string[]): string[] => {
+export const removeCommandGroups = (unsortedCommands: string[]): string[] => {
   const commands = [...unsortedCommands];
   commands.sort();
 

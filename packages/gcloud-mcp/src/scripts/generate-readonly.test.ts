@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { removePrereleaseCommands } from './generate-readonly.js';
+import { removePrereleaseCommands, removeCommandGroups } from './generate-readonly.js';
 
 describe('removePrereleaseCommands', () => {
   it('should remove commands that start with alpha, beta, or preview', () => {
@@ -42,5 +42,44 @@ describe('removePrereleaseCommands', () => {
     const result = removePrereleaseCommands(commands);
     expect(commands).toHaveLength(2);
     expect(result).toHaveLength(1);
+  });
+});
+
+describe('removeCommandGroups', () => {
+  it('should remove command groups from a list of commands', () => {
+    const commands = [
+      'auth',
+      'auth application-default',
+      'auth application-default login',
+      'auth login',
+      'compute',
+      'compute instances',
+      'compute instances list',
+    ];
+    const result = removeCommandGroups(commands);
+    expect(result).toEqual([
+      'auth application-default login',
+      'auth login',
+      'compute instances list',
+    ]);
+  });
+
+  it('should not modify the original array', () => {
+    const commands = ['compute', 'compute instances list'];
+    const result = removeCommandGroups(commands);
+    expect(commands).toHaveLength(2);
+    expect(result).toHaveLength(1);
+  });
+
+  it('should handle an empty array', () => {
+    const commands: string[] = [];
+    const result = removeCommandGroups(commands);
+    expect(result).toEqual([]);
+  });
+
+  it('should handle an array with no command groups', () => {
+    const commands = ['auth login', 'compute instances list'];
+    const result = removeCommandGroups(commands);
+    expect(result).toEqual(['auth login', 'compute instances list']);
   });
 });

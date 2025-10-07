@@ -19,7 +19,36 @@ import {
   removePrereleaseCommands,
   removeCommandGroups,
   removeDuplicates,
+  getAllCommands,
+  isReadonly,
 } from './generate-readonly.js';
+
+describe('getAllCommands', () => {
+  it('should extract and process commands from HTML', async () => {
+    const html = `
+		<a href="/sdk/gcloud/reference/compute/instances/list"></a>
+		<a href="/sdk/gcloud/reference/compute/instances/describe"></a>
+		<a href="/sdk/gcloud/reference/compute/"></a>
+	  `;
+    const result = await getAllCommands(html);
+    expect(result).toEqual(['compute instances describe', 'compute instances list']);
+  });
+
+  it('should handle duplicate links', async () => {
+    const html = `
+		<a href="/sdk/gcloud/reference/compute/instances/list"></a>
+		<a href="/sdk/gcloud/reference/compute/instances/list"></a>
+	  `;
+    const result = await getAllCommands(html);
+    expect(result).toEqual(['compute instances list']);
+  });
+
+  it('should handle empty html', async () => {
+    const html = '';
+    const result = await getAllCommands(html);
+    expect(result).toEqual([]);
+  });
+});
 
 describe('removePrereleaseCommands', () => {
   it('should remove commands that start with alpha, beta, or preview', () => {
@@ -112,5 +141,32 @@ describe('removeDuplicates', () => {
     const elements = ['a', 'b', 'c'];
     const result = removeDuplicates(elements);
     expect(result).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('isReadonly', () => {
+  it('should return true for readonly commands', () => {
+    expect(isReadonly('compute instances list')).toBe(true);
+    expect(isReadonly('projects get-iam-policy')).toBe(true);
+    expect(isReadonly('auth print-access-token')).toBe(true);
+  });
+
+  it('should return false for non-readonly commands', () => {
+    expect(isReadonly('compute instances create')).toBe(false);
+    expect(isReadonly('projects delete')).toBe(false);
+    expect(isReadonly('auth login')).toBe(false);
+  });
+
+  it('should handle commands with hyphens', () => {
+    expect(isReadonly('iam service-accounts keys list')).toBe(true);
+    expect(isReadonly('iam service-accounts keys upload')).toBe(false);
+  });
+
+  it('should handle test-iam-permissions', () => {
+    expect(isReadonly('projects test-iam-permissions')).toBe(true);
+  });
+
+  it('should handle an empty string', () => {
+    expect(isReadonly('')).toBe(false);
   });
 });

@@ -21,16 +21,18 @@ import * as path from 'path';
 
 // getAllCommands processes a reference documentation page's links
 // and returns a list of unique gcloud commands.
-const getAllCommands = async (html: string): Promise<string[]> => {
+export const getAllCommands = async (html: string): Promise<string[]> => {
   // Matches with double-quote enclosed "/sdk/gcloud/reference/..." strings
   const referenceDocPaths = /"\/sdk\/gcloud\/reference\/[^"]*"/g;
 
   const uniqueMatches = removeDuplicates(html.match(referenceDocPaths) || []);
-  const processedMatches = uniqueMatches.map((match) => {
-    let trimmedMatch = match.replace(`"/sdk/gcloud/reference/`, '');
-    trimmedMatch = trimmedMatch.slice(0, -1); // Removing trailing '"'
-    return trimmedMatch.replace(/\//g, ' '); // Replace '/' with ' '
-  });
+  const processedMatches = uniqueMatches.map((match) =>
+    match
+      .slice(1, -1) // remove enclosing double-quotes
+      .replace(`sdk/gcloud/reference/`, '')
+      .replace(/\//g, ' ') // replace '/' with ' '
+      .trim(),
+  );
 
   return removeCommandGroups(processedMatches);
 };
@@ -73,7 +75,7 @@ export const removePrereleaseCommands = (commands: string[]): string[] =>
     (cmd) => !cmd.startsWith('alpha ') && !cmd.startsWith('beta ') && !cmd.startsWith('preview '),
   );
 
-const isReadonly = (command: string): boolean => {
+export const isReadonly = (command: string): boolean => {
   const readonlyPrefixes: string[] = [
     'cat',
     'describe',
@@ -86,6 +88,7 @@ const isReadonly = (command: string): boolean => {
     'list',
     'lookup',
     'ls',
+    'print',
     'query',
     'read',
     'search',
@@ -99,8 +102,9 @@ const isReadonly = (command: string): boolean => {
   const lastPart = parts[parts.length - 1] ?? '';
 
   for (const keyword of readonlyPrefixes) {
-    if (lastPart === keyword) return true;
-    if (lastPart.startsWith(keyword + '-')) return true;
+    if (lastPart === keyword || lastPart.startsWith(`${keyword}-`)) {
+      return true;
+    }
   }
 
   return false;

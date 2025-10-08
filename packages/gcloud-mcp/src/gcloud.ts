@@ -16,9 +16,11 @@
 
 import * as child_process from 'child_process';
 
+export const isWindows = (): boolean => process.platform === 'win32';
+
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
-    const which = child_process.spawn('which', ['gcloud']);
+    const which = child_process.spawn(isWindows() ? 'where' : 'which', ['gcloud']);
     which.on('close', (code) => {
       resolve(code === 0);
     });

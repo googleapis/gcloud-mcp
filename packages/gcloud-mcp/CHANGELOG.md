@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.2.0...gcloud-mcp-v0.3.0) (2025-10-08)
+
+
+### Features
+
+* Add gcloud-mcp config file for allow / deny list ([#236](https://github.com/googleapis/gcloud-mcp/issues/236)) ([bdaebfd](https://github.com/googleapis/gcloud-mcp/commit/bdaebfd1ee57be9583c0541de7c0ec108654cbfa))
+
+
+### Bug Fixes
+
+* Use 'where' when runtime is Windows ([#252](https://github.com/googleapis/gcloud-mcp/issues/252)) ([69f59b2](https://github.com/googleapis/gcloud-mcp/commit/69f59b279e2b7c41af933c1e6ba8a523ceade747))
+
 ## [0.2.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.1.1...gcloud-mcp-v0.2.0) (2025-09-29)
 
 

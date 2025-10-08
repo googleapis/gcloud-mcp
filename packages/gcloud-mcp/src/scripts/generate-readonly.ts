@@ -131,28 +131,23 @@ export const writeFile = (filePath: string, contents: string) => {
   fs.writeFileSync(filePath, contents);
 };
 
-export const generateCommandLists = async (referenceURL: string, outputDirectory: string) => {
-  const referenceHTML = await fetchHTML(referenceURL);
+export const generateCommandLists = async () => {
+  const referenceHTML = await fetchHTML('https://cloud.google.com/sdk/gcloud/reference');
   const commands = await getAllCommands(referenceHTML);
   const filteredCommands = removePrereleaseCommands(commands);
   const { readonly, unclassified } = categorizeCommands(filteredCommands);
-
-  writeFile(
-    path.join(outputDirectory, 'readonly-commands.json'),
-    JSON.stringify({ allow: readonly }, null, 2),
-  );
-  writeFile(
-    path.join(outputDirectory, 'unclassified-commands.json'),
-    JSON.stringify({ deny: unclassified }, null, 2),
-  );
+  return {
+    readonlyJSON: JSON.stringify({ allow: readonly }, null, 2),
+    unclassifiedJSON: JSON.stringify({ deny: unclassified }, null, 2),
+  };
 };
 
 const main = async () => {
   try {
-    generateCommandLists(
-      'https://cloud.google.com/sdk/gcloud/reference',
-      path.join('src', 'generated'),
-    );
+    const { readonlyJSON, unclassifiedJSON } = await generateCommandLists();
+
+    writeFile(path.join('src', 'generated', 'readonly-commands.json'), readonlyJSON);
+    writeFile(path.join('src', 'generated', 'unclassified-commands.json'), unclassifiedJSON);
   } catch (err) {
     console.error('Error getting commands:', err);
     process.exit(1);

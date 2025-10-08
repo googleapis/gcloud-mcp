@@ -22,7 +22,28 @@ import {
   getAllCommands,
   isReadonly,
   categorizeCommands,
+  generateCommandLists,
 } from './generate-readonly.js';
+
+describe('generateCommandLists', () => {
+  it('should return readonly and unclassified command lists as JSON strings', async () => {
+    const { readonlyJSON, unclassifiedJSON } = await generateCommandLists();
+
+    const readonlyData = JSON.parse(readonlyJSON);
+    const unclassifiedData = JSON.parse(unclassifiedJSON);
+
+    expect(readonlyData).toHaveProperty('allow');
+    expect(unclassifiedData).toHaveProperty('deny');
+
+    expect(Array.isArray(readonlyData.allow)).toBe(true);
+    expect(Array.isArray(unclassifiedData.deny)).toBe(true);
+
+    // It's a live URL, so we can't check for exact content,
+    // but we can expect some commands to be there.
+    expect(readonlyData.allow.length).toBeGreaterThan(1000);
+    expect(unclassifiedData.deny.length).toBeGreaterThan(1000);
+  }, 30000);
+});
 
 describe('getAllCommands', () => {
   it('should extract and process commands from HTML', async () => {

@@ -4,8 +4,10 @@
 # Local dependencies folder
 node_modules
 
-# Build output folder
+# Build output folders
 dist
+out
+generated
 
 # Turbo cache
 .turbo

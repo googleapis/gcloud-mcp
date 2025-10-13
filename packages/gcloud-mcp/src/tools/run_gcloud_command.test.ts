@@ -310,9 +310,10 @@ The following commands are always denied:
             type: 'text',
             text: `Execution denied: The command 'gcloud beta compute instances list' is on the denylist.
 However, a similar command is available: 'gcloud compute instances list'.
-Would you like to run this command instead?`,
+Invoking run_gcloud_command with this alternative command...`,
           },
         ],
+        isError: true,
       });
     });
 
@@ -350,9 +351,10 @@ Would you like to run this command instead?`,
             type: 'text',
             text: `Execution denied: The command 'gcloud alpha compute instances list' is on the denylist.
 However, a similar command is available: 'gcloud beta compute instances list'.
-Would you like to run this command instead?`,
+Invoking run_gcloud_command with this alternative command...`,
           },
         ],
+        isError: true,
       });
     });
 
@@ -385,9 +387,10 @@ Would you like to run this command instead?`,
             type: 'text',
             text: `Execution denied: The command 'gcloud alpha compute instances list' is on the denylist.
 However, a similar command is available: 'gcloud compute instances list'.
-Would you like to run this command instead?`,
+Invoking run_gcloud_command with this alternative command...`,
           },
         ],
+        isError: true,
       });
     });
 

@@ -310,7 +310,7 @@ The following commands are always denied:
             type: 'text',
             text: `Execution denied: The command 'gcloud beta compute instances list' is on the denylist.
 However, a similar command is available: 'gcloud compute instances list'.
-Invoking run_gcloud_command with this alternative command...`,
+Invoke this tool again with this alternative command to fix the issue.`,
           },
         ],
         isError: true,
@@ -351,7 +351,7 @@ Invoking run_gcloud_command with this alternative command...`,
             type: 'text',
             text: `Execution denied: The command 'gcloud alpha compute instances list' is on the denylist.
 However, a similar command is available: 'gcloud beta compute instances list'.
-Invoking run_gcloud_command with this alternative command...`,
+Invoke this tool again with this alternative command to fix the issue.`,
           },
         ],
         isError: true,
@@ -387,7 +387,7 @@ Invoking run_gcloud_command with this alternative command...`,
             type: 'text',
             text: `Execution denied: The command 'gcloud alpha compute instances list' is on the denylist.
 However, a similar command is available: 'gcloud compute instances list'.
-Invoking run_gcloud_command with this alternative command...`,
+Invoke this tool again with this alternative command to fix the issue.`,
           },
         ],
         isError: true,
@@ -430,7 +430,7 @@ Invoking run_gcloud_command with this alternative command...`,
             type: 'text',
             text: `Execution denied: The command 'gcloud beta compute instances describe' is on the denylist.
 However, a similar command is available: 'gcloud compute instances describe my-instance --zone us-central1-a'.
-Invoking run_gcloud_command with this alternative command...`,
+Invoke this tool again with this alternative command to fix the issue.`,
           },
         ],
         isError: true,

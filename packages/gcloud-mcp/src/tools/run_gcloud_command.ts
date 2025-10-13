@@ -153,7 +153,7 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
                     .trim();
                   const suggestion = `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' is on the denylist.
 However, a similar command is available: 'gcloud ${alternativeCommandWithFlags}'.
-Invoking run_gcloud_command with this alternative command...`;
+Invoke this tool again with this alternative command to fix the issue.`;
                   return {
                     content: [{ type: 'text', text: suggestion }],
                     isError: true,

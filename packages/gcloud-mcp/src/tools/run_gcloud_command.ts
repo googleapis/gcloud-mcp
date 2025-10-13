@@ -74,12 +74,13 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
           const parsedJson = JSON.parse(stdout);
           const commandNoArgs = parsedJson[0]['command_string_no_args'];
           const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
+          const commandNoArgsParts = commandArgsNoGcloud.split(' ');
+          const remainingArgs = args.slice(commandNoArgsParts.length);
 
           const userConfigMessage = (listType: 'allow' | 'deny') => `
 To get the user-specified ${listType}list, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
 
           let denylistMessage = `Execution denied: This command is on the denylist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
-
           if (userDeny.length > 0) {
             denylistMessage += userConfigMessage('deny');
           }
@@ -147,8 +148,11 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
 
                 const { code } = await gcloud.lint(alternativeCommand);
                 if (code === 0) {
+                  const alternativeCommandWithFlags = [alternativeCommand, ...remainingArgs]
+                    .join(' ')
+                    .trim();
                   const suggestion = `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' is on the denylist.
-However, a similar command is available: 'gcloud ${alternativeCommand}'.
+However, a similar command is available: 'gcloud ${alternativeCommandWithFlags}'.
 Invoking run_gcloud_command with this alternative command...`;
                   return {
                     content: [{ type: 'text', text: suggestion }],

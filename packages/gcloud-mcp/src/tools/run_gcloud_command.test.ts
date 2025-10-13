@@ -394,6 +394,49 @@ Invoking run_gcloud_command with this alternative command...`,
       });
     });
 
+    test('denylisted beta describe command with args and flags suggests GA equivalent', async () => {
+      const tool = createTool({ deny: ['beta compute instances describe'] });
+      const inputArgs = [
+        'beta',
+        'compute',
+        'instances',
+        'describe',
+        'my-instance',
+        '--zone',
+        'us-central1-a',
+      ];
+      // The first lint is for the original command.
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances describe"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // The second lint is for the GA alternative.
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud compute instances describe"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('compute instances describe');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta compute instances describe' is on the denylist.
+However, a similar command is available: 'gcloud compute instances describe my-instance --zone us-central1-a'.
+Invoking run_gcloud_command with this alternative command...`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
     test('denylisted beta command with no GA alternative returns denylist error', async () => {
       const tool = createTool({ deny: ['beta compute instances list'] });
       const inputArgs = ['beta', 'compute', 'instances', 'list'];

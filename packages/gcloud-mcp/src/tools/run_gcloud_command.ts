@@ -120,6 +120,42 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
           }
 
           if (denyCommands(fullDenylist).matches(commandArgsNoGcloud)) {
+            const commandParts = commandArgsNoGcloud.split(' ');
+            const releaseTracks = ['alpha', 'beta'];
+            let track = '';
+            let commandWithoutTrack = commandArgsNoGcloud;
+
+            if (releaseTracks.includes(commandParts[0])) {
+              track = commandParts[0];
+              commandWithoutTrack = commandParts.slice(1).join(' ');
+            }
+
+            if (track) {
+              let tracksToTry: string[] = [];
+              if (track === 'alpha') {
+                tracksToTry = ['', 'beta'];
+              } else if (track === 'beta') {
+                tracksToTry = [''];
+              }
+
+              for (const t of tracksToTry) {
+                const alternativeCommand = t ? `${t} ${commandWithoutTrack}` : commandWithoutTrack;
+
+                if (denyCommands(fullDenylist).matches(alternativeCommand)) {
+                  continue;
+                }
+
+                const { code } = await gcloud.lint(alternativeCommand);
+                if (code === 0) {
+                  const suggestion = `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' is on the denylist.
+However, a similar command is available: 'gcloud ${alternativeCommand}'.
+Would you like to run this command instead?`;
+                  return {
+                    content: [{ type: 'text', text: suggestion }],
+                  };
+                }
+              }
+            }
             return {
               content: [
                 {

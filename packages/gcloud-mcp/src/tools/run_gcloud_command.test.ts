@@ -423,7 +423,9 @@ Invoke this tool again with this alternative command to fix the issue.`,
 
       expect(gcloud.invoke).not.toHaveBeenCalled();
       expect(gcloud.lint).toHaveBeenCalledTimes(2);
-      expect(gcloud.lint).toHaveBeenCalledWith('compute instances describe');
+      expect(gcloud.lint).toHaveBeenCalledWith(
+        'compute instances describe my-instance --zone us-central1-a',
+      );
       expect(result).toEqual({
         content: [
           {

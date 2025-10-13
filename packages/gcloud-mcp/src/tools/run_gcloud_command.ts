@@ -146,7 +146,9 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
                   continue;
                 }
 
-                const { code } = await gcloud.lint(alternativeCommand);
+                const { code } = await gcloud.lint(
+                  [alternativeCommand, ...remainingArgs].join(' '),
+                );
                 if (code === 0) {
                   const alternativeCommandWithFlags = [alternativeCommand, ...remainingArgs]
                     .join(' ')

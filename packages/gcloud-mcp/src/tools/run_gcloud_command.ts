@@ -123,7 +123,7 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
           } else {
             message += userDeny.map((c) => `- ${c}`).join('\n');
           }
-          return { content: [{ type: 'text', text: message }] };
+          return successfulTextResult(message);
         }
 
         try {
@@ -155,10 +155,7 @@ To get the user-specified ${listType}list, invoke this tool again with the args 
               'allow',
             );
             if (suggestion) {
-              return {
-                content: [{ type: 'text', text: suggestion }],
-                isError: true,
-              };
+              return errorTextResult(suggestion);
             }
 
             let allowlistMessage = `Execution denied: This command is not on the allowlist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
@@ -172,15 +169,7 @@ To get the user-specified ${listType}list, invoke this tool again with the args 
 ## Allowlist Behavior:
 - An allowlist can be provided in the configuration file.
 - A configuration file cannot contain both an allowlist and a custom denylist.`;
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: allowlistMessage,
-                },
-              ],
-              isError: true,
-            };
+            return errorTextResult(allowlistMessage);
           }
 
           if (denyCommands(fullDenylist).matches(commandArgsNoGcloud)) {
@@ -191,10 +180,7 @@ To get the user-specified ${listType}list, invoke this tool again with the args 
               'deny',
             );
             if (suggestion) {
-              return {
-                content: [{ type: 'text', text: suggestion }],
-                isError: true,
-              };
+              return errorTextResult(suggestion);
             }
 
             let denylistMessage = `Execution denied: This command is on the denylist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
@@ -213,15 +199,7 @@ To get the user-specified ${listType}list, invoke this tool again with the args 
 ### Default Denied Commands:
 The following commands are always denied:
 ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: denylistMessage,
-                },
-              ],
-              isError: true,
-            };
+            return errorTextResult(denylistMessage);
           }
 
           toolLogger.info('Executing run_gcloud_command');
@@ -235,16 +213,27 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
           if (code !== 0 || stderr) {
             result += `\nstderr:\n${stderr}`;
           }
-          return { content: [{ type: 'text', text: result }] };
+          return successfulTextResult(result);
         } catch (e: unknown) {
           toolLogger.error(
             'run_gcloud_command failed',
             e instanceof Error ? e : new Error(String(e)),
           );
           const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
-          return { content: [{ type: 'text', text: msg }], isError: true };
+          return errorTextResult(msg);
         }
       },
     );
   },
+});
+
+type TextResultType = { content: [{ type: 'text'; text: string }]; isError?: boolean };
+
+const successfulTextResult = (text: string): TextResultType => ({
+  content: [{ type: 'text', text }],
+});
+
+const errorTextResult = (text: string): TextResultType => ({
+  content: [{ type: 'text', text }],
+  isError: true,
 });

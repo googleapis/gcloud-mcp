@@ -75,7 +75,14 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
           const commandNoArgs = parsedJson[0]['command_string_no_args'];
           const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
           const commandNoArgsParts = commandArgsNoGcloud.split(' ');
-          const remainingArgs = args.slice(commandNoArgsParts.length);
+          const argsCopy = [...args];
+          for (const part of commandNoArgsParts) {
+            const index = argsCopy.indexOf(part);
+            if (index > -1) {
+              argsCopy.splice(index, 1);
+            }
+          }
+          const remainingArgs = argsCopy;
 
           const userConfigMessage = (listType: 'allow' | 'deny') => `
 To get the user-specified ${listType}list, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;

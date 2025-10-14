@@ -439,6 +439,41 @@ Invoke this tool again with this alternative command to fix the issue.`,
       });
     });
 
+    test('denylisted beta command with interleaved flags suggests GA equivalent', async () => {
+      const tool = createTool({ deny: ['beta config list'] });
+      const inputArgs = ['beta', '--log-http', 'config', '--verbosity', 'debug', 'list'];
+      // The first lint is for the original command.
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta config list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // The second lint is for the GA alternative.
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud config list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('config list --log-http --verbosity debug');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta config list' is on the denylist.
+However, a similar command is available: 'gcloud config list --log-http --verbosity debug'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
     test('denylisted beta command with no GA alternative returns denylist error', async () => {
       const tool = createTool({ deny: ['beta compute instances list'] });
       const inputArgs = ['beta', 'compute', 'instances', 'list'];

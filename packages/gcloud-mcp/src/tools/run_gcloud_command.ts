@@ -144,7 +144,7 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
               if (track === 'alpha') {
                 tracksToTry.push('', 'beta');
               } else if (track === 'beta') {
-                tracksToTry.push('');
+                tracksToTry.push('', 'alpha');
               }
 
               for (const t of tracksToTry) {

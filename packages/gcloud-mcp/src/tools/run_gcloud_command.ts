@@ -82,7 +82,6 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
               argsCopy.splice(index, 1);
             }
           }
-          const remainingArgs = argsCopy;
 
           const userConfigMessage = (listType: 'allow' | 'deny') => `
 To get the user-specified ${listType}list, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
@@ -132,18 +131,20 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
             const releaseTracks = ['alpha', 'beta'];
             let track = '';
             let commandWithoutTrack = commandArgsNoGcloud;
+            let trackIndex = -1;
 
             if (releaseTracks.includes(commandParts[0])) {
               track = commandParts[0];
               commandWithoutTrack = commandParts.slice(1).join(' ');
+              trackIndex = args.indexOf(track);
             }
 
             if (track) {
-              let tracksToTry: string[] = [];
+              const tracksToTry: string[] = [];
               if (track === 'alpha') {
-                tracksToTry = ['', 'beta'];
+                tracksToTry.push('', 'beta');
               } else if (track === 'beta') {
-                tracksToTry = [''];
+                tracksToTry.push('');
               }
 
               for (const t of tracksToTry) {
@@ -153,15 +154,19 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
                   continue;
                 }
 
-                const { code } = await gcloud.lint(
-                  [alternativeCommand, ...remainingArgs].join(' '),
-                );
+                const alternativeCommandWithAllArgs = [...args];
+                if (trackIndex !== -1) {
+                  if (t) {
+                    alternativeCommandWithAllArgs[trackIndex] = t;
+                  } else {
+                    alternativeCommandWithAllArgs.splice(trackIndex, 1);
+                  }
+                }
+
+                const { code } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));
                 if (code === 0) {
-                  const alternativeCommandWithFlags = [alternativeCommand, ...remainingArgs]
-                    .join(' ')
-                    .trim();
                   const suggestion = `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' is on the denylist.
-However, a similar command is available: 'gcloud ${alternativeCommandWithFlags}'.
+However, a similar command is available: 'gcloud ${alternativeCommandWithAllArgs.join(' ')}'.
 Invoke this tool again with this alternative command to fix the issue.`;
                   return {
                     content: [{ type: 'text', text: suggestion }],

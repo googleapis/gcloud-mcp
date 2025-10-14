@@ -279,4 +279,332 @@ The following commands are always denied:
       });
     });
   });
+
+  describe('with release track recovery', () => {
+    test('denylisted beta command suggests GA', async () => {
+      const tool = createTool({ deny: ['beta compute instances list'] });
+      const inputArgs = ['beta', 'compute', 'instances', 'list'];
+      // The first lint is for the original command.
+      mockGcloudLint(inputArgs);
+      // The second lint is for the GA alternative.
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta compute instances list' is on the denylist.
+However, a similar command is available: 'gcloud compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    test('denylisted alpha command suggests beta', async () => {
+      const tool = createTool({ deny: ['alpha compute instances list'] });
+      const inputArgs = ['alpha', 'compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud alpha compute instances list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // GA check fails
+          code: 1,
+          stdout: '',
+          stderr: 'not found',
+        })
+        .mockResolvedValueOnce({
+          // beta check succeeds
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(3);
+      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud alpha compute instances list' is on the denylist.
+However, a similar command is available: 'gcloud beta compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    test('denylisted alpha command suggests GA when beta is also denylisted', async () => {
+      const tool = createTool({
+        deny: ['alpha compute instances list', 'beta compute instances list'],
+      });
+      const inputArgs = ['alpha', 'compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud alpha compute instances list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // GA check succeeds
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud alpha compute instances list' is on the denylist.
+However, a similar command is available: 'gcloud compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    test('denylisted beta describe command with args and flags suggests GA equivalent', async () => {
+      const tool = createTool({ deny: ['beta compute instances describe'] });
+      const inputArgs = [
+        'beta',
+        'compute',
+        'instances',
+        'describe',
+        'my-instance',
+        '--zone',
+        'us-central1-a',
+      ];
+      // The first lint is for the original command.
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances describe"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // The second lint is for the GA alternative.
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud compute instances describe"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith(
+        'compute instances describe my-instance --zone us-central1-a',
+      );
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta compute instances describe' is on the denylist.
+However, a similar command is available: 'gcloud compute instances describe my-instance --zone us-central1-a'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    test('denylisted beta command with interleaved flags suggests GA equivalent', async () => {
+      const tool = createTool({ deny: ['beta config list'] });
+      const inputArgs = ['beta', '--log-http', 'config', '--verbosity', 'debug', 'list'];
+      // The first lint is for the original command.
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta config list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // The second lint is for the GA alternative.
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud config list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('--log-http config --verbosity debug list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta config list' is on the denylist.
+However, a similar command is available: 'gcloud --log-http config --verbosity debug list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+
+    test('denylisted beta command with no GA alternative returns denylist error', async () => {
+      const tool = createTool({ deny: ['beta compute instances list'] });
+      const inputArgs = ['beta', 'compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          // GA check fails
+          code: 1,
+          stdout: '',
+          stderr: 'not found',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(3);
+      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta compute instances list' is on the denylist.
+However, a similar command is available: 'gcloud alpha compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
+
+  describe('with release track recovery and allowlist', () => {
+    test('non-allowlisted beta command suggests GA', async () => {
+      const tool = createTool({ allow: ['compute instances list'] });
+      const inputArgs = ['beta', 'compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud beta compute instances list' is not on the allowlist.
+However, a similar command is available: 'gcloud compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+    test('non-allowlisted ALPHA command suggests beta', async () => {
+      const tool = createTool({ allow: ['beta compute'] });
+      const inputArgs = ['alpha', 'compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 1,
+          stdout: `[{"command_string_no_args": "gcloud alpha compute instances list"}]`,
+          stderr: 'not found',
+        })
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud alpha compute instances list' is not on the allowlist.
+However, a similar command is available: 'gcloud beta compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+    test('non-allowlisted GA command suggests beta', async () => {
+      const tool = createTool({ allow: ['beta compute'] });
+      const inputArgs = ['compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 1,
+          stdout: `[{"command_string_no_args": "gcloud compute instances list"}]`,
+          stderr: 'not found',
+        })
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud compute instances list' is not on the allowlist.
+However, a similar command is available: 'gcloud beta compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
+  });
 });

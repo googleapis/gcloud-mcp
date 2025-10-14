@@ -67,6 +67,8 @@ async function findAlternativeCommand(
       } else {
         alternativeCommandWithAllArgs.splice(trackIndex, 1);
       }
+    } else {
+      alternativeCommandWithAllArgs.unshift(t);
     }
 
     const { code } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));

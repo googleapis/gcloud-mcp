@@ -574,5 +574,37 @@ Invoke this tool again with this alternative command to fix the issue.`,
         isError: true,
       });
     });
+    test('non-allowlisted GA command suggests beta', async () => {
+      const tool = createTool({ allow: ['beta compute'] });
+      const inputArgs = ['compute', 'instances', 'list'];
+      (gcloud.lint as Mock)
+        .mockResolvedValueOnce({
+          code: 1,
+          stdout: `[{"command_string_no_args": "gcloud compute instances list"}]`,
+          stderr: 'not found',
+        })
+        .mockResolvedValueOnce({
+          code: 0,
+          stdout: `[{"command_string_no_args": "gcloud beta compute instances list"}]`,
+          stderr: '',
+        });
+
+      const result = await tool({ args: inputArgs });
+
+      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(result).toEqual({
+        content: [
+          {
+            type: 'text',
+            text: `Execution denied: The command 'gcloud compute instances list' is not on the allowlist.
+However, a similar command is available: 'gcloud beta compute instances list'.
+Invoke this tool again with this alternative command to fix the issue.`,
+          },
+        ],
+        isError: true,
+      });
+    });
   });
 });

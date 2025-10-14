@@ -39,6 +39,7 @@ import {
   registerWriteObjectTool,
   registerWriteObjectSafeTool,
 } from './objects/index.js';
+import { registerCheckInsightsAvailabilityTool } from './insights/index.js';
 
 export const commonSafeTools = [
   registerListBucketsTool,
@@ -52,6 +53,7 @@ export const commonSafeTools = [
   registerReadObjectMetadataTool,
   registerDownloadObjectTool,
   registerDeleteObjectTool,
+  registerCheckInsightsAvailabilityTool,
 ];
 
 export const safeWriteTools = [

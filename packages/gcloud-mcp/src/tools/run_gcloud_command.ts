@@ -40,41 +40,41 @@ async function findAlternativeCommand(
     trackIndex = args.indexOf(track);
   }
 
-  if (track) {
-    const tracksToTry: string[] = [];
-    if (track === 'alpha') {
-      tracksToTry.push('', 'beta');
-    } else if (track === 'beta') {
-      tracksToTry.push('', 'alpha');
+  const tracksToTry: string[] = [];
+  if (track === 'alpha') {
+    tracksToTry.push('', 'beta');
+  } else if (track === 'beta') {
+    tracksToTry.push('', 'alpha');
+  } else {
+    tracksToTry.push('beta', 'alpha');
+  }
+
+  for (const t of tracksToTry) {
+    const alternativeCommand = t ? `${t} ${commandWithoutTrack}` : commandWithoutTrack;
+
+    if (listType === 'deny' && denyCommands(list).matches(alternativeCommand)) {
+      continue;
     }
 
-    for (const t of tracksToTry) {
-      const alternativeCommand = t ? `${t} ${commandWithoutTrack}` : commandWithoutTrack;
+    if (listType === 'allow' && !allowCommands(list).matches(alternativeCommand)) {
+      continue;
+    }
 
-      if (listType === 'deny' && denyCommands(list).matches(alternativeCommand)) {
-        continue;
+    const alternativeCommandWithAllArgs = [...args];
+    if (trackIndex !== -1) {
+      if (t) {
+        alternativeCommandWithAllArgs[trackIndex] = t;
+      } else {
+        alternativeCommandWithAllArgs.splice(trackIndex, 1);
       }
+    }
 
-      if (listType === 'allow' && !allowCommands(list).matches(alternativeCommand)) {
-        continue;
-      }
-
-      const alternativeCommandWithAllArgs = [...args];
-      if (trackIndex !== -1) {
-        if (t) {
-          alternativeCommandWithAllArgs[trackIndex] = t;
-        } else {
-          alternativeCommandWithAllArgs.splice(trackIndex, 1);
-        }
-      }
-
-      const { code } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));
-      if (code === 0) {
-        const reason = listType === 'deny' ? 'is on the denylist' : 'is not on the allowlist';
-        return `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' ${reason}.
+    const { code } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));
+    if (code === 0) {
+      const reason = listType === 'deny' ? 'is on the denylist' : 'is not on the allowlist';
+      return `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' ${reason}.
 However, a similar command is available: 'gcloud ${alternativeCommandWithAllArgs.join(' ')}'.
 Invoke this tool again with this alternative command to fix the issue.`;
-      }
     }
   }
   return null;

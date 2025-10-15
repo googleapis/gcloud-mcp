@@ -21,11 +21,7 @@ bucket and object management. With the Storage MCP server you can:
 
   <img src="./assets/easy_access_3x.gif" width="600" alt="Easy Access Demo">
 
-<p align="center"><b>Click to watch the Storage MCP demo</b><br/>
-<a href="./assets/storage_mcp_demo.mp4" title="Click to play demo">
-<img width="600" alt="Storage MCP Demo Video" src="./assets/storage_mcp_demo_thumbnail.png">
-</a>
-</p>
+
 
 ## 🚀 Getting Started
 
@@ -182,6 +178,14 @@ for Google Cloud Storage.
 We welcome contributions! Whether you're fixing bugs, sharing feedback, or
 improving documentation, your contributions are welcome. Please read our
 [Contributing Guide](CONTRIBUTING.md) to get started.
+
+## 🎬 Demo
+
+<p align="center"><b>Click to watch the Storage MCP demo</b><br/>
+<a href="./assets/storage_mcp_demo.mp4" title="Click to play demo">
+<img width="600" alt="Storage MCP Demo Video" src="./assets/storage_mcp_demo_thumbnail.png">
+</a>
+</p>
 
 ## 📄 Important Notes
 

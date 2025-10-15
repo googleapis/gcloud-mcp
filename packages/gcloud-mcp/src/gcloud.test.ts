@@ -187,7 +187,10 @@ test('should correctly call lint double quotes', async () => {
 
   const resultPromise = gcloud.lint('compute instances list --project "cloud123"');
 
-  mockChildProcess.stdout.emit('data', '[{"command_string_no_args":"gcloud compute instances list"}]');
+  mockChildProcess.stdout.emit(
+    'data',
+    '[{"command_string_no_args":"gcloud compute instances list"}]',
+  );
   mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
@@ -205,9 +208,9 @@ test('should correctly call lint double quotes', async () => {
   );
 
   if (!result.success) {
-    assert.fail(`Expected successful response.`)
+    assert.fail(`Expected successful response.`);
   }
-  expect(result.parsedCommand).toBe("compute instances list")
+  expect(result.parsedCommand).toBe('compute instances list');
 });
 
 test('should correctly call lint single quotes', async () => {
@@ -225,7 +228,10 @@ test('should correctly call lint single quotes', async () => {
 
   const resultPromise = gcloud.lint("compute instances list --project 'cloud123'");
 
-  mockChildProcess.stdout.emit('data', '[{"command_string_no_args":"gcloud compute instances list"}]');
+  mockChildProcess.stdout.emit(
+    'data',
+    '[{"command_string_no_args":"gcloud compute instances list"}]',
+  );
   mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
@@ -242,7 +248,7 @@ test('should correctly call lint single quotes', async () => {
     { stdio: ['ignore', 'pipe', 'pipe'] },
   );
   if (!result.success) {
-    assert.fail(`Expected successful response.`)
+    assert.fail(`Expected successful response.`);
   }
-  expect(result.parsedCommand).toBe("compute instances list")
+  expect(result.parsedCommand).toBe('compute instances list');
 });

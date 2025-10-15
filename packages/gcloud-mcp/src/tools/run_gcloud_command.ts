@@ -71,12 +71,14 @@ async function findAlternativeCommand(
       alternativeCommandWithAllArgs.unshift(t);
     }
 
-    const { code } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));
-    if (code === 0) {
+    const { success } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));
+    if (success) {
       const reason = listType === 'deny' ? 'is on the denylist' : 'is not on the allowlist';
       return `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' ${reason}.
 However, a similar command is available: 'gcloud ${alternativeCommandWithAllArgs.join(' ')}'.
 Invoke this tool again with this alternative command to fix the issue.`;
+    } else {
+      // The given flags are invalid for this release track, so we ignore this as an option.
     }
   }
   return null;
@@ -132,7 +134,7 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
           const parsedLintResult = await gcloud.lint(command);
-          if (! parsedLintResult.success) {
+          if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }
           const parsedCommand = parsedLintResult.parsedCommand;

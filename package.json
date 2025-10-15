@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",

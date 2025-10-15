@@ -27,6 +27,7 @@ import { init } from './commands/init.js';
 import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
+import { createAccessControlList } from './denylist.js';
 
 export const default_deny: string[] = [
   'compute start-iap-tunnel',
@@ -111,7 +112,8 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  createRunGcloudCommand(config, default_deny).register(server);
+  const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
+  createRunGcloudCommand(acl).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 

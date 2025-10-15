@@ -16,10 +16,10 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as gcloud from '../gcloud.js';
-import { allowCommands, denyCommands } from '../denylist.js';
+import { AccessControlList, AccessControlResult, allowCommands, denyCommands } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
-import { McpConfig } from '../index.js';
+import { access } from 'fs';
 
 async function findAlternativeCommand(
   args: string[],
@@ -84,7 +84,18 @@ Invoke this tool again with this alternative command to fix the issue.`;
   return null;
 }
 
-export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist: string[]) => ({
+const accessControlErrorResult = (parsedCommand: string, acl: AccessControlList, aclMessage: string) => {
+  const suggestion = findSuggestedAlternative(parsedCommand, acl);
+  if (suggestion.isAvailable) {
+    return errorTextResult(suggestion.message);
+  }
+  const msg = `${aclMessage}
+
+To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
+  return errorTextResult(msg);
+}
+
+export const createRunGcloudCommand = (acl: AccessControlList) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -113,21 +124,12 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
       async ({ args }) => {
         const toolLogger = log.mcp('run_gcloud_command', args);
         const command = args.join(' ');
-        const userDeny = config.deny ?? [];
-        const userAllow = config.allow ?? [];
-        const fullDenylist = [...new Set([...default_denylist, ...userDeny])];
 
         if (command === 'gcloud-mcp debug config') {
-          let message = '# The user has the following commands denylisted:\n';
-          if (userAllow.length > 0) {
-            message = '# The user has the following commands allowlisted:\n';
-            message += userAllow.map((c) => `- ${c}`).join('\n');
-          } else {
-            message += userDeny.map((c) => `- ${c}`).join('\n');
-          }
-          return successfulTextResult(message);
+          return successfulTextResult(acl.print());
         }
 
+        let parsedCommand;
         try {
           // Lint parses and isolates the gcloud command from flags and positionals.
           // Example
@@ -137,64 +139,16 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
           if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }
-          const parsedCommand = parsedLintResult.parsedCommand;
+          parsedCommand = parsedLintResult.parsedCommand;
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
+          return errorTextResult(`Failed to parse the input command. ${msg}`);
+        }
 
-          const userConfigMessage = (listType: 'allow' | 'deny') => `
-To get the user-specified ${listType}list, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
-
-          if (userAllow.length > 0 && !allowCommands(userAllow).matches(parsedCommand)) {
-            const suggestion = await findAlternativeCommand(
-              args,
-              parsedCommand,
-              userAllow,
-              'allow',
-            );
-            if (suggestion) {
-              return errorTextResult(suggestion);
-            }
-
-            let allowlistMessage = `Execution denied: This command is not on the allowlist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
-
-            if (userAllow.length > 0) {
-              allowlistMessage += userConfigMessage('allow');
-            }
-
-            allowlistMessage += `
-
-## Allowlist Behavior:
-- An allowlist can be provided in the configuration file.
-- A configuration file cannot contain both an allowlist and a custom denylist.`;
-            return errorTextResult(allowlistMessage);
-          }
-
-          if (denyCommands(fullDenylist).matches(parsedCommand)) {
-            const suggestion = await findAlternativeCommand(
-              args,
-              parsedCommand,
-              fullDenylist,
-              'deny',
-            );
-            if (suggestion) {
-              return errorTextResult(suggestion);
-            }
-
-            let denylistMessage = `Execution denied: This command is on the denylist. Do not attempt to run this command again - it will always fail. Instead, proceed a different way or ask the user for clarification.`;
-            if (userDeny.length > 0) {
-              denylistMessage += userConfigMessage('deny');
-            }
-
-            denylistMessage += `
-
-## Denylist Behavior:
-- The default denylist is ALWAYS active, blocking potentially interactive or sensitive commands.
-- A custom denylist can be provided via a configuration file, which is then merged with the default list.
-- Command matching is based on prefix. The input command is normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
-- If a GA (General Availability) command is on the denylist, all of its release tracks (e.g., alpha, beta) are denied as well.
-
-### Default Denied Commands:
-The following commands are always denied:
-${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
-            return errorTextResult(denylistMessage);
+        try {
+          const accessControlResult = acl.isPermitted(parsedCommand);
+          if (!accessControlResult.permitted) {
+            return accessControlErrorResult(parsedCommand, acl, accessControlResult.message);
           }
 
           toolLogger.info('Executing run_gcloud_command');

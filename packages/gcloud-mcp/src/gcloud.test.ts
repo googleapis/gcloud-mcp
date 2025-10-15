@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { test, expect, beforeEach, Mock, vi } from 'vitest';
+import { test, expect, beforeEach, Mock, vi, assert } from 'vitest';
 import * as child_process from 'child_process';
 import { PassThrough } from 'stream';
 import * as gcloud from './gcloud.js';
@@ -187,10 +187,8 @@ test('should correctly call lint double quotes', async () => {
 
   const resultPromise = gcloud.lint('compute instances list --project "cloud123"');
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
+  mockChildProcess.stdout.emit('data', '[{"command_string_no_args":"gcloud compute instances list"}]');
+  mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
   const result = await resultPromise;
@@ -205,9 +203,11 @@ test('should correctly call lint double quotes', async () => {
     ],
     { stdio: ['ignore', 'pipe', 'pipe'] },
   );
-  expect(result.code).toBe(0);
-  expect(result.stdout).toContain('Standard output');
-  expect(result.stderr).toContain('Standard error');
+
+  if (!result.success) {
+    assert.fail(`Expected successful response.`)
+  }
+  expect(result.parsedCommand).toBe("compute instances list")
 });
 
 test('should correctly call lint single quotes', async () => {
@@ -225,10 +225,8 @@ test('should correctly call lint single quotes', async () => {
 
   const resultPromise = gcloud.lint("compute instances list --project 'cloud123'");
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
+  mockChildProcess.stdout.emit('data', '[{"command_string_no_args":"gcloud compute instances list"}]');
+  mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
   const result = await resultPromise;
@@ -243,7 +241,8 @@ test('should correctly call lint single quotes', async () => {
     ],
     { stdio: ['ignore', 'pipe', 'pipe'] },
   );
-  expect(result.code).toBe(0);
-  expect(result.stdout).toContain('Standard output');
-  expect(result.stderr).toContain('Standard error');
+  if (!result.success) {
+    assert.fail(`Expected successful response.`)
+  }
+  expect(result.parsedCommand).toBe("compute instances list")
 });

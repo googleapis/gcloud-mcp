@@ -131,18 +131,19 @@ export const createRunGcloudCommand = (config: McpConfig = {}, default_denylist:
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          let { code, stdout, stderr } = await gcloud.lint(command);
-          const parsedJson = JSON.parse(stdout);
-          const commandNoArgs = parsedJson[0]['command_string_no_args'];
-          const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
+          const parsedLintResult = await gcloud.lint(command);
+          if (! parsedLintResult.success) {
+            return errorTextResult(parsedLintResult.error);
+          }
+          const parsedCommand = parsedLintResult.parsedCommand;
 
           const userConfigMessage = (listType: 'allow' | 'deny') => `
 To get the user-specified ${listType}list, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
 
-          if (userAllow.length > 0 && !allowCommands(userAllow).matches(commandArgsNoGcloud)) {
+          if (userAllow.length > 0 && !allowCommands(userAllow).matches(parsedCommand)) {
             const suggestion = await findAlternativeCommand(
               args,
-              commandArgsNoGcloud,
+              parsedCommand,
               userAllow,
               'allow',
             );
@@ -164,10 +165,10 @@ To get the user-specified ${listType}list, invoke this tool again with the args 
             return errorTextResult(allowlistMessage);
           }
 
-          if (denyCommands(fullDenylist).matches(commandArgsNoGcloud)) {
+          if (denyCommands(fullDenylist).matches(parsedCommand)) {
             const suggestion = await findAlternativeCommand(
               args,
-              commandArgsNoGcloud,
+              parsedCommand,
               fullDenylist,
               'deny',
             );
@@ -195,7 +196,7 @@ ${default_denylist.map((command) => `-  '${command}'`).join('\n')}`;
           }
 
           toolLogger.info('Executing run_gcloud_command');
-          ({ code, stdout, stderr } = await gcloud.invoke(args));
+          const { code, stdout, stderr } = await gcloud.invoke(args);
           // If the exit status is not zero, an error occurred and the output may be
           // incomplete unless the command documentation notes otherwise. For example,
           // a command that creates multiple resources may only create a few, list them

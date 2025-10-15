@@ -377,6 +377,56 @@ describe('readObjectContent', () => {
       },
     ]);
   }, 20000);
+
+  it('should correctly decode content with ISO-8859-1 encoding', async () => {
+    // This buffer contains the text "olé" encoded in ISO-8859-1.
+    const mockContentBuffer = Buffer.from([0x6f, 0x6c, 0xe9]);
+    const mockDownload = vi.fn().mockResolvedValue([mockContentBuffer]);
+    const mockGet = vi.fn().mockResolvedValue([
+      {
+        metadata: {
+          size: mockContentBuffer.length,
+          contentType: 'text/plain',
+        },
+      },
+    ]);
+    const mockFile = vi.fn().mockReturnValue({
+      download: mockDownload,
+      get: mockGet,
+    });
+    const mockBucket = vi.fn().mockReturnValue({
+      file: mockFile,
+    });
+
+    const mockStorageClient = {
+      bucket: mockBucket,
+    };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(
+      mockStorageClient
+    );
+    // chardet often returns 'ISO-8859-1' for latin1-like encodings.
+    (chardet.detect as vi.Mock).mockReturnValue('ISO-8859-1');
+
+    const result = await readObjectContent({
+      bucket_name: 'test-bucket',
+      object_name: 'test-object-iso',
+    });
+
+    const expectedJson = {
+      bucket: 'test-bucket',
+      object: 'test-object-iso',
+      size: mockContentBuffer.length,
+      content_type: 'text/plain',
+      content: 'olé', // The correctly decoded string.
+    };
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify(expectedJson, null, 2),
+      },
+    ]);
+  });
 });
 
 describe('registerReadObjectContentTool', () => {

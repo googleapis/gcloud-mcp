@@ -15,6 +15,8 @@
  */
 
 import chardet from 'chardet';
+import iconv from 'iconv-lite';
+const { decode } = iconv;
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
@@ -101,7 +103,7 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
     ) {
       try {
         // Try to decode as text.
-        const content = buffer.toString(encoding as BufferEncoding);
+        const content = decode(buffer, encoding);
         const result = {
           bucket: params.bucket_name,
           object: params.object_name,
@@ -115,10 +117,10 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
-      } catch (_e) {
+      } catch (error) {
         // If decoding fails, fall through to treat as a raw resource.
         logger.warn(
-          `Failed to decode ${params.object_name} as text with detected encoding ${encoding}, treating as raw resource.`,
+          `Failed to decode ${params.object_name} as text with detected encoding ${encoding}, treating as raw resource. Error: ${error}`,
         );
       }
     }

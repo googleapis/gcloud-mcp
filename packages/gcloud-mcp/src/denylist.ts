@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+export const PRERELEASE_TRACKS_PRIORITIZED = ['beta', 'alpha', 'preview'];
+
 export type AccessControlResult =
   | {
       permitted: true;
     }
   | {
       permitted: false;
-      message: string,
+      message: string;
     };
 
 const notAllowedMessage = `Execution denied: This command is not on the access control's allowlist.
@@ -35,7 +37,7 @@ const deniedMessage = `Execution denied: This command is on the access control's
 * The denylist is ALWAYS active, blocking potentially interactive or sensitive commands.
 * Command matching is based on prefix.
 * Commands are normalized to ensure only full command groups are matched (e.g., \`app\` matches \`app deploy\` but not \`apphub\`).
-* When a GA (General Availability) command is on the denylist, all its release tracks (e.g., alpha, beta) are also denied.`
+* When a GA (General Availability) command is on the denylist, all its release tracks (e.g., alpha, beta) are also denied.`;
 
 export type AccessControlList = ReturnType<typeof createAccessControlList>;
 
@@ -43,9 +45,9 @@ export const createAccessControlList = (allow: string[] = [], deny: string[] = [
   const allowlist = allowCommands(preprocess(allow));
   const denylist = denyCommands(preprocess(deny));
   return {
-    isPermitted: (candidate: string): AccessControlResult => {
+    check: (candidate: string): AccessControlResult => {
       if (denylist.matches(candidate)) {
-        return { permitted: false, message: deniedMessage(candidate) };
+        return { permitted: false, message: deniedMessage };
       }
       if (!allowlist.matches(candidate)) {
         return { permitted: false, message: notAllowedMessage };
@@ -85,7 +87,8 @@ export const createAccessControlList = (allow: string[] = [], deny: string[] = [
 };
 
 // Normalize, remove duplicates, and sort.
-const preprocess = (list: string[] = []) => [...new Set(list.map((c) => normalizeForComparison(c)))].sort();
+const preprocess = (list: string[] = []) =>
+  [...new Set(list.map((c) => normalizeForComparison(c)))].sort();
 
 // Normalize the string in case the list and LLM formatting differs.
 // Append a space to avoid matching with commands that are substrings.
@@ -118,11 +121,11 @@ export const denyCommands = (deny: string[] = []) => ({
 
     // Deny'ing a GA command denies all release tracks.
     // Deny'ing a pre-GA command only denies the specified release track.
-    const releaseTracks = ['', 'alpha ', 'beta ', 'preview '];
     const cmd = normalizeForComparison(command);
     for (const deniedCommand of deny) {
-      for (const release of releaseTracks) {
-        if (cmd.startsWith(normalizeForComparison(`${release}${deniedCommand}`))) {
+      for (const release of ['', ...PRERELEASE_TRACKS_PRIORITIZED]) {
+        // Adds GA release track.
+        if (cmd.startsWith(normalizeForComparison(`${release} ${deniedCommand}`))) {
           return true;
         }
       }

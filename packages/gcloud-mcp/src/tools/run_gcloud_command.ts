@@ -16,84 +16,69 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as gcloud from '../gcloud.js';
-import { AccessControlList, AccessControlResult, allowCommands, denyCommands } from '../denylist.js';
+import { AccessControlList, PRERELEASE_TRACKS_PRIORITIZED } from '../denylist.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
-import { access } from 'fs';
 
-async function findAlternativeCommand(
-  args: string[],
-  commandArgsNoGcloud: string,
-  list: string[],
-  listType: 'allow' | 'deny',
+const parseReleaseTrack = (cmd: string): string => {
+  for (const releaseTrack of PRERELEASE_TRACKS_PRIORITIZED) {
+    const track = releaseTrack + ' ';
+    if (cmd.startsWith(track)) {
+      return track;
+    }
+  }
+  return ''; // GA
+};
+
+async function findSuggestedAlternativeCommand(
+  originalArgs: string[],
+  acl: AccessControlList,
 ): Promise<string | null> {
-  const commandParts = commandArgsNoGcloud.split(' ');
-  const releaseTracks = ['alpha', 'beta'];
-  let track = '';
-  let commandWithoutTrack = commandArgsNoGcloud;
-  let trackIndex = -1;
-
-  const firstPart = commandParts[0];
-  if (firstPart && releaseTracks.includes(firstPart)) {
-    track = firstPart;
-    commandWithoutTrack = commandParts.slice(1).join(' ');
-    trackIndex = args.indexOf(track);
+  const lintResult = await gcloud.lint(originalArgs.join(' '));
+  if (!lintResult.success) {
+    return null;
+  }
+  const originalTrack = parseReleaseTrack(lintResult.parsedCommand);
+  const trackIndex = originalTrack ? originalArgs.indexOf(originalTrack) : -1;
+  const strippedArgs = [...originalArgs];
+  if (trackIndex > -1) {
+    strippedArgs.splice(trackIndex, 1);
   }
 
-  const tracksToTry: string[] = [];
-  if (track === 'alpha') {
-    tracksToTry.push('', 'beta');
-  } else if (track === 'beta') {
-    tracksToTry.push('', 'alpha');
-  } else {
-    tracksToTry.push('beta', 'alpha');
-  }
-
-  for (const t of tracksToTry) {
-    const alternativeCommand = t ? `${t} ${commandWithoutTrack}` : commandWithoutTrack;
-
-    if (listType === 'deny' && denyCommands(list).matches(alternativeCommand)) {
+  for (const releaseTrack of ['', ...PRERELEASE_TRACKS_PRIORITIZED]) {
+    if (releaseTrack === originalTrack) {
       continue;
     }
 
-    if (listType === 'allow' && !allowCommands(list).matches(alternativeCommand)) {
-      continue;
+    // Prepend release track to arguments
+    const altArgs = [...strippedArgs];
+    if (releaseTrack) {
+      altArgs.unshift(releaseTrack);
     }
 
-    const alternativeCommandWithAllArgs = [...args];
-    if (trackIndex !== -1) {
-      if (t) {
-        alternativeCommandWithAllArgs[trackIndex] = t;
-      } else {
-        alternativeCommandWithAllArgs.splice(trackIndex, 1);
-      }
-    } else {
-      alternativeCommandWithAllArgs.unshift(t);
+    const lintResult = await gcloud.lint(altArgs.join(' '));
+    if (!lintResult.success) {
+      continue; // Argument set not valid for this release track.
+    }
+    const aclResult = acl.check(lintResult.parsedCommand);
+    if (!aclResult.permitted) {
+      continue; // ACL does not permit this release track + command.
     }
 
-    const { success } = await gcloud.lint(alternativeCommandWithAllArgs.join(' '));
-    if (success) {
-      const reason = listType === 'deny' ? 'is on the denylist' : 'is not on the allowlist';
-      return `Execution denied: The command 'gcloud ${commandArgsNoGcloud}' ${reason}.
-However, a similar command is available: 'gcloud ${alternativeCommandWithAllArgs.join(' ')}'.
-Invoke this tool again with this alternative command to fix the issue.`;
-    } else {
-      // The given flags are invalid for this release track, so we ignore this as an option.
-    }
+    return `gcloud ${altArgs.join(' ')}`; // Suggestion found.
   }
   return null;
 }
 
-const accessControlErrorResult = (parsedCommand: string, acl: AccessControlList, aclMessage: string) => {
-  const suggestion = findSuggestedAlternative(parsedCommand, acl);
-  if (suggestion.isAvailable) {
-    return errorTextResult(suggestion.message);
-  }
-  const msg = `${aclMessage}
+const suggestionErrorMessage = (suggestedCommand: string) =>
+  `Execution denied: This command not permitted. However, a similar command is permitted.
+  To fix the issue, invoke this tool again with this alternative command:
+  ${suggestedCommand}`;
 
-To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]`;
-  return errorTextResult(msg);
-}
+const aclErrorMessage = (aclMessage: string) =>
+  aclMessage +
+  '\n\n' +
+  'To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]';
 
 export const createRunGcloudCommand = (acl: AccessControlList) => ({
   register: (server: McpServer) => {
@@ -123,9 +108,8 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
       },
       async ({ args }) => {
         const toolLogger = log.mcp('run_gcloud_command', args);
-        const command = args.join(' ');
 
-        if (command === 'gcloud-mcp debug config') {
+        if (args.join(' ') === 'gcloud-mcp debug config') {
           return successfulTextResult(acl.print());
         }
 
@@ -135,7 +119,7 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          const parsedLintResult = await gcloud.lint(command);
+          const parsedLintResult = await gcloud.lint(args.join(' '));
           if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }
@@ -146,9 +130,14 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
         }
 
         try {
-          const accessControlResult = acl.isPermitted(parsedCommand);
+          const accessControlResult = acl.check(parsedCommand);
           if (!accessControlResult.permitted) {
-            return accessControlErrorResult(parsedCommand, acl, accessControlResult.message);
+            const suggestion = await findSuggestedAlternativeCommand(args, acl);
+            if (suggestion) {
+              return errorTextResult(suggestionErrorMessage(suggestion));
+            } else {
+              return errorTextResult(aclErrorMessage(accessControlResult.message));
+            }
           }
 
           toolLogger.info('Executing run_gcloud_command');
@@ -159,8 +148,8 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
           // on the standard output, and then exit with a non-zero status.
           // See https://cloud.google.com/sdk/docs/scripting-gcloud#best_practices
           let result = stdout;
-          if (code !== 0 || stderr) {
-            result += `\nstderr:\n${stderr}`;
+          if (code !== 0 && stderr) {
+            result += `\nSTDERR:\n${stderr}`;
           }
           return successfulTextResult(result);
         } catch (e: unknown) {

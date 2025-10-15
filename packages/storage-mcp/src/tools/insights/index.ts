@@ -15,3 +15,4 @@
  */
 
 export * from './check_insights_availability.js';
+export * from './get_metadata_table_schema.js';

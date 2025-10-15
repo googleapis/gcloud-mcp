@@ -16,59 +16,10 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as gcloud from '../gcloud.js';
-import { AccessControlList, PRERELEASE_TRACKS_PRIORITIZED } from '../denylist.js';
+import { AccessControlList } from '../denylist.js';
+import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
-
-const parseReleaseTrack = (cmd: string): string => {
-  for (const releaseTrack of PRERELEASE_TRACKS_PRIORITIZED) {
-    const track = releaseTrack + ' ';
-    if (cmd.startsWith(track)) {
-      return track;
-    }
-  }
-  return ''; // GA
-};
-
-async function findSuggestedAlternativeCommand(
-  originalArgs: string[],
-  acl: AccessControlList,
-): Promise<string | null> {
-  const lintResult = await gcloud.lint(originalArgs.join(' '));
-  if (!lintResult.success) {
-    return null;
-  }
-  const originalTrack = parseReleaseTrack(lintResult.parsedCommand);
-  const trackIndex = originalTrack ? originalArgs.indexOf(originalTrack) : -1;
-  const strippedArgs = [...originalArgs];
-  if (trackIndex > -1) {
-    strippedArgs.splice(trackIndex, 1);
-  }
-
-  for (const releaseTrack of ['', ...PRERELEASE_TRACKS_PRIORITIZED]) {
-    if (releaseTrack === originalTrack) {
-      continue;
-    }
-
-    // Prepend release track to arguments
-    const altArgs = [...strippedArgs];
-    if (releaseTrack) {
-      altArgs.unshift(releaseTrack);
-    }
-
-    const lintResult = await gcloud.lint(altArgs.join(' '));
-    if (!lintResult.success) {
-      continue; // Argument set not valid for this release track.
-    }
-    const aclResult = acl.check(lintResult.parsedCommand);
-    if (!aclResult.permitted) {
-      continue; // ACL does not permit this release track + command.
-    }
-
-    return `gcloud ${altArgs.join(' ')}`; // Suggestion found.
-  }
-  return null;
-}
 
 const suggestionErrorMessage = (suggestedCommand: string) =>
   `Execution denied: This command not permitted. However, a similar command is permitted.
@@ -148,7 +99,7 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
           // on the standard output, and then exit with a non-zero status.
           // See https://cloud.google.com/sdk/docs/scripting-gcloud#best_practices
           let result = stdout;
-          if (code !== 0 && stderr) {
+          if (code !== 0 || stderr) {
             result += `\nSTDERR:\n${stderr}`;
           }
           return successfulTextResult(result);

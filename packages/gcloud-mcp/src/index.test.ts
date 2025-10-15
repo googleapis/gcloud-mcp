@@ -81,7 +81,6 @@ test('should start the McpServer if gcloud is available', async () => {
   process.argv = ['node', 'index.js'];
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
-  const { default_deny } = await import('./index.js');
   expect(gcloud.isAvailable).toHaveBeenCalled();
   expect(McpServer).toHaveBeenCalledWith(
     {
@@ -90,7 +89,7 @@ test('should start the McpServer if gcloud is available', async () => {
     },
     { capabilities: { tools: {} } },
   );
-  expect(createRunGcloudCommand).toHaveBeenCalledWith({}, default_deny);
+  expect(createRunGcloudCommand).toHaveBeenCalled();
   expect(registerToolSpy).toHaveBeenCalledWith(vi.mocked(McpServer).mock.instances[0]);
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance!.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));

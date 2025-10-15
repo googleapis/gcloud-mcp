@@ -187,10 +187,15 @@ test('should correctly call lint double quotes', async () => {
 
   const resultPromise = gcloud.lint('compute instances list --project "cloud123"');
 
-  mockChildProcess.stdout.emit(
-    'data',
-    '[{"command_string_no_args":"gcloud compute instances list"}]',
-  );
+  const json = JSON.stringify([
+    {
+      command_string_no_args: 'gcloud compute instances list',
+      success: true,
+      error_message: null,
+      error_type: null,
+    },
+  ]);
+  mockChildProcess.stdout.emit('data', json);
   mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
@@ -228,10 +233,15 @@ test('should correctly call lint single quotes', async () => {
 
   const resultPromise = gcloud.lint("compute instances list --project 'cloud123'");
 
-  mockChildProcess.stdout.emit(
-    'data',
-    '[{"command_string_no_args":"gcloud compute instances list"}]',
-  );
+  const json = JSON.stringify([
+    {
+      command_string_no_args: 'gcloud compute instances list',
+      success: true,
+      error_message: null,
+      error_type: null,
+    },
+  ]);
+  mockChildProcess.stdout.emit('data', json);
   mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 

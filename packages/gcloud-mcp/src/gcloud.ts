@@ -91,7 +91,10 @@ export const lint = async (command: string): Promise<ParsedGcloudLintResult> => 
 
   const json = JSON.parse(stdout);
   const lintCommands: LintCommandsOutput = LintCommandsSchema.parse(json);
-  const lintCommand: LintCommandOutput = lintCommands[0];
+  const lintCommand = lintCommands[0];
+  if (!lintCommand) {
+    throw new Error('gcloud lint result contained no contents');
+  }
 
   // gcloud returned a non-zero response
   if (code !== 0) {

@@ -8,12 +8,20 @@ bucket and object management. With the Storage MCP server you can:
 - **Interact with Google Cloud Storage using natural language.** Describe the
   outcome you want instead of memorizing complex command syntax, flags, and
   arguments.
+
+  <img src="./assets/natural_language.gif" width="80%" alt="Natural Language Demo">
 - **Automate and simplify complex workflows.** Chain multiple storage operations
   into a single, repeatable command to reduce manual effort and the chance of
   error.
+
+  <img src="./assets/chained.gif" width="80%" alt="Chained Commands Demo">
 - **Lower the barrier to entry for cloud storage management.** Empower team
   members who are less familiar with GCS to perform powerful actions confidently
   and safely.
+
+  <img src="./assets/easy_access_3x.gif" width="80%" alt="Easy Access Demo">
+
+
 
 ## 🚀 Getting Started
 
@@ -170,6 +178,14 @@ for Google Cloud Storage.
 We welcome contributions! Whether you're fixing bugs, sharing feedback, or
 improving documentation, your contributions are welcome. Please read our
 [Contributing Guide](CONTRIBUTING.md) to get started.
+
+## 🎬 Demo
+
+<p align="center"><b>Click to watch the Storage MCP demo</b><br/>
+<a href="./assets/storage_mcp_demo.mp4" title="Click to play demo">
+<img width="80%" alt="Storage MCP Demo Video" src="./assets/storage_mcp_demo_thumbnail.png">
+</a>
+</p>
 
 ## 📄 Important Notes
 

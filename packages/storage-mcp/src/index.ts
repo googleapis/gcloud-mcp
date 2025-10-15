@@ -25,18 +25,11 @@ import {
 } from './tools/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
-import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { init } from './commands/init.js';
+import { initializeGeminiCLI } from './commands/init-gemini-cli.js';
+import { initializeClaude } from './commands/init-claude.js';
 import { log } from './utility/logger.js';
-
-const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({
-  ...cmd,
-  handler: async (argv: ArgumentsCamelCase<U>) => {
-    await cmd.handler(argv);
-    process.exit(0);
-  },
-});
 
 const main = async () => {
   const argv = await yargs(hideBin(process.argv))
@@ -47,7 +40,50 @@ const main = async () => {
         default: false,
       });
     })
-    .command(exitProcessAfter(init))
+    .command(
+      'init',
+      'Initialize the storage-mcp extension for Gemini CLI',
+      (yargs) => {
+        return yargs
+          .option('local', {
+            type: 'boolean',
+            description: 'Install from local source',
+            default: false,
+          })
+          .option('enable-destructive-tools', {
+            describe:
+              'Enable tools that can modify or delete existing GCS content.',
+            type: 'boolean',
+            default: false,
+          });
+      },
+      async (argv) => {
+        await initializeGeminiCLI(argv.local, argv.enableDestructiveTools);
+        process.exit(0);
+      },
+    )
+    .command(
+      'init-claude',
+      'Initialize the storage-mcp extension for Claude',
+      (yargs) => {
+        return yargs
+          .option('local', {
+            type: 'boolean',
+            description: 'Install from local source',
+            default: false,
+          })
+          .option('enable-destructive-tools', {
+            describe:
+              'Enable tools that can modify or delete existing GCS content.',
+            type: 'boolean',
+            default: false,
+          });
+      },
+      async (argv) => {
+        await initializeClaude(argv.local, argv.enableDestructiveTools);
+        process.exit(0);
+      },
+    )
     .version(pkg.version)
     .help()
     .parse();

@@ -35,3 +35,9 @@ packages/*/junit.xml
 # Go workspace local files
 go.work
 go.work.sum
+
+# Ignore gcloud-mcp's README.md, as it's copied
+packages/gcloud-mcp/README.md
+
+# Environment variables
+.env

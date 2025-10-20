@@ -110,11 +110,7 @@ export const registerCheckInsightsAvailabilityTool = (server: McpServer) => {
     {
       description:
         'Checks if GCS insights service is enabled. If it is enabled,\
-         returns the list of all the dataset configurations across regions.\
-         The user have to then select one of the configurations from the returned dataset.\
-         The configuration will contain a linked dataset which will be a BigQuery dataset\
-         containing metadata about buckets and objects in Cloud Storage. This metadata can\
-         be used to answer analytical queries about GCS buckets and objects.',
+         returns the list of all the dataset configurations across regions.',
       inputSchema,
     },
     checkInsightsAvailability,

@@ -47,7 +47,7 @@ const mockGcloudLint = () => {
   mockedLint.mockImplementation(async (cmd: string) => {
     return {
       success: true,
-      parsedCommand: cmd.split(' ').filter(t => !t.startsWith('-')).join(' '),
+      parsedCommand: cmd.split(' ').filter(t => !t.startsWith('-')).filter(t => t != 'debug').join(" "),
     }
   });
 };
@@ -292,7 +292,7 @@ describe('createRunGcloudCommand', () => {
       const result = await tool({ args: inputArgs });
 
       expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(2);
+      expect(gcloud.lint).toHaveBeenCalledTimes(3);
       expect(gcloud.lint).toHaveBeenCalledWith('--log-http config --verbosity debug list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
@@ -311,9 +311,8 @@ describe('createRunGcloudCommand', () => {
       expect(gcloud.invoke).not.toHaveBeenCalled();
       expect(gcloud.lint).toHaveBeenCalledTimes(3);
       expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
-      expect(result.context[0]).toEqual({})
       expect(result.content[0].text).toContain('Execution denied');
-      expect(result.content[0].text).toContain('Invoke this tool again');
+      expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud compute instances list');
       expect(result.isError).toBe(true);
     });

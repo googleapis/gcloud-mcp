@@ -45,13 +45,13 @@ const createTool = (config: McpConfig = {}) => {
 const mockGcloudLint = () => {
   const mockedLint = vi.mocked(gcloud.lint);
   mockedLint.mockImplementation(async (cmd: string) => ({
-      success: true,
-      parsedCommand: cmd
-        .split(' ')
-        .filter((t) => !t.startsWith('-'))
-        .filter((t) => t !== 'debug')
-        .join(' '),
-    }));
+    success: true,
+    parsedCommand: cmd
+      .split(' ')
+      .filter((t) => !t.startsWith('-'))
+      .filter((t) => t !== 'debug')
+      .join(' '),
+  }));
 };
 
 const mockGcloudInvoke = (stdout: string, stderr: string = '') => {

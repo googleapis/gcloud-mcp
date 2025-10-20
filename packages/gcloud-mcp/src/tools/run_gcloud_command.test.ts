@@ -47,7 +47,7 @@ const mockGcloudLint = () => {
   mockedLint.mockImplementation(async (cmd: string) => {
     return {
       success: true,
-      parsedCommand: cmd.split(' ').filter(t => !t.startsWith('-')).filter(t => t != 'debug').join(" "),
+      parsedCommand: cmd.split(' ').filter(t => !t.startsWith('-')).filter(t => t !== 'debug').join(" "),
     }
   });
 };

@@ -10,18 +10,18 @@ bucket and object management. With the Storage MCP server you can:
   arguments.
 
   <img src="./assets/natural_language.gif" width="80%" alt="Natural Language Demo">
+
 - **Automate and simplify complex workflows.** Chain multiple storage operations
   into a single, repeatable command to reduce manual effort and the chance of
   error.
 
   <img src="./assets/chained.gif" width="80%" alt="Chained Commands Demo">
+
 - **Lower the barrier to entry for cloud storage management.** Empower team
   members who are less familiar with GCS to perform powerful actions confidently
   and safely.
 
   <img src="./assets/easy_access_3x.gif" width="80%" alt="Easy Access Demo">
-
-
 
 ## 🚀 Getting Started
 

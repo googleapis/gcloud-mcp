@@ -25,8 +25,13 @@ import {
 vi.mock('@google-cloud/bigquery');
 
 describe('executeInsightsQuery', () => {
-  const mockConfig = JSON.stringify({
+  const mockFullConfig = JSON.stringify({
+    name: 'projects/test-project/locations/us-central1/datasetConfigs/test-config',
     link: { dataset: 'projects/test-project/datasets/test-dataset' },
+  });
+
+  const mockSimplifiedConfig = JSON.stringify({
+    name: 'projects/test-project/locations/us-central1/datasetConfigs/test-config',
   });
 
   const mockJob = { id: 'job-123', getQueryResults: vi.fn() };
@@ -38,13 +43,13 @@ describe('executeInsightsQuery', () => {
     (BigQuery as vi.Mock).mockReturnValue(mockBigQuery);
   });
 
-  it('should execute a query and return the results', async () => {
+  it('should execute a query with full config and return the results', async () => {
     const mockQuery = 'SELECT * FROM my-table';
     const mockRows = [{ id: 1, name: 'test' }];
     mockJob.getQueryResults.mockResolvedValue([mockRows]);
 
     const result = await executeInsightsQuery({
-      config: mockConfig,
+      config: mockFullConfig,
       query: mockQuery,
       jobTimeoutMs: 10000,
     });
@@ -66,7 +71,7 @@ describe('executeInsightsQuery', () => {
     mockJob.getQueryResults.mockRejectedValue(mockError);
 
     const result = await executeInsightsQuery({
-      config: mockConfig,
+      config: mockFullConfig,
       query: mockQuery,
       jobTimeoutMs: 10000,
     });
@@ -81,7 +86,7 @@ describe('executeInsightsQuery', () => {
     mockDataset.createQueryJob.mockRejectedValue(mockError);
 
     const result = await executeInsightsQuery({
-      config: mockConfig,
+      config: mockFullConfig,
       query: mockQuery,
       jobTimeoutMs: 10000,
     });
@@ -90,15 +95,45 @@ describe('executeInsightsQuery', () => {
     expect(result.content[0].text).toContain('Timeout');
   });
 
-  it('should return an error if the config is invalid', async () => {
+  it('should return an error if the config is missing the link property', async () => {
     const result = await executeInsightsQuery({
-      config: '{}',
+      config: mockSimplifiedConfig,
       query: 'SELECT * FROM my-table',
       jobTimeoutMs: 10000,
     });
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
-    expect(result.content[0].text).toContain('Configuration does not have a linked dataset');
+    expect(result.content[0].text).toContain(
+      'The provided configuration is missing the `link.dataset` property.',
+    );
+  });
+
+  it('should return an error if the config is not a valid JSON object', async () => {
+    const result = await executeInsightsQuery({
+      config: 'not a json object',
+      query: 'SELECT * FROM my-table',
+      jobTimeoutMs: 10000,
+    });
+
+    expect(result.content[0].text).toContain('Failed to execute insights query');
+    expect(result.content[0].text).toContain(
+      'Invalid configuration provided. Expected a JSON object.',
+    );
+  });
+
+  it('should return an error if the config has an invalid name format', async () => {
+    const invalidConfig = JSON.stringify({
+      name: 'invalid-name',
+      link: { dataset: 'projects/test-project/datasets/test-dataset' },
+    });
+    const result = await executeInsightsQuery({
+      config: invalidConfig,
+      query: 'SELECT * FROM my-table',
+      jobTimeoutMs: 10000,
+    });
+
+    expect(result.content[0].text).toContain('Failed to execute insights query');
+    expect(result.content[0].text).toContain('Invalid configuration name format');
   });
 });
 

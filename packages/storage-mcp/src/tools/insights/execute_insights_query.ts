@@ -37,15 +37,43 @@ export async function executeInsightsQuery(
 ): Promise<CallToolResult> {
   const bigqueryClient = apiClientFactory.getBigQueryClient();
 
+  type InsightsConfig = {
+    name: string;
+    link?: {
+      dataset: string;
+    };
+  };
+
   try {
-    const config = JSON.parse(params.config);
+    let config: InsightsConfig;
+    try {
+      config = JSON.parse(params.config);
+    } catch (_e) {
+      // Ignore parsing errors, as the config may be a plain string.
+      throw new Error('Invalid configuration provided. Expected a JSON object or a JSON string.');
+    }
+
+    if (typeof config !== 'object' || config === null) {
+      throw new Error('Invalid configuration provided. Expected a JSON object.');
+    }
+
     const linkedDataset = config.link?.dataset;
     if (!linkedDataset) {
-      throw new Error('Configuration does not have a linked dataset.');
+      throw new Error('The provided configuration is missing the `link.dataset` property.');
     }
-    const parts = linkedDataset.split('/');
-    const projectId = parts[1];
-    const datasetId = parts[parts.length - 1];
+
+    const nameParts = config.name?.split('/');
+    if (!nameParts || nameParts.length < 4) {
+      throw new Error(
+        'Invalid configuration name format. Expected `projects/{projectId}/locations/{locationId}/datasetConfigs/{datasetConfigId}`.',
+      );
+    }
+    const projectId = nameParts[1];
+    const datasetId = linkedDataset.split('/').pop();
+
+    if (!datasetId) {
+      throw new Error('Could not extract datasetId from the linked dataset.');
+    }
 
     const [job] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
       query: params.query,

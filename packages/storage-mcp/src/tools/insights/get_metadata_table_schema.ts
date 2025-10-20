@@ -120,7 +120,10 @@ export async function getMetadataTableSchema(
       'Boolean indicating if the bucket has an Object Lifecycle Management configuration.',
     ],
     ['metageneration', 'The metadata generation of this bucket.'],
-    ['timeCreated', 'The creation time of the bucket in RFC 3339 format. To perform date calculations, use DATE_SUB or DATE_ADD with CURRENT_DATE()'],
+    [
+      'timeCreated',
+      'The creation time of the bucket in RFC 3339 format. To perform date calculations, use DATE_SUB or DATE_ADD with CURRENT_DATE()',
+    ],
     ['tags.tagMap.key', 'The key of a tag.'],
     ['tags.tagMap.value', 'The value of a tag.'],
     ['tags.lastUpdatedTime', 'The last updated time for the tags.'],

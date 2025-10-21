@@ -75,6 +75,36 @@ export async function executeInsightsQuery(
       throw new Error('Could not extract datasetId from the linked dataset.');
     }
 
+    const queryOptions = {
+      query: params.query,
+      jobTimeoutMs: params.jobTimeoutMs,
+    };
+
+    logger.info('Performing BigQuery dry run...');
+    try {
+      const [dryRunJob] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
+        ...queryOptions,
+        dryRun: true,
+      });
+      logger.info(`Dry run successful for query. Job ID: ${dryRunJob.id}`);
+    } catch (error) {
+      const err = error as Error;
+      logger.error('BigQuery dry run failed:', err);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: 'Validation failed: Invalid BigQuery SQL or access error during dry run',
+              error_type: 'QueryValidationError',
+              details: err?.message,
+            }),
+          },
+        ],
+      };
+    }
+    logger.info('Dry run passed. Executing BigQuery query...');
+
     const [job] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
       query: params.query,
       jobTimeoutMs: params.jobTimeoutMs,

@@ -34,19 +34,28 @@ describe('executeInsightsQuery', () => {
     name: 'projects/test-project/locations/us-central1/datasetConfigs/test-config',
   });
 
-  const mockJob = { id: 'job-123', getQueryResults: vi.fn() };
-  const mockDataset = { createQueryJob: vi.fn().mockResolvedValue([mockJob]) };
+  const mockDryRunJob = { id: 'dry-run-123' };
+  const mockActualJob = { id: 'job-123', getQueryResults: vi.fn() };
+  const mockDataset = { createQueryJob: vi.fn() };
   const mockBigQuery = { dataset: vi.fn().mockReturnValue(mockDataset) };
 
   beforeEach(() => {
     vi.clearAllMocks();
     (BigQuery as vi.Mock).mockReturnValue(mockBigQuery);
+    mockDataset.createQueryJob.mockImplementation((options) => {
+      if (options.dryRun) {
+        return Promise.resolve([mockDryRunJob]);
+      } else {
+        return Promise.resolve([mockActualJob]);
+      }
+    });
+    mockActualJob.getQueryResults.mockResolvedValue([[{ id: 1, name: 'default' }]]);
   });
 
   it('should execute a query with full config and return the results', async () => {
     const mockQuery = 'SELECT * FROM my-table';
     const mockRows = [{ id: 1, name: 'test' }];
-    mockJob.getQueryResults.mockResolvedValue([mockRows]);
+    mockActualJob.getQueryResults.mockResolvedValue([mockRows]);
 
     const result = await executeInsightsQuery({
       config: mockFullConfig,
@@ -57,18 +66,24 @@ describe('executeInsightsQuery', () => {
     expect(mockBigQuery.dataset).toHaveBeenCalledWith('test-dataset', {
       projectId: 'test-project',
     });
+    expect(mockDataset.createQueryJob).toHaveBeenCalledTimes(2);
+    expect(mockDataset.createQueryJob).toHaveBeenCalledWith({
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+      dryRun: true,
+    });
     expect(mockDataset.createQueryJob).toHaveBeenCalledWith({
       query: mockQuery,
       jobTimeoutMs: 10000,
     });
-    expect(mockJob.getQueryResults).toHaveBeenCalled();
+    expect(mockActualJob.getQueryResults).toHaveBeenCalled();
     expect(result.content[0].text).toEqual(JSON.stringify(mockRows));
   });
 
-  it('should return an error if the query fails', async () => {
+  it('should return an error if the actual query execution fails after dry run success', async () => {
     const mockQuery = 'SELECT * FROM my-table';
-    const mockError = new Error('Invalid query');
-    mockJob.getQueryResults.mockRejectedValue(mockError);
+    const mockError = new Error('Execution failed after dry run');
+    mockActualJob.getQueryResults.mockRejectedValue(mockError);
 
     const result = await executeInsightsQuery({
       config: mockFullConfig,
@@ -76,14 +91,24 @@ describe('executeInsightsQuery', () => {
       jobTimeoutMs: 10000,
     });
 
-    expect(result.content[0].text).toContain('Failed to execute insights query');
-    expect(result.content[0].text).toContain('Invalid query');
+    expect(mockDataset.createQueryJob).toHaveBeenCalledTimes(2);
+    expect(mockActualJob.getQueryResults).toHaveBeenCalledTimes(1);
+    const content = JSON.parse(result.content[0].text);
+    expect(content.error).toBe('Failed to execute insights query');
+    expect(content.error_type).toBe('Unknown'); // Assuming 'Unknown' for generic execution errors.
+    expect(content.details).toContain('Execution failed after dry run');
   });
 
-  it('should return a timeout error if the query times out', async () => {
+  it('should return a timeout error if the actual query times out', async () => {
     const mockQuery = 'SELECT * FROM my-table';
     const mockError = new Error('Job timed out');
-    mockDataset.createQueryJob.mockRejectedValue(mockError);
+    mockDataset.createQueryJob.mockImplementationOnce((options) => {
+      expect(options.dryRun).toBe(true);
+      return Promise.resolve([mockDryRunJob]);
+    }).mockImplementationOnce((options) => {
+      expect(options.dryRun).toBeUndefined();
+      return Promise.reject(mockError);
+    });
 
     const result = await executeInsightsQuery({
       config: mockFullConfig,
@@ -91,8 +116,59 @@ describe('executeInsightsQuery', () => {
       jobTimeoutMs: 10000,
     });
 
-    expect(result.content[0].text).toContain('Failed to execute insights query');
-    expect(result.content[0].text).toContain('Timeout');
+    expect(mockDataset.createQueryJob).toHaveBeenCalledTimes(2);
+    const content = JSON.parse(result.content[0].text);
+    expect(content.error).toBe('Failed to execute insights query');
+    expect(content.error_type).toBe('Timeout'); // Specific error type for timeouts.
+    expect(content.details).toContain('Job timed out');
+  });
+
+  it('should return a validation error if the dry run fails due to invalid SQL', async () => {
+    const mockQuery = 'SELECT FRO my-table'; // Intentionally bad SQL
+    const dryRunError = new Error('Syntax error: Unexpected token FRO');
+
+    mockDataset.createQueryJob.mockImplementationOnce((options) => {
+      expect(options.dryRun).toBe(true);
+      return Promise.reject(dryRunError);
+    });
+
+    const result = await executeInsightsQuery({
+      config: mockFullConfig,
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+    });
+
+    expect(mockDataset.createQueryJob).toHaveBeenCalledTimes(1);
+    expect(mockDataset.createQueryJob).toHaveBeenCalledWith(expect.objectContaining({
+      query: mockQuery,
+      dryRun: true,
+    }));
+    const content = JSON.parse(result.content[0].text);
+    expect(content.error).toBe('Validation failed: Invalid BigQuery SQL or access error during dry run');
+    expect(content.error_type).toBe('QueryValidationError');
+    expect(content.details).toBe('Syntax error: Unexpected token FRO');
+  });
+
+  it('should return a validation error if the dry run fails due to permission issues', async () => {
+    const mockQuery = 'SELECT * FROM my-table';
+    const permissionError = new Error('Access Denied: User does not have bigquery.jobs.create permission');
+
+    mockDataset.createQueryJob.mockImplementationOnce((options) => {
+      expect(options.dryRun).toBe(true);
+      return Promise.reject(permissionError);
+    });
+
+    const result = await executeInsightsQuery({
+      config: mockFullConfig,
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+    });
+
+    expect(mockDataset.createQueryJob).toHaveBeenCalledTimes(1);
+    const content = JSON.parse(result.content[0].text);
+    expect(content.error).toBe('Validation failed: Invalid BigQuery SQL or access error during dry run');
+    expect(content.error_type).toBe('QueryValidationError');
+    expect(content.details).toBe('Access Denied: User does not have bigquery.jobs.create permission');
   });
 
   it('should return an error if the config is missing the link property', async () => {
@@ -106,6 +182,7 @@ describe('executeInsightsQuery', () => {
     expect(result.content[0].text).toContain(
       'The provided configuration is missing the `link.dataset` property.',
     );
+    expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
   });
 
   it('should return an error if the config is not a valid JSON object', async () => {
@@ -117,8 +194,33 @@ describe('executeInsightsQuery', () => {
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain(
-      'Invalid configuration provided. Expected a JSON object.',
+      'Invalid configuration provided. Expected a JSON object or a JSON string.',
     );
+    expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
+  });
+
+  it('should return an error if the parsed config is null', async () => {
+    const result = await executeInsightsQuery({
+      config: 'null',
+      query: 'SELECT 1',
+      jobTimeoutMs: 10000,
+    });
+
+    expect(result.content[0].text).toContain('Failed to execute insights query');
+    expect(result.content[0].text).toContain('Invalid configuration provided. Expected a JSON object.');
+    expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
+  });
+
+  it('should return an error if the parsed config is a primitive type', async () => {
+    const result = await executeInsightsQuery({
+      config: '123',
+      query: 'SELECT 1',
+      jobTimeoutMs: 10000,
+    });
+
+    expect(result.content[0].text).toContain('Failed to execute insights query');
+    expect(result.content[0].text).toContain('Invalid configuration provided. Expected a JSON object.');
+    expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
   });
 
   it('should return an error if the config has an invalid name format', async () => {
@@ -126,6 +228,7 @@ describe('executeInsightsQuery', () => {
       name: 'invalid-name',
       link: { dataset: 'projects/test-project/datasets/test-dataset' },
     });
+
     const result = await executeInsightsQuery({
       config: invalidConfig,
       query: 'SELECT * FROM my-table',
@@ -134,13 +237,35 @@ describe('executeInsightsQuery', () => {
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain('Invalid configuration name format');
+    expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
+  });
+
+  it('should return an error if datasetId is empty after extraction', async () => {
+    const configWithEmptyDatasetId = JSON.stringify({
+      name: 'projects/test-project/locations/us-central1/datasetConfigs/test-config',
+      link: { dataset: 'projects/test-project/datasets/' }, // This results in an empty string from .pop()
+    });
+
+    const result = await executeInsightsQuery({
+      config: configWithEmptyDatasetId,
+      query: 'SELECT * FROM my-table',
+      jobTimeoutMs: 10000,
+    });
+
+    // Assert.
+    expect(result.content[0].text).toContain('Failed to execute insights query');
+    expect(result.content[0].text).toContain('Could not extract datasetId from the linked dataset.');
+    expect(mockBigQuery.dataset).not.toHaveBeenCalled();
+    expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
   });
 });
 
 describe('registerExecuteInsightsQueryTool', () => {
   it('should register the tool with the server', () => {
     const mockServer = { registerTool: vi.fn() } as unknown as McpServer;
+
     registerExecuteInsightsQueryTool(mockServer);
+
     expect(mockServer.registerTool).toHaveBeenCalledWith(
       'execute_insights_query',
       expect.any(Object),

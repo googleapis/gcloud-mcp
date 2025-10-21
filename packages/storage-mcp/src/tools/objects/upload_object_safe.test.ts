@@ -184,7 +184,8 @@ describe('uploadObjectSafe', () => {
       {
         type: 'text',
         text: JSON.stringify({
-          error: 'Error uploading file: Could not determine object name from file path: /path/to/directory/',
+          error:
+            'Error uploading file: Could not determine object name from file path: /path/to/directory/',
           error_type: 'Unknown',
         }),
       },

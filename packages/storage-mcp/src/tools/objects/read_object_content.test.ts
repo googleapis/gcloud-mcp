@@ -402,9 +402,7 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(
-      mockStorageClient
-    );
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
     // chardet often returns 'ISO-8859-1' for latin1-like encodings.
     (chardet.detect as vi.Mock).mockReturnValue('ISO-8859-1');
 

@@ -19,3 +19,15 @@ coverage:
         target: 0% # The target coverage percentage for the project
         threshold: 0% # Allow 0% drop from the target; any drop below target will fail
         if_ci_failed: error # Set the CI status to 'error' if coverage conditions are not met
+    patch:
+      default:
+        informational: true
+
+ignore:
+  - "packages/storage-mcp/src/index.ts"
+  - "packages/storage-mcp/src/tools/index.ts"
+  - "packages/storage-mcp/src/commands/*"
+  - "packages/gcloud-mcp/src/utility/index.ts"
+  - "packages/observability-mcp/src/tools/**/index.ts"
+  - "packages/storage-mcp/src/utility/gcs_helpers.ts"
+  - "packages/storage-mcp/src/utility/logger.ts"

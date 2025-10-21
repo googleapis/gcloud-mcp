@@ -133,6 +133,90 @@ describe('writeObjectSafe', () => {
       },
     ]);
   });
+
+  it('should return a "NotFound" error if the bucket or object is not found (404)', async () => {
+    const mockError = { message: 'Not Found', code: 404 };
+    const mockSave = vi.fn().mockRejectedValue(mockError);
+    const mockFile = vi.fn().mockReturnValue({ save: mockSave });
+    const mockBucket = vi.fn().mockReturnValue({ file: mockFile });
+    const mockStorageClient = { bucket: mockBucket };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (validateBase64Content as vi.Mock).mockReturnValue(undefined);
+
+    const content = Buffer.from('file content').toString('base64');
+    const result = await writeObjectSafe({
+      bucket_name: 'non-existent-bucket',
+      object_name: 'test-object',
+      content,
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error writing object: Not Found',
+          error_type: 'NotFound',
+        }),
+      },
+    ]);
+  });
+
+  it('should return a "Forbidden" error if permissions are insufficient (403)', async () => {
+    const mockError = { message: 'Forbidden', code: 403 };
+    const mockSave = vi.fn().mockRejectedValue(mockError);
+    const mockFile = vi.fn().mockReturnValue({ save: mockSave });
+    const mockBucket = vi.fn().mockReturnValue({ file: mockFile });
+    const mockStorageClient = { bucket: mockBucket };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (validateBase64Content as vi.Mock).mockReturnValue(undefined);
+
+    const content = Buffer.from('file content').toString('base64');
+    const result = await writeObjectSafe({
+      bucket_name: 'forbidden-bucket',
+      object_name: 'test-object',
+      content,
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error writing object: Forbidden',
+          error_type: 'Forbidden',
+        }),
+      },
+    ]);
+  });
+
+  it('should return a "BadRequest" error for invalid requests (400)', async () => {
+    const mockError = { message: 'Bad Request', code: 400 };
+    const mockSave = vi.fn().mockRejectedValue(mockError);
+    const mockFile = vi.fn().mockReturnValue({ save: mockSave });
+    const mockBucket = vi.fn().mockReturnValue({ file: mockFile });
+    const mockStorageClient = { bucket: mockBucket };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (validateBase64Content as vi.Mock).mockReturnValue(undefined);
+
+    const content = Buffer.from('file content').toString('base64');
+    const result = await writeObjectSafe({
+      bucket_name: 'invalid-bucket-name',
+      object_name: 'test-object',
+      content,
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error writing object: Bad Request',
+          error_type: 'BadRequest',
+        }),
+      },
+    ]);
+  });
 });
 
 describe('registerWriteObjectSafeTool', () => {

@@ -109,6 +109,30 @@ describe('writeObjectSafe', () => {
       },
     ]);
   });
+
+  it('should return an "InvalidContent" error if the content is not valid base64', async () => {
+    const mockError = new Error('Content is not a valid base64 string.');
+    (validateBase64Content as vi.Mock).mockImplementation(() => {
+      throw mockError;
+    });
+
+    const result = await writeObjectSafe({
+      bucket_name: 'test-bucket',
+      object_name: 'test-object',
+      // The '!' character is not a valid base64 character and should trigger the error.
+      content: 'Hello, World!',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Content is not a valid base64 string.',
+          error_type: 'InvalidInput',
+        }),
+      },
+    ]);
+  });
 });
 
 describe('registerWriteObjectSafeTool', () => {

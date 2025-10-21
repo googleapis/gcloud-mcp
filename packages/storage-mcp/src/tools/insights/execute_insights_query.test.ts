@@ -307,6 +307,27 @@ describe('executeInsightsQuery', () => {
     expect(content.details).toBe('Could not extract location from the configuration name.');
     expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
   });
+
+  it('should pass the location to the BigQuery client', async () => {
+    const mockQuery = 'SELECT * FROM my-table';
+    const mockRows = [{ id: 1, name: 'test' }];
+    mockJob.getQueryResults.mockResolvedValue([mockRows]);
+
+    await executeInsightsQuery({
+      config: mockFullConfig,
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+    });
+
+    expect(mockBigQuery.dataset).toHaveBeenCalledWith('test-dataset', {
+      projectId: 'test-project',
+    });
+    expect(mockDataset.createQueryJob).toHaveBeenCalledWith({
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+      location: 'us-central1',
+    });
+  });
 });
 
 describe('registerExecuteInsightsQueryTool', () => {

@@ -75,9 +75,23 @@ export async function executeInsightsQuery(
       throw new Error('Could not extract datasetId from the linked dataset.');
     }
 
-    const [job] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
+    const options: { projectId?: string } = {};
+    if (projectId) {
+      options.projectId = projectId;
+    }
+
+    const location = nameParts[3];
+    if (!location) {
+      throw new Error('Could not extract location from the configuration name.');
+    }
+    logger.info(`Executing query with location: ${location}`);
+    logger.info(`Executing query with datasetId: ${datasetId}`);
+    logger.info(`Executing query with projectId: ${projectId}`);
+
+    const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob({
       query: params.query,
       jobTimeoutMs: params.jobTimeoutMs,
+      location,
     });
     logger.info(`Job ${job.id} started.`);
 

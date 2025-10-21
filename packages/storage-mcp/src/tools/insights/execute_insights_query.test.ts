@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-import { BigQuery } from '@google-cloud/bigquery';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
   executeInsightsQuery,
   registerExecuteInsightsQueryTool,
 } from './execute_insights_query.js';
-
-vi.mock('@google-cloud/bigquery');
+import { apiClientFactory as ApiClientFactory } from '../../utility/index.js';
 
 describe('executeInsightsQuery', () => {
   const mockFullConfig = JSON.stringify({
@@ -40,7 +38,7 @@ describe('executeInsightsQuery', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (BigQuery as vi.Mock).mockReturnValue(mockBigQuery);
+    vi.spyOn(ApiClientFactory, 'getBigQueryClient').mockReturnValue(mockBigQuery);
   });
 
   it('should execute a query with full config and return the results', async () => {
@@ -60,6 +58,7 @@ describe('executeInsightsQuery', () => {
     expect(mockDataset.createQueryJob).toHaveBeenCalledWith({
       query: mockQuery,
       jobTimeoutMs: 10000,
+      location: 'us-central1',
     });
     expect(mockJob.getQueryResults).toHaveBeenCalled();
     expect(result.content[0].text).toEqual(JSON.stringify(mockRows));
@@ -117,7 +116,7 @@ describe('executeInsightsQuery', () => {
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain(
-      'Invalid configuration provided. Expected a JSON object.',
+      'Invalid configuration provided. Expected a JSON object or a JSON string.',
     );
   });
 
@@ -134,6 +133,27 @@ describe('executeInsightsQuery', () => {
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain('Invalid configuration name format');
+  });
+
+  it('should pass the location to the BigQuery client', async () => {
+    const mockQuery = 'SELECT * FROM my-table';
+    const mockRows = [{ id: 1, name: 'test' }];
+    mockJob.getQueryResults.mockResolvedValue([mockRows]);
+
+    await executeInsightsQuery({
+      config: mockFullConfig,
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+    });
+
+    expect(mockBigQuery.dataset).toHaveBeenCalledWith('test-dataset', {
+      projectId: 'test-project',
+    });
+    expect(mockDataset.createQueryJob).toHaveBeenCalledWith({
+      query: mockQuery,
+      jobTimeoutMs: 10000,
+      location: 'us-central1',
+    });
   });
 });
 

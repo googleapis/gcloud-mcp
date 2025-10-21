@@ -171,6 +171,25 @@ describe('uploadObjectSafe', () => {
       },
     ]);
   });
+
+  it('should return an "Unknown" error if object_name cannot be determined from file_path', async () => {
+    (fs.existsSync as vi.Mock).mockReturnValue(true);
+
+    const result = await uploadObjectSafe({
+      bucket_name: 'test-bucket',
+      file_path: '/path/to/directory/',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error uploading file: Could not determine object name from file path: /path/to/directory/',
+          error_type: 'Unknown',
+        }),
+      },
+    ]);
+  });
 });
 
 describe('registerUploadObjectSafeTool', () => {

@@ -70,20 +70,25 @@ export async function executeInsightsQuery(
     }
     const projectId = nameParts[1];
     const datasetId = linkedDataset.split('/').pop();
+    const location = nameParts[3];
+    if (!location) {
+      throw new Error('Could not extract location from the configuration name.');
+    }
 
     if (!datasetId) {
       throw new Error('Could not extract datasetId from the linked dataset.');
     }
 
-    const queryOptions = {
+    const baseQueryOptions = {
       query: params.query,
       jobTimeoutMs: params.jobTimeoutMs,
+      location: location, 
     };
 
     logger.info('Performing BigQuery dry run...');
     try {
       const [dryRunJob] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
-        ...queryOptions,
+        ...baseQueryOptions,
         dryRun: true,
       });
       logger.info(`Dry run successful for query. Job ID: ${dryRunJob.id}`);
@@ -105,10 +110,17 @@ export async function executeInsightsQuery(
     }
     logger.info('Dry run passed. Executing BigQuery query...');
 
-    const [job] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
-      query: params.query,
-      jobTimeoutMs: params.jobTimeoutMs,
-    });
+    const options: { projectId?: string } = {};
+    if (projectId) {
+      options.projectId = projectId;
+    }
+
+    logger.info(`Executing query with location: ${location}`);
+    logger.info(`Executing query with datasetId: ${datasetId}`);
+    logger.info(`Executing query with projectId: ${projectId}`);
+
+    const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob(
+      baseQueryOptions);
     logger.info(`Job ${job.id} started.`);
 
     const [rows] = await job.getQueryResults();

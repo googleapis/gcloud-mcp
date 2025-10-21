@@ -1,3 +1,6 @@
+[![gcloud-mcp Servers CI](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml/badge.svg)](https://github.com/googleapis/gcloud-mcp/actions/workflows/presubmit.yml)
+[![License](https://img.shields.io/github/license/googleapis/gcloud-mcp)](https://github.com/googleapis/gcloud-mcp/blob/main/LICENSE)
+
 # gcloud MCP Server ☁️
 
 The gcloud
@@ -21,11 +24,11 @@ server. An up to date list is below, and links to other Google Cloud MCP
 servers hosted outside of this repo are
 [here](#-other-google-cloud-mcp-servers).
 
-| MCP Server Name | Description                                                                   | Package Name        |
-| :-------------- | :---------------------------------------------------------------------------- | :------------------ |
-| gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        |
-| observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` |
-| storage         | Interact with Google Cloud Storage for bucket and object management.          | `storage-mcp`       |
+| MCP Server Name | Description                                                                   | Package Name        | Version                                                                                                                                   |
+| :-------------- | :---------------------------------------------------------------------------- | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        | [![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp)               |
+| observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` | [![Version](https://img.shields.io/npm/v/@google-cloud/observability-mcp)](https://www.npmjs.com/package/@google-cloud/observability-mcp) |
+| storage         | Interact with Google Cloud Storage for bucket and object management.          | `storage-mcp`       | [![Version](https://img.shields.io/npm/v/@google-cloud/storage-mcp)](https://www.npmjs.com/package/@google-cloud/storage-mcp)             |
 
 ## 🚀 Getting Started
 
@@ -167,10 +170,10 @@ For more information regarding installing the repository locally, please see
 
 ## 🔑 MCP Permissions
 
-The permissions of the gcloud MCP are directly tied to the permissions of the
-gcloud user. To restrict permissions and operate with the principle of least
+The permissions of the gcloud MCP are directly tied to the permissions of the active
+gcloud account. To restrict permissions and operate with the principle of least
 privilege, you can
-[authorize as a service account](https://cloud.google.com/sdk/docs/authorizing#service-account) and
+[authorize as a service account using impersonation](https://cloud.google.com/sdk/docs/authorizing#impersonation) and
 assign the service account a
 [role with limited permissions](https://cloud.google.com/iam/docs/roles-overview).
 
@@ -201,6 +204,7 @@ improving documentation, your contributions are welcome. Please read our
 ## 📄 Important Notes
 
 This repository is currently in preview and may see breaking changes. This
-repository is providing a solution, not an officially supported Google product.
+repository provides a solution, not an officially supported Google product. It
+is not covered under [Google Cloud Terms of Service](https://cloud.google.com/terms).
 It may break when the MCP specification, other SDKs, or when other solutions
 and products change. See also our [Security Policy](SECURITY.md).

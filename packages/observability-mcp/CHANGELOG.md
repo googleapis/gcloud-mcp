@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/googleapis/gcloud-mcp/compare/observability-mcp-v0.1.1...observability-mcp-v0.1.2) (2025-09-30)
+
+
+### Bug Fixes
+
+* Use esbuild to bundle dependencies ([3590a2a](https://github.com/googleapis/gcloud-mcp/commit/3590a2ac51db64db9fb38761a99493afa6cbabff))
+
 ## [0.1.1](https://github.com/googleapis/gcloud-mcp/compare/observability-mcp-v0.1.0...observability-mcp-v0.1.1) (2025-09-10)
 
 

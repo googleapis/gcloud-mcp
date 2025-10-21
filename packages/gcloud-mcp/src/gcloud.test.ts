@@ -18,6 +18,7 @@ import { test, expect, beforeEach, Mock, vi } from 'vitest';
 import * as child_process from 'child_process';
 import { PassThrough } from 'stream';
 import * as gcloud from './gcloud.js';
+import { isWindows } from './gcloud.js';
 
 vi.mock('child_process', () => ({
   spawn: vi.fn(),
@@ -42,7 +43,11 @@ test('should return true if which command succeeds', async () => {
   const result = await gcloud.isAvailable();
 
   expect(result).toBe(true);
-  expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  if (isWindows()) {
+    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
+  } else {
+    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  }
 });
 
 test('should return false if which command fails with non-zero exit code', async () => {
@@ -58,7 +63,11 @@ test('should return false if which command fails with non-zero exit code', async
   const result = await gcloud.isAvailable();
 
   expect(result).toBe(false);
-  expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  if (isWindows()) {
+    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
+  } else {
+    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  }
 });
 
 test('should return false if which command fails', async () => {
@@ -74,7 +83,11 @@ test('should return false if which command fails', async () => {
   const result = await gcloud.isAvailable();
 
   expect(result).toBe(false);
-  expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  if (isWindows()) {
+    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
+  } else {
+    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  }
 });
 
 test('should correctly handle stdout and stderr', async () => {

@@ -333,7 +333,7 @@ describe('executeInsightsQuery', () => {
   it('should pass the location to the BigQuery client', async () => {
     const mockQuery = 'SELECT * FROM my-table';
     const mockRows = [{ id: 1, name: 'test' }];
-    mockJob.getQueryResults.mockResolvedValue([mockRows]);
+    mockActualJob.getQueryResults.mockResolvedValue([mockRows]);
 
     await executeInsightsQuery({
       config: mockFullConfig,

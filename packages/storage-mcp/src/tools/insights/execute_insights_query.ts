@@ -85,9 +85,18 @@ export async function executeInsightsQuery(
       location,
     };
 
+    const options: { projectId?: string } = {};
+    if (projectId) {
+      options.projectId = projectId;
+    }
+
+    logger.info(`Executing query with location: ${location}`);
+    logger.info(`Executing query with datasetId: ${datasetId}`);
+    logger.info(`Executing query with projectId: ${projectId}`);
+
     logger.info('Performing BigQuery dry run...');
     try {
-      const [dryRunJob] = await bigqueryClient.dataset(datasetId, { projectId }).createQueryJob({
+      const [dryRunJob] = await bigqueryClient.dataset(datasetId, options).createQueryJob({
         ...baseQueryOptions,
         dryRun: true,
       });
@@ -109,15 +118,6 @@ export async function executeInsightsQuery(
       };
     }
     logger.info('Dry run passed. Executing BigQuery query...');
-
-    const options: { projectId?: string } = {};
-    if (projectId) {
-      options.projectId = projectId;
-    }
-
-    logger.info(`Executing query with location: ${location}`);
-    logger.info(`Executing query with datasetId: ${datasetId}`);
-    logger.info(`Executing query with projectId: ${projectId}`);
 
     const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob(baseQueryOptions);
     logger.info(`Job ${job.id} started.`);

@@ -82,7 +82,7 @@ export async function executeInsightsQuery(
     const baseQueryOptions = {
       query: params.query,
       jobTimeoutMs: params.jobTimeoutMs,
-      location: location, 
+      location,
     };
 
     logger.info('Performing BigQuery dry run...');
@@ -119,8 +119,7 @@ export async function executeInsightsQuery(
     logger.info(`Executing query with datasetId: ${datasetId}`);
     logger.info(`Executing query with projectId: ${projectId}`);
 
-    const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob(
-      baseQueryOptions);
+    const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob(baseQueryOptions);
     logger.info(`Job ${job.id} started.`);
 
     const [rows] = await job.getQueryResults();

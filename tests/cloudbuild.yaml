@@ -26,7 +26,7 @@ steps:
         cd packages/observability-mcp
         npm link
         cd ../..
-        npm install -g @google/gemini-cli@$_GEMINI_CLI_RELEASE_VERSION
+        npm install -g @google/gemini-cli@$nightly
         echo "Gemini CLI version:"
         gemini --version
 

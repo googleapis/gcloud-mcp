@@ -45,7 +45,6 @@ export const initializeGeminiCLI = async (
   fs = { mkdir, writeFile },
 ) => {
   try {
-
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'storage-mcp');
     await fs.mkdir(extensionDir, { recursive: true });

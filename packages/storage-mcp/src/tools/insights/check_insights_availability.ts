@@ -18,7 +18,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
-import { logger } from '../../utility/logger.js';
 
 const serviceName = 'storageinsights.googleapis.com';
 
@@ -52,65 +51,23 @@ export async function checkInsightsAvailability(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isEnabled = services.some((service: any) => service.config?.name === serviceName);
 
-  if (!isEnabled) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            insightsEnabled: false,
-          }),
-        },
-      ],
-    };
-  }
-
-  const storageInsightsClient = apiClientFactory.getStorageInsightsClient();
-
-  try {
-    const parent = `projects/${projectId}/locations/-`;
-    const iterable = storageInsightsClient.listDatasetConfigsAsync({ parent });
-    const configs = [];
-    for await (const config of iterable) {
-      configs.push(config);
-    }
-    logger.info(`Successfully listed ${configs.length} dataset configs.`);
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            insightsEnabled: true,
-            configurations: configs,
-          }),
-        },
-      ],
-    };
-  } catch (error) {
-    const err = error instanceof Error ? error : undefined;
-    logger.error('Error listing dataset configs:', err);
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            insightsEnabled: true,
-            error: 'Failed to list dataset configs',
-            details: err?.message,
-          }),
-        },
-      ],
-    };
-  }
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify({
+          insightsEnabled: isEnabled,
+        }),
+      },
+    ],
+  };
 }
 
 export const registerCheckInsightsAvailabilityTool = (server: McpServer) => {
   server.registerTool(
     'check_insights_availability',
     {
-      description:
-        'Checks if GCS insights service is enabled. If it is enabled,\
-         returns the list of all the dataset configurations across regions.',
+      description: 'Checks if GCS insights service is enabled.',
       inputSchema,
     },
     checkInsightsAvailability,

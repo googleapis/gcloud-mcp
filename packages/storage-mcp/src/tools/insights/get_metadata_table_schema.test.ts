@@ -16,21 +16,52 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { getMetadataTableSchema } from './get_metadata_table_schema';
-import { Table } from '@google-cloud/bigquery';
+
+import { apiClientFactory } from '../../utility/index.js';
+
+vi.mock('../../utility/index.js');
 
 describe('getMetadataTableSchema', () => {
+  const mockGetDatasetConfig = vi.fn();
+  const mockGetMetadata = vi.fn();
+  const mockDataset = vi.fn(() => ({
+    table: vi.fn(() => ({
+      getMetadata: mockGetMetadata,
+    })),
+  }));
+  const mockBigQueryClient = {
+    dataset: mockDataset,
+  };
+
   beforeEach(() => {
     vi.restoreAllMocks();
+    const mockStorageInsightsClient = {
+      getDatasetConfig: mockGetDatasetConfig,
+    };
+    (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue(
+      mockStorageInsightsClient,
+    );
+    (apiClientFactory.getBigQueryClient as vi.Mock).mockReturnValue(mockBigQueryClient);
   });
 
   it('should return schemas with hints for a valid config', async () => {
+    const datasetConfigName =
+      'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config';
     const config = {
       link: {
         dataset: 'projects/test-project/datasets/test-dataset',
       },
     };
+    mockGetDatasetConfig.mockResolvedValue([config]);
 
-    vi.spyOn(Table.prototype, 'getMetadata').mockResolvedValue([
+    mockGetMetadata.mockResolvedValueOnce([
+      {
+        schema: {
+          fields: [{ name: 'testField', type: 'STRING' }],
+        },
+      },
+    ]);
+    mockGetMetadata.mockResolvedValueOnce([
       {
         schema: {
           fields: [{ name: 'testField', type: 'STRING' }],
@@ -38,8 +69,11 @@ describe('getMetadataTableSchema', () => {
       },
     ]);
 
-    const result = await getMetadataTableSchema({ config: JSON.stringify(config) });
+    const result = await getMetadataTableSchema({ datasetConfigName });
 
+    expect(mockGetDatasetConfig).toHaveBeenCalledWith({ name: datasetConfigName });
+    expect(mockDataset).toHaveBeenCalledWith('test-dataset');
+    expect(mockGetMetadata).toHaveBeenCalledTimes(2);
     expect(result.content[0].type).toBe('text');
     const resultData = JSON.parse(result.content[0].text as string);
 
@@ -48,27 +82,49 @@ describe('getMetadataTableSchema', () => {
   });
 
   it('should return an error if linkedDataset is missing', async () => {
+    const datasetConfigName =
+      'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config';
     const config = {};
-    const result = await getMetadataTableSchema({ config: JSON.stringify(config) });
+    mockGetDatasetConfig.mockResolvedValue([config]);
+
+    const result = await getMetadataTableSchema({ datasetConfigName });
     const resultData = JSON.parse(result.content[0].text as string);
     expect(resultData.error).toBe('Failed to get metadata table schema');
+    expect(resultData.details).toBe('Configuration does not have a linked dataset.');
   });
 
   it('should return an error if BigQuery API fails', async () => {
+    const datasetConfigName =
+      'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config';
     const config = {
       link: {
         dataset: 'projects/test-project/datasets/test-dataset',
       },
     };
+    mockGetDatasetConfig.mockResolvedValue([config]);
 
-    vi.spyOn(Table.prototype, 'getMetadata').mockRejectedValue(new Error('BigQuery API error'));
+    mockGetMetadata.mockRejectedValue(new Error('BigQuery API error'));
 
-    const result = await getMetadataTableSchema({ config: JSON.stringify(config) });
+    const result = await getMetadataTableSchema({ datasetConfigName });
 
     expect(result.content[0].type).toBe('text');
     const resultData = JSON.parse(result.content[0].text as string);
 
     expect(resultData.error).toBe('Failed to get metadata table schema');
     expect(resultData.details).toBe('BigQuery API error');
+  });
+
+  it('should return an error if getDatasetConfig fails', async () => {
+    const datasetConfigName =
+      'projects/insights-test-project/locations/us-central1/datasetConfigs/non-existent-config';
+    mockGetDatasetConfig.mockRejectedValue(new Error('Dataset config not found'));
+
+    const result = await getMetadataTableSchema({ datasetConfigName });
+
+    expect(result.content[0].type).toBe('text');
+    const resultData = JSON.parse(result.content[0].text as string);
+
+    expect(resultData.error).toBe('Failed to retrieve dataset configuration');
+    expect(resultData.details).toBe('Dataset config not found');
   });
 });

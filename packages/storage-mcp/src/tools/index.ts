@@ -43,6 +43,7 @@ import {
   registerCheckInsightsAvailabilityTool,
   registerExecuteInsightsQueryTool,
   registerGetMetadataTableSchemaTool,
+  registerListInsightsConfigsTool,
 } from './insights/index.js';
 
 export const commonSafeTools = [
@@ -60,6 +61,7 @@ export const commonSafeTools = [
   registerCheckInsightsAvailabilityTool,
   registerGetMetadataTableSchemaTool,
   registerExecuteInsightsQueryTool,
+  registerListInsightsConfigsTool,
 ];
 
 export const safeWriteTools = [

@@ -12,8 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
 
+import { BigQuery } from '@google-cloud/bigquery';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
@@ -217,7 +218,7 @@ describe('executeInsightsQuery', () => {
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain(
-      'Invalid configuration provided. Expected a JSON object or a JSON string.',
+      'Invalid configuration provided. Expected a JSON object.',
     );
     expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
   });

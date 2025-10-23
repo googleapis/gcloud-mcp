@@ -229,6 +229,7 @@ export async function getMetadataTableSchema(
       const result = {
         [`${datasetId}.${bucketViewId}`]: bucketViewFields,
         [`${datasetId}.${objectViewId}`]: objectViewFields,
+        ...config,
       };
 
       return {

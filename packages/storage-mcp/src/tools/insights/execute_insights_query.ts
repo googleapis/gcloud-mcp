@@ -21,7 +21,7 @@ import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 
 const inputSchema = {
-  config: z.string().describe('The JSON object of the insights dataset configuration.'),
+  config: z.string().describe('The JSON object of the BigQuery table schema for a given insights dataset configuration.'),
   query: z.string().describe('The BigQuery SQL query to execute.'),
   jobTimeoutMs: z
     .number()

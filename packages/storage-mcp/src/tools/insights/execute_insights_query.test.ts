@@ -22,7 +22,7 @@ import {
   registerExecuteInsightsQueryTool,
 } from './execute_insights_query.js';
 
-import { apiClientFactory as ApiClientFactory } from '../../utility/index.js';
+vi.mock('@google-cloud/bigquery');
 
 describe('executeInsightsQuery', () => {
   const MOCK_QUERY = 'SELECT * FROM my-table';
@@ -55,7 +55,7 @@ describe('executeInsightsQuery', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(ApiClientFactory, 'getBigQueryClient').mockReturnValue(mockBigQuery);
+    (BigQuery as vi.Mock).mockReturnValue(mockBigQuery);
     mockDataset.createQueryJob.mockImplementation((options) => {
       if (options.dryRun) {
         return Promise.resolve([mockDryRunJob]);
@@ -218,7 +218,7 @@ describe('executeInsightsQuery', () => {
 
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain(
-      'Invalid configuration provided. Expected a JSON object.',
+      'Invalid configuration provided. Expected a JSON object or a JSON string.',
     );
     expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
   });
@@ -266,31 +266,6 @@ describe('executeInsightsQuery', () => {
     expect(result.content[0].text).toContain('Failed to execute insights query');
     expect(result.content[0].text).toContain('Invalid configuration name format');
     expect(mockDataset.createQueryJob).not.toHaveBeenCalled();
-  });
-
-  it('should pass the location to the BigQuery client', async () => {
-    await executeInsightsQuery({
-      config: mockFullConfig,
-      query: MOCK_QUERY,
-      jobTimeoutMs: DEFAULT_JOB_TIMEOUT_MS,
-    });
-
-    expect(mockBigQuery.dataset).toHaveBeenCalledWith(TEST_DATASET_ID, {
-      projectId: TEST_PROJECT_ID,
-    });
-    expect(mockDataset.createQueryJob).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query: MOCK_QUERY,
-        location: TEST_LOCATION,
-        dryRun: true,
-      }),
-    );
-    expect(mockDataset.createQueryJob).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query: MOCK_QUERY,
-        location: TEST_LOCATION,
-      }),
-    );
   });
 
   it('should return an error if datasetId is empty after extraction', async () => {

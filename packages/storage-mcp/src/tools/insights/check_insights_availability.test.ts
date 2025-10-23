@@ -79,7 +79,7 @@ describe('checkInsightsAvailability', () => {
     const originalEnv = process.env;
     delete process.env['GOOGLE_CLOUD_PROJECT'];
     await expect(checkInsightsAvailability({})).rejects.toThrow(
-      'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT environment variable.',
+      'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',
     );
     process.env = originalEnv;
   });

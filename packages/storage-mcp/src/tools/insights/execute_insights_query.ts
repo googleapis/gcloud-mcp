@@ -21,7 +21,7 @@ import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 
 const inputSchema = {
-  config: z.string().describe('The JSON object of the insights dataset configuration.'),
+  config: z.string().describe('The JSON object of the BigQuery table schema for a given insights dataset configuration.'),
   query: z.string().describe('The BigQuery SQL query to execute.'),
   jobTimeoutMs: z
     .number()
@@ -70,29 +70,56 @@ export async function executeInsightsQuery(
     }
     const projectId = nameParts[1];
     const datasetId = linkedDataset.split('/').pop();
+    const location = nameParts[3];
+    if (!location) {
+      throw new Error('Could not extract location from the configuration name.');
+    }
 
     if (!datasetId) {
       throw new Error('Could not extract datasetId from the linked dataset.');
     }
+
+    const baseQueryOptions = {
+      query: params.query,
+      jobTimeoutMs: params.jobTimeoutMs,
+      location,
+    };
 
     const options: { projectId?: string } = {};
     if (projectId) {
       options.projectId = projectId;
     }
 
-    const location = nameParts[3];
-    if (!location) {
-      throw new Error('Could not extract location from the configuration name.');
-    }
     logger.info(`Executing query with location: ${location}`);
     logger.info(`Executing query with datasetId: ${datasetId}`);
     logger.info(`Executing query with projectId: ${projectId}`);
 
-    const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob({
-      query: params.query,
-      jobTimeoutMs: params.jobTimeoutMs,
-      location,
-    });
+    logger.info('Performing BigQuery dry run...');
+    try {
+      const [dryRunJob] = await bigqueryClient.dataset(datasetId, options).createQueryJob({
+        ...baseQueryOptions,
+        dryRun: true,
+      });
+      logger.info(`Dry run successful for query. Job ID: ${dryRunJob.id}`);
+    } catch (error) {
+      const err = error as Error;
+      logger.error('BigQuery dry run failed:', err);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: 'Validation failed: Invalid BigQuery SQL or access error during dry run',
+              error_type: 'QueryValidationError',
+              details: err?.message,
+            }),
+          },
+        ],
+      };
+    }
+    logger.info('Dry run passed. Executing BigQuery query...');
+
+    const [job] = await bigqueryClient.dataset(datasetId, options).createQueryJob(baseQueryOptions);
     logger.info(`Job ${job.id} started.`);
 
     const [rows] = await job.getQueryResults();

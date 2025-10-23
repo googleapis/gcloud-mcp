@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.3.0...gcloud-mcp-v0.4.0) (2025-10-23)
+
+
+### Features
+
+* Auto recover with release track ([#256](https://github.com/googleapis/gcloud-mcp/issues/256)) ([4986916](https://github.com/googleapis/gcloud-mcp/commit/49869169fd602e42f0c185b19d25f95331be200a))
+* Refactoring run gcloud  ([#265](https://github.com/googleapis/gcloud-mcp/issues/265)) ([1459cbe](https://github.com/googleapis/gcloud-mcp/commit/1459cbec47b6c211d2dfc1b299f907fb2d2830a9))
+
 ## [0.3.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.2.0...gcloud-mcp-v0.3.0) (2025-10-08)
 
 

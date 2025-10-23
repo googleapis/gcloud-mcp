@@ -26,7 +26,7 @@ const inputSchema = {
     .string()
     .optional()
     .describe(
-      'The project ID to check Storage Insights availability and list insights configs for',
+      'The project ID to check Storage Insights availability for.',
     ),
 };
 
@@ -36,10 +36,10 @@ export async function checkInsightsAvailability(
   params: CheckInsightsAvailabilityParams,
 ): Promise<CallToolResult> {
   const serviceUsageClient = apiClientFactory.getServiceUsageClient();
-  const projectId = params.projectId || process.env['GOOGLE_CLOUD_PROJECT'];
+  const projectId = params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
   if (!projectId) {
     throw new Error(
-      'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT environment variable.',
+      'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',
     );
   }
 

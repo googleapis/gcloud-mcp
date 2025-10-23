@@ -26,6 +26,9 @@ steps:
         cd packages/observability-mcp
         npm link
         cd ../..
+        cd packages/storage-mcp
+        npm link
+        cd ../..
         npm install -g @google/gemini-cli@$_GEMINI_CLI_RELEASE_VERSION
         echo "Gemini CLI version:"
         gemini --version
@@ -33,6 +36,7 @@ steps:
         echo "--- Initializing servers with Gemini CLI"
         npx gcloud-mcp init --agent=gemini-cli --local
         npx observability-mcp init --agent=gemini-cli --local
+        npx storage-mcp init --agent=gemini-cli --local
 
         echo "--- Installing Go ---"
         GO_VERSION="1.23.0"

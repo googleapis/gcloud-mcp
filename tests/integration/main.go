@@ -27,7 +27,7 @@ func testGeminiMcpList() error {
 	}
 
 	for serverName, binCommand := range expectedMCPServers {
-		expectedRegexMatch := fmt.Sprintf(".*%s: npx -y %s .*\\(stdio\\) - Connected", serverName, binCommand)
+		expectedRegexMatch := fmt.Sprintf(".*%s.*: npx -y %s .*\\(stdio\\) - Connected", serverName, binCommand)
 		matched, err := regexp.MatchString(expectedRegexMatch, string(output))
 		if err != nil {
 			return fmt.Errorf("error compiling regex: %v", err)

@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strings"
 )
 
 func testGeminiMcpList() error {

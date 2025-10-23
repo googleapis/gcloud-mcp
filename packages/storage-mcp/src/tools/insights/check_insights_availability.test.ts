@@ -55,10 +55,8 @@ describe('checkInsightsAvailability', () => {
     expect(mockListDatasetConfigsAsync).not.toHaveBeenCalled();
   });
 
-  it('should return configurations when the service is enabled', async () => {
+  it('should return insightsEnabled: true when the service is enabled without configurations', async () => {
     mockListServices.mockResolvedValue([[{ config: { name: 'storageinsights.googleapis.com' } }]]);
-    const fakeConfigs = [{ name: 'config-1' }, { name: 'config-2' }];
-    mockListDatasetConfigsAsync.mockReturnValue(fakeConfigs);
 
     const result = await checkInsightsAvailability({ projectId: 'test-project' });
 
@@ -66,37 +64,12 @@ describe('checkInsightsAvailability', () => {
       parent: 'projects/test-project',
       filter: 'state:ENABLED',
     });
-    expect(mockListDatasetConfigsAsync).toHaveBeenCalledWith({
-      parent: 'projects/test-project/locations/-',
-    });
+    expect(mockListDatasetConfigsAsync).not.toHaveBeenCalled();
     expect(result.content).toEqual([
       {
         type: 'text',
         text: JSON.stringify({
           insightsEnabled: true,
-          configurations: fakeConfigs,
-        }),
-      },
-    ]);
-  });
-
-  it('should return an error when listing configs fails', async () => {
-    mockListServices.mockResolvedValue([[{ config: { name: 'storageinsights.googleapis.com' } }]]);
-    const fakeError = new Error('API Error');
-    mockListDatasetConfigsAsync.mockImplementation(async function* () {
-      yield* [];
-      throw fakeError;
-    });
-
-    const result = await checkInsightsAvailability({ projectId: 'test-project' });
-
-    expect(result.content).toEqual([
-      {
-        type: 'text',
-        text: JSON.stringify({
-          insightsEnabled: true,
-          error: 'Failed to list dataset configs',
-          details: 'API Error',
         }),
       },
     ]);

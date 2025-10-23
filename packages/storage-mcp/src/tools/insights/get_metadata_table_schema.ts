@@ -22,7 +22,11 @@ import { logger } from '../../utility/logger.js';
 import { TableField } from '@google-cloud/bigquery';
 
 const inputSchema = {
-  config: z.string().describe('The JSON object of the insights dataset configuration.'),
+  datasetConfigName: z
+    .string()
+    .describe(
+      'The full resource name of the dataset configuration (e.g., projects/project-id/locations/location/datasetConfigs/config-id).',
+    ),
 };
 
 type GetMetadataTableSchemaParams = z.infer<z.ZodObject<typeof inputSchema>>;
@@ -35,6 +39,28 @@ export async function getMetadataTableSchema(
   params: GetMetadataTableSchemaParams,
 ): Promise<CallToolResult> {
   const bigqueryClient = apiClientFactory.getBigQueryClient();
+  const storageInsightsClient = apiClientFactory.getStorageInsightsClient();
+
+  let config;
+  try {
+    [config] = await storageInsightsClient.getDatasetConfig({
+      name: params.datasetConfigName,
+    });
+  } catch (error) {
+    const err = error instanceof Error ? error : undefined;
+    logger.error('Error getting dataset config:', err);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Failed to retrieve dataset configuration',
+            details: err?.message,
+          }),
+        },
+      ],
+    };
+  }
 
   const objectHints = new Map<string, string>([
     ['snapshotTime', 'The snapshot time of the object metadata in RFC 3339 format.'],
@@ -160,11 +186,13 @@ export async function getMetadataTableSchema(
   ]);
 
   try {
-    const config = JSON.parse(params.config);
     const linkedDataset = config.link?.dataset;
     if (linkedDataset) {
       const parts = linkedDataset.split('/');
       const datasetId = parts[parts.length - 1];
+      if (!datasetId) {
+        throw new Error('Could not extract dataset ID from linked dataset.');
+      }
       const bucketViewId = 'bucket_attributes_latest_snapshot_view';
       const objectViewId = 'object_attributes_latest_snapshot_view';
 
@@ -237,6 +265,9 @@ export const registerGetMetadataTableSchemaTool = (server: McpServer) => {
       description:
         'Returns the BigQuery table schema for a given insights dataset configuration. Also returns hints for each column in the table',
       inputSchema,
+      annotations: {
+        displayOutput: false,
+      },
     },
     getMetadataTableSchema,
   );

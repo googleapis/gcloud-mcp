@@ -24,7 +24,7 @@ func testGeminiMcpList() error {
 	expectedMCPServers := map[string]string{
 		"gcloud":        "gcloud-mcp",
 		"observability": "observability-mcp",
-		"storage":       "storage-mcp",
+		"storage":           "storage-mcp",
 	}
 
 	for serverName, binCommand := range expectedMCPServers {

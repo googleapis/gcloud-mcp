@@ -21,11 +21,24 @@ import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 import { TableField } from '@google-cloud/bigquery';
 
+const serviceName = 'storageinsights.googleapis.com';
+
 const inputSchema = {
   datasetConfigName: z
     .string()
     .describe(
-      'The full resource name of the dataset configuration (e.g., projects/project-id/locations/location/datasetConfigs/config-id).',
+      'The name of the dataset configuration.',
+    ),
+  datasetConfigLocation: z
+    .string()
+    .describe(
+      'The location of the dataset configuration.',
+    ),
+  projectId: z
+    .string()
+    .optional()
+    .describe(
+      'The project ID to check Storage Insights availability for.',
     ),
 };
 
@@ -40,11 +53,32 @@ export async function getMetadataTableSchema(
 ): Promise<CallToolResult> {
   const bigqueryClient = apiClientFactory.getBigQueryClient();
   const storageInsightsClient = apiClientFactory.getStorageInsightsClient();
+  const serviceUsageClient = apiClientFactory.getServiceUsageClient();
+  const projectId = params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
+
+  if (!projectId) {
+    throw new Error(
+      'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',
+    );
+  }
+
+  const [services] = await serviceUsageClient.listServices({
+    parent: `projects/${projectId}`,
+    filter: 'state:ENABLED',
+  });
+
+  const isEnabled = services.some((service: any) => service.config?.name === serviceName);
+
+  if (!isEnabled) {
+    throw new Error(
+      `Storage Insights API is not enabled for project ${projectId}. Please enable it to proceed.`,
+    );
+  }
 
   let config;
   try {
     [config] = await storageInsightsClient.getDatasetConfig({
-      name: params.datasetConfigName,
+      name: `projects/${projectId}/locations/${params.datasetConfigLocation}/datasetConfigs/${params.datasetConfigName}`,
     });
   } catch (error) {
     const err = error instanceof Error ? error : undefined;
@@ -264,7 +298,7 @@ export const registerGetMetadataTableSchemaTool = (server: McpServer) => {
     'get_metadata_table_schema',
     {
       description:
-        'Returns the BigQuery table schema for a given insights dataset configuration. Also returns hints for each column in the table',
+        'Checks if GCS insights service is enabled and returns the BigQuery table schema for a given insights dataset configuration in JSON format. Also returns hints for each column in the table',
       inputSchema,
       annotations: {
         displayOutput: false,

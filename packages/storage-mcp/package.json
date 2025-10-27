@@ -6,6 +6,9 @@
   "bin": {
     "storage-mcp": "./dist/bundle.js"
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build": "tsc --noemit && node build.js",
     "test": "vitest run",

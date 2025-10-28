@@ -37,13 +37,52 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+test('initializeGeminiCLI should create directory and write files for http transport', async () => {
+  const homedir = '/test/home';
+  vi.spyOn(os, 'homedir').mockReturnValue(homedir);
+  const mockMkdir = vi.fn();
+  const mockWriteFile = vi.fn();
+
+  await initializeGeminiCLI(undefined, 'http', {
+    mkdir: mockMkdir,
+    writeFile: mockWriteFile,
+  });
+
+  const extensionDir = join(homedir, '.gemini', 'extensions', 'gcloud-mcp');
+  const extensionFile = join(extensionDir, 'gemini-extension.json');
+  const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
+
+  // Verify directory creation
+  expect(mockMkdir).toHaveBeenCalledWith(extensionDir, { recursive: true });
+
+  // Verify gemini-extension.json content
+  const expectedExtensionJson = {
+    name: 'gcloud-mcp',
+    version: pkg.version,
+    description: 'Enable MCP-compatible AI agents to interact with Google Cloud.',
+    contextFileName: 'GEMINI.md',
+    mcpServers: {
+      gcloud: {
+        httpUrl: 'http://localhost:3000/mcp',
+      },
+    },
+  };
+  expect(mockWriteFile).toHaveBeenCalledWith(
+    extensionFile,
+    JSON.stringify(expectedExtensionJson, null, 2),
+  );
+
+  // Verify GEMINI.md writing
+  expect(mockWriteFile).toHaveBeenCalledWith(geminiMdDestPath, geminiMd);
+});
+
 test('initializeGeminiCLI should create directory and write files', async () => {
   const homedir = '/test/home';
   vi.spyOn(os, 'homedir').mockReturnValue(homedir);
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(undefined, {
+  await initializeGeminiCLI(undefined, 'stdio', {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });
@@ -82,7 +121,7 @@ test('initializeGeminiCLI should log error if mkdir fails', async () => {
   const mockMkdir = vi.fn().mockRejectedValue(error);
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(undefined, {
+  await initializeGeminiCLI(undefined, 'stdio', {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });
@@ -100,7 +139,7 @@ test('initializeGeminiCLI should create directory and write files with local=tru
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(true, {
+  await initializeGeminiCLI(true, 'stdio', {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });

@@ -24,4 +24,5 @@ build({
   outfile: 'dist/bundle.js',
   platform: 'node',
   format: 'esm',
+  external: ['express', 'raw-body'],
 }).catch(() => process.exit(1));

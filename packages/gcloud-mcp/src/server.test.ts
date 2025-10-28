@@ -24,12 +24,15 @@ const mockApp = {
   use: vi.fn(),
   post: vi.fn(),
   listen: vi.fn(),
+  json : vi.fn(),
 };
 vi.mock('express', () => {
-  const express = vi.fn(() => mockApp) as any;
-  express.json = vi.fn(() => 'json-parser-middleware');
+  const mockExpress = vi.fn(() => mockApp as unknown as express.Express);
+  const mockJson = vi.fn(() => 'json-parser-middleware');
+  const expressWithJson = Object.assign(mockExpress, { json: mockJson });
+
   return {
-    default: express,
+    default: expressWithJson,
   };
 });
 

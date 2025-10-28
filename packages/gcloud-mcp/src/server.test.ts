@@ -24,7 +24,7 @@ const mockApp = {
   use: vi.fn(),
   post: vi.fn(),
   listen: vi.fn(),
-  json : vi.fn(),
+  json: vi.fn(),
 };
 vi.mock('express', () => {
   const mockExpress = vi.fn(() => mockApp as unknown as express.Express);

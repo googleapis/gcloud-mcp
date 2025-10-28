@@ -21,6 +21,7 @@ import * as gcloud from './gcloud.js';
 import { init } from './commands/init.js';
 import fs from 'fs';
 import path from 'path';
+import { startStreamableHttpServer } from './server.js';
 
 vi.mock('../package.json', () => ({
   default: {
@@ -40,6 +41,7 @@ vi.mock('./gcloud.js');
 vi.mock('fs');
 vi.mock('path');
 vi.mock('./commands/init.js');
+vi.mock('./server.js');
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -94,6 +96,26 @@ test('should start the McpServer if gcloud is available', async () => {
   expect(registerToolSpy).toHaveBeenCalledWith(vi.mocked(McpServer).mock.instances[0]);
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance!.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));
+});
+
+test('should start the McpServer with http transport', async () => {
+  process.argv = ['node', 'index.js', '--transport', 'http'];
+  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+
+  await import('./index.js');
+
+  expect(gcloud.isAvailable).toHaveBeenCalled();
+  expect(McpServer).toHaveBeenCalledWith(
+    {
+      name: 'gcloud-mcp-server',
+      version: '9.4.1998',
+    },
+    { capabilities: { tools: {} } },
+  );
+  expect(registerToolSpy).toHaveBeenCalledWith(vi.mocked(McpServer).mock.instances[0]);
+  const serverInstance = vi.mocked(McpServer).mock.instances[0];
+  expect(startStreamableHttpServer).toHaveBeenCalledWith(serverInstance);
 });
 
 test('should exit if load deny and allow from config file', async () => {

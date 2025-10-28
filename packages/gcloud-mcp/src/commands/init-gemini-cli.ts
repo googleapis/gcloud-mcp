@@ -59,7 +59,7 @@ Reference for a specific command can also be found by appending the \`--help\` f
 Local gcloud configuration properties can be set via environment variables that gcloud commands may reference at runtime. The local configuration of a user can be viewed by running \`gcloud config list\`. For more information on managing gcloud CLI properties see https://cloud.google.com/sdk/gcloud/reference/config and https://cloud.google.com/sdk/docs/properties.
 `;
 
-export const initializeGeminiCLI = async (local = false, transport : string, fs = { mkdir, writeFile }) => {
+export const initializeGeminiCLI = async (local = false, transport = "stdio", fs = { mkdir, writeFile }) => {
   try {
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'gcloud-mcp');

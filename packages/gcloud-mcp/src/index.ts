@@ -83,8 +83,8 @@ const main = async () => {
         .option('transport', {
           type: 'string',
           description: 'Specify the transport type (stdio or http).',
-          choices: ['stdio', 'http'],
-          default: 'http',
+          choices: ['stdio', 'http'] as const,
+          default: 'stdio',
         }),
     )
     .command(exitProcessAfter(init))

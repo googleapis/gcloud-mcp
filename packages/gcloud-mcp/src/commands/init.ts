@@ -22,6 +22,7 @@ import { log } from '../utility/logger.js';
 interface InstallArgs {
   agent: string;
   local: boolean;
+  transport: string;
 }
 
 export const init: CommandModule<object, InstallArgs> = {
@@ -43,12 +44,12 @@ export const init: CommandModule<object, InstallArgs> = {
       .option('transport', {
         type: 'string',
         description: 'Specify the mcp server transport type (stdio or http).',
-        choices: ['stdio', 'http'],
+        choices: ['stdio', 'http'] as const,
         default: 'stdio',
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(argv['local'], String(argv['transport']));
+      await initializeGeminiCLI(argv['local'], argv['transport']);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

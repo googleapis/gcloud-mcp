@@ -17,7 +17,6 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
 import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
 import * as gcloud from './gcloud.js';
@@ -28,6 +27,7 @@ import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { createAccessControlList } from './denylist.js';
+import { startStreamableHttpServer, startSTDIOServer } from './server.js';
 
 export const default_deny: string[] = [
   'compute start-iap-tunnel',
@@ -55,21 +55,41 @@ interface McpConfig {
   deny?: string[];
 }
 
+export function createMCPServer(config: McpConfig): McpServer {
+  const server = new McpServer(
+    {
+      name: 'gcloud-mcp-server',
+      version: pkg.version,
+    },
+    { capabilities: { tools: {} } },
+  );
+  const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
+  createRunGcloudCommand(acl).register(server);
+  return server;
+}
+
 export type { McpConfig };
 
 const main = async () => {
   const argv = (await yargs(hideBin(process.argv))
     .command('$0', 'Run the gcloud mcp server', (yargs) =>
-      yargs.option('config', {
-        type: 'string',
-        description: 'Path to a JSON configuration file for allowlist/denylist.',
-        alias: 'c',
-      }),
+      yargs
+        .option('config', {
+          type: 'string',
+          description: 'Path to a JSON configuration file for allowlist/denylist.',
+          alias: 'c',
+        })
+        .option('transport', {
+          type: 'string',
+          description: 'Specify the transport type (stdio or http).',
+          choices: ['stdio', 'http'],
+          default: 'http',
+        }),
     )
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
-    .parse()) as { config?: string; [key: string]: unknown };
+    .parse()) as { config?: string; transport?: string; [key: string]: unknown };
 
   const isAvailable = await gcloud.isAvailable();
   if (!isAvailable) {
@@ -105,17 +125,13 @@ const main = async () => {
     }
   }
 
-  const server = new McpServer(
-    {
-      name: 'gcloud-mcp-server',
-      version: pkg.version,
-    },
-    { capabilities: { tools: {} } },
-  );
-  const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
-  createRunGcloudCommand(acl).register(server);
-  await server.connect(new StdioServerTransport());
-  log.info('🚀 gcloud mcp server started');
+  const server = createMCPServer(config);
+
+  if (argv.transport === 'http') {
+    await startStreamableHttpServer(server);
+  } else {
+    await startSTDIOServer(server);
+  }
 
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();

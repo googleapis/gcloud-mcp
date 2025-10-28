@@ -27,7 +27,8 @@ import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { createAccessControlList } from './denylist.js';
-import { startStreamableHttpServer, startSTDIOServer } from './server.js';
+import { startStreamableHttpServer } from './server.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 export const default_deny: string[] = [
   'compute start-iap-tunnel',
@@ -130,7 +131,9 @@ const main = async () => {
   if (argv.transport === 'http') {
     await startStreamableHttpServer(server);
   } else {
-    await startSTDIOServer(server);
+    // Start STDIO Transport Server
+    await server.connect(new StdioServerTransport());
+    log.info('🚀 gcloud mcp server started');
   }
 
   process.on('uncaughtException', async (err: unknown) => {

@@ -1,7 +1,6 @@
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express, { Request, Response } from 'express';
 import { log } from './utility/logger.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 
@@ -43,5 +42,4 @@ export const startStreamableHttpServer = async (server: McpServer) => {
     log.info(`🚀 gcloud mcp server listening on port ${port}`);
   });
 };
-
 

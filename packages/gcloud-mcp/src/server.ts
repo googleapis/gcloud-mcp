@@ -1,6 +1,6 @@
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express, { Request, Response } from 'express';
-import { log } from './utility/logger.js';
+import { log, logger } from './utility/logger.js';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 
@@ -11,7 +11,7 @@ export const startStreamableHttpServer = async (server: McpServer) => {
   app.use(express.json());
 
   app.post('/mcp', async (req: Request, res: Response) => {
-    console.log('/mcp Received:', req.body);
+    logger.info('/mcp Received:', req.body);
     try {
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,

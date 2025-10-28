@@ -59,7 +59,7 @@ Reference for a specific command can also be found by appending the \`--help\` f
 Local gcloud configuration properties can be set via environment variables that gcloud commands may reference at runtime. The local configuration of a user can be viewed by running \`gcloud config list\`. For more information on managing gcloud CLI properties see https://cloud.google.com/sdk/gcloud/reference/config and https://cloud.google.com/sdk/docs/properties.
 `;
 
-export const initializeGeminiCLI = async (local = false, fs = { mkdir, writeFile }) => {
+export const initializeGeminiCLI = async (local = false, transport : string, fs = { mkdir, writeFile }) => {
   try {
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'gcloud-mcp');
@@ -73,12 +73,23 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, writeFile
       description: 'Enable MCP-compatible AI agents to interact with Google Cloud.',
       contextFileName: 'GEMINI.md',
       mcpServers: {
+      },
+    };
+    if (transport === "stdio") {
+      extensionJson['mcpServers'] = {
         gcloud: {
           command: 'npx',
           args: local ? ['-y', 'gcloud-mcp'] : ['-y', '@google-cloud/gcloud-mcp'],
-        },
-      },
-    };
+        }
+      }
+    } else {
+      extensionJson['mcpServers'] = {
+        gcloud: {
+          // Capitalization of the Url matters
+          httpUrl: 'http://localhost:3000/mcp',
+        }
+      }
+    }
     await fs.writeFile(extensionFile, JSON.stringify(extensionJson, null, 2));
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console

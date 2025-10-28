@@ -39,10 +39,16 @@ export const init: CommandModule<object, InstallArgs> = {
         describe: '(Development only) Use a local build of the gcloud-mcp server.',
         type: 'boolean',
         default: false,
+      })
+      .option('transport', {
+        type: 'string',
+        description: 'Specify the mcp server transport type (stdio or http).',
+        choices: ['stdio', 'http'],
+        default: 'stdio',
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(argv['local']);
+      await initializeGeminiCLI(argv['local'], String(argv['transport']));
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

@@ -43,7 +43,7 @@ test('initializeGeminiCLI should create directory and write files', async () => 
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(undefined, {
+  await initializeGeminiCLI(undefined, "stdio", {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });
@@ -82,7 +82,7 @@ test('initializeGeminiCLI should log error if mkdir fails', async () => {
   const mockMkdir = vi.fn().mockRejectedValue(error);
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(undefined, {
+  await initializeGeminiCLI(undefined, "stdio", {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });
@@ -100,7 +100,7 @@ test('initializeGeminiCLI should create directory and write files with local=tru
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(true, {
+  await initializeGeminiCLI(true, "stdio", {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });

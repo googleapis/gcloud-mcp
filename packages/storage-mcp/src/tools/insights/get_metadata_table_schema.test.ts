@@ -198,7 +198,7 @@ describe('getMetadataTableSchema', () => {
 });
 
 describe('registerGetMetadataTableSchemaTool', () => {
-  it('registers the get_metadata_table_schema tool with the server', () => {
+  it('should register the get_metadata_table_schema tool with the server', () => {
     const mockServer = new McpServer();
     vi.spyOn(mockServer, 'registerTool');
     registerGetMetadataTableSchemaTool(mockServer);

@@ -17,9 +17,11 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { listInsightsConfigs, registerListInsightsConfigsTool } from './list_insights_configs';
 import { apiClientFactory } from '../../utility/index.js';
+import { logger } from '../../utility/logger.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 vi.mock('../../utility/index.js');
+vi.mock('../../utility/logger.js');
 vi.mock('@modelcontextprotocol/sdk/server/mcp.js');
 
 describe('listInsightsConfigs', () => {
@@ -35,6 +37,8 @@ describe('listInsightsConfigs', () => {
     (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue(
       mockStorageInsightsClient,
     );
+  
+    (logger.error as vi.Mock).mockClear();
   });
 
   it('should return a list of config names when successful', async () => {
@@ -102,6 +106,31 @@ describe('listInsightsConfigs', () => {
         }),
       },
     ]);
+  });
+
+  it('should handle non-Error objects thrown during API calls', async () => {
+    const fakeNonError = { some: 'detail', code: 500 };
+    mockListDatasetConfigsAsync.mockImplementation(async function* () {
+      throw fakeNonError;
+    });
+
+    const result = await listInsightsConfigs({ projectId: 'test-project' });
+
+    expect(mockListDatasetConfigsAsync).toHaveBeenCalledWith({
+      parent: 'projects/test-project/locations/-',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Failed to list dataset configurations',
+          details: undefined,
+        }),
+      },
+    ]);
+
+    expect(logger.error).toHaveBeenCalledWith('Error listing dataset configs:', undefined);
   });
 
   it('should throw an error if projectId is not provided', async () => {

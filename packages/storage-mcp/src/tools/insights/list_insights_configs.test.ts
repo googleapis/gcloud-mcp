@@ -148,6 +148,31 @@ describe('listInsightsConfigs', () => {
     expect(logger.error).toHaveBeenCalledWith('Error listing dataset configs:', undefined);
   });
 
+  it('should handle non-Error objects thrown during API calls', async () => {
+    const fakeNonError = { some: 'detail', code: 500 };
+    mockListDatasetConfigsAsync.mockImplementation(async function* () {
+      throw fakeNonError;
+    });
+
+    const result = await listInsightsConfigs({ projectId: 'test-project' });
+
+    expect(mockListDatasetConfigsAsync).toHaveBeenCalledWith({
+      parent: 'projects/test-project/locations/-',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Failed to list dataset configurations',
+          details: undefined,
+        }),
+      },
+    ]);
+
+    expect(logger.error).toHaveBeenCalledWith('Error listing dataset configs:', undefined);
+  });
+
   it('should throw an error if projectId is not provided', async () => {
     delete process.env['GOOGLE_CLOUD_PROJECT'];
     delete process.env['GCP_PROJECT_ID'];

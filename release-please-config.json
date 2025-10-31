@@ -3,7 +3,8 @@
   "bootstrap-sha": "b57cea402695c844ca3da20633b1f30f9a372048",
   "packages": {
     "packages/gcloud-mcp": {},
-    "packages/observability-mcp": {}
+    "packages/observability-mcp": {},
+    "packages/gcs-mcp": {}
   },
   "plugins": [
     {

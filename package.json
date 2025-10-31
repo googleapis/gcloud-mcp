@@ -38,5 +38,8 @@
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
-  "packageManager": "npm@11.6.1"
+  "packageManager": "npm@11.6.1",
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.2"
+  }
 }

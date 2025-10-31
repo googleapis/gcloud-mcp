@@ -4,7 +4,7 @@
   "packages": {
     "packages/gcloud-mcp": {},
     "packages/observability-mcp": {},
-    "packages/gcs-mcp": {}
+    "packages/storage-mcp": {}
   },
   "plugins": [
     {

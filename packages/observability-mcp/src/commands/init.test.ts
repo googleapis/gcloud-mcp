@@ -60,6 +60,6 @@ describe('init', () => {
       transport: 'stdio',
     };
     await init.handler(argv);
-    expect(initializeGeminiCLI).toHaveBeenCalledWith(true);
+    expect(initializeGeminiCLI).toHaveBeenCalledWith(true, 'stdio');
   });
 });

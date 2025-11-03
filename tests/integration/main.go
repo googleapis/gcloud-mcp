@@ -6,7 +6,7 @@ import (
 	"integration/client"
 	"os"
 	"os/exec"
-	"strings"
+	"regexp"
 )
 
 func testGeminiMcpList() error {
@@ -24,14 +24,19 @@ func testGeminiMcpList() error {
 	expectedMCPServers := map[string]string{
 		"gcloud":        "gcloud-mcp",
 		"observability": "observability-mcp",
+		"storage":       "storage-mcp",
 	}
 
 	for serverName, binCommand := range expectedMCPServers {
-		expectedOutput := fmt.Sprintf("%s: npx -y %s (stdio) - Connected", serverName, binCommand)
-		if !strings.Contains(string(output), expectedOutput) {
-			return fmt.Errorf("assertion failed: output did not contain the connected %s server line", serverName)
+		expectedRegexMatch := fmt.Sprintf(".*%s.*: npx -y %s .*\\(stdio\\) - Connected", serverName, binCommand)
+		matched, err := regexp.MatchString(expectedRegexMatch, string(output))
+		if err != nil {
+			return fmt.Errorf("error compiling regex: %v", err)
 		}
-		fmt.Printf("✅ Assertion passed: Output contains the connected %s server line.\n", serverName)
+		if !matched {
+			return fmt.Errorf("assertion failed: output did not contain the connected %s server line. Expected regex: %s, Output: %s", serverName, expectedRegexMatch, string(output))
+		}
+		fmt.Printf("✅ Assertion passed: Output regex matched the connected %s server line.\n", serverName)
 	}
 	return nil
 }

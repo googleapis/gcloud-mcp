@@ -24,6 +24,48 @@ import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
 
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import express, { Request, Response } from 'express';
+
+export const startStreamableHttpServer = async (server: McpServer) => {
+  const app = express();
+  const port = 3000;
+
+  app.use(express.json());
+
+  app.post('/mcp', async (req: Request, res: Response) => {
+    console.info('/mcp Received:', req.body);
+    try {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+      });
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+      res.on('close', () => {
+        console.info('Request closed');
+        transport.close();
+        server.close();
+      });
+    } catch (error) {
+      console.error('Error handling MCP request', error instanceof Error ? error : undefined);
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'Internal server error',
+          },
+          id: null,
+        });
+      }
+    }
+  });
+
+  app.listen(port, () => {
+    console.info(`🚀 Cloud Observability MCP listening on port ${port}`);
+  });
+};
+
 const getServer = (): McpServer => {
   const server = new McpServer({
     name: 'observability-mcp',
@@ -44,14 +86,29 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 });
 
 const main = async () => {
-  await yargs(hideBin(process.argv))
-    .command('$0', 'Run the Cloud Observability MCP server')
+  const argv = await yargs(hideBin(process.argv))
+    .command('$0', 'Run the Cloud Observability MCP server' , (yargs) =>
+      yargs
+        .option('transport', {
+          type: 'string',
+          description: 'Specify the transport type (stdio or http).',
+          choices: ['stdio', 'http'] as const,
+          default: 'stdio',
+        }),
+    )
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
     .parse();
 
   const server = getServer();
+
+  if (argv.transport === 'http') {
+    await startStreamableHttpServer(server);
+  } else {
+    // Start STDIO Transport Server
+    await server.connect(new StdioServerTransport());
+  }
   await server.connect(new StdioServerTransport());
   // TODO(https://github.com/googleapis/gcloud-mcp/issues/80): Update to use the custom logger once it's made sharable between packages
   // eslint-disable-next-line no-console

@@ -20,6 +20,7 @@ import { initializeGeminiCLI } from './init-gemini-cli.js';
 interface InstallArgs {
   agent: string;
   local: boolean;
+  transport: string;
 }
 
 export const init: CommandModule<object, InstallArgs> = {
@@ -34,9 +35,15 @@ export const init: CommandModule<object, InstallArgs> = {
         demandOption: true,
       })
       .option('local', {
-        describe: '(Development only) Use a local build of the observability-mcp server.',
+        describe: '(Development only) Use a local build of the gcloud-mcp server.',
         type: 'boolean',
         default: false,
+      })
+      .option('transport', {
+        type: 'string',
+        description: 'Specify the mcp server transport type (stdio or http).',
+        choices: ['stdio', 'http'] as const,
+        default: 'stdio',
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {

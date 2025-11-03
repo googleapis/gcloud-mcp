@@ -34,6 +34,7 @@ export const startStreamableHttpServer = async (server: McpServer) => {
   app.use(express.json());
 
   app.post('/mcp', async (req: Request, res: Response) => {
+    // eslint-disable-next-line no-console
     console.info('/mcp Received:', req.body);
     try {
       const transport = new StreamableHTTPServerTransport({
@@ -42,11 +43,13 @@ export const startStreamableHttpServer = async (server: McpServer) => {
       await server.connect(transport);
       await transport.handleRequest(req, res, req.body);
       res.on('close', () => {
+        // eslint-disable-next-line no-console
         console.info('Request closed');
         transport.close();
         server.close();
       });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error handling MCP request', error instanceof Error ? error : undefined);
       if (!res.headersSent) {
         res.status(500).json({
@@ -62,6 +65,7 @@ export const startStreamableHttpServer = async (server: McpServer) => {
   });
 
   app.listen(port, () => {
+    // eslint-disable-next-line no-console
     console.info(`🚀 Cloud Observability MCP listening on port ${port}`);
   });
 };

@@ -83,7 +83,7 @@ export const initializeGeminiCLI = async (
       };
     } else {
       extensionJson['mcpServers'] = {
-        gcloud: {
+        observability: {
           // Capitalization of the Url matters
           httpUrl: 'http://localhost:3000/mcp',
         },

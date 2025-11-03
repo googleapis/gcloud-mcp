@@ -36,7 +36,7 @@ test('initializeGeminiCLI should create directory and write files', async () => 
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
 
-  await initializeGeminiCLI(undefined, 'stdio',{
+  await initializeGeminiCLI(undefined, 'stdio', {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
   });

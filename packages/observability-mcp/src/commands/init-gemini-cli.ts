@@ -55,7 +55,11 @@ If additional context or information is needed on a Cloud Observability API, ref
   - For example, documentation on \`list_group_stats\` can be found at https://cloud.google.com/error-reporting/reference/rest/v1beta1/projects.groupStats/list
 `;
 
-export const initializeGeminiCLI = async (local = false,  transport = 'stdio', fs = { mkdir, writeFile }) => {
+export const initializeGeminiCLI = async (
+  local = false,
+  transport = 'stdio',
+  fs = { mkdir, writeFile },
+) => {
   try {
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'observability-mcp');
@@ -68,10 +72,10 @@ export const initializeGeminiCLI = async (local = false,  transport = 'stdio', f
       version: pkg.version,
       description: 'Enable MCP-compatible AI agents to interact with Google Cloud Observability.',
       contextFileName: 'GEMINI.md',
-      mcpServers: {}
+      mcpServers: {},
     };
     if (transport === 'stdio') {
-      extensionJson['mcpServers'] =     {
+      extensionJson['mcpServers'] = {
         observability: {
           command: 'npx',
           args: local ? ['-y', 'observability-mcp'] : ['-y', '@google-cloud/observability-mcp'],

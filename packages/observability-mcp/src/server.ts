@@ -86,20 +86,19 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 });
 
 const main = async () => {
-  const argv = await yargs(hideBin(process.argv))
-    .command('$0', 'Run the Cloud Observability MCP server' , (yargs) =>
-      yargs
-        .option('transport', {
-          type: 'string',
-          description: 'Specify the transport type (stdio or http).',
-          choices: ['stdio', 'http'] as const,
-          default: 'stdio',
-        }),
+  const argv = (await yargs(hideBin(process.argv))
+    .command('$0', 'Run the Cloud Observability MCP server', (yargs) =>
+      yargs.option('transport', {
+        type: 'string',
+        description: 'Specify the transport type (stdio or http).',
+        choices: ['stdio', 'http'] as const,
+        default: 'stdio',
+      }),
     )
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
-    .parse() as {transport?: string;};
+    .parse()) as { transport?: string };
 
   const server = getServer();
 

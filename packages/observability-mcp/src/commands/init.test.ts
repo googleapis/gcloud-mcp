@@ -33,6 +33,7 @@ describe('init', () => {
       $0: 'test',
       _: [],
       local: false,
+      transport: 'stdio',
     };
     await init.handler(argv);
     expect(initializeGeminiCLI).toHaveBeenCalled();
@@ -44,6 +45,7 @@ describe('init', () => {
       $0: 'test',
       _: [],
       local: false,
+            transport: 'stdio',
     };
     await expect(init.handler(argv)).rejects.toThrow('Unknown agent: not-gemini-cli');
     expect(initializeGeminiCLI).not.toHaveBeenCalled();
@@ -55,6 +57,8 @@ describe('init', () => {
       $0: 'test',
       _: [],
       local: true,
+            transport: 'stdio',
+
     };
     await init.handler(argv);
     expect(initializeGeminiCLI).toHaveBeenCalledWith(true);

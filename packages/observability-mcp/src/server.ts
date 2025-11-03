@@ -99,7 +99,7 @@ const main = async () => {
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
-    .parse();
+    .parse() as {transport?: string;};
 
   const server = getServer();
 

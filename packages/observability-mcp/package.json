@@ -40,16 +40,15 @@
   "author": "Google LLC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",
+    "@types/yargs": "^17.0.33",
     "google-auth-library": "^10.1.0",
     "googleapis": "^155.0.0",
-    "@types/yargs": "^17.0.33",
     "yargs": "^18.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.39.0",
     "@tsconfig/strictest": "^2.0.5",
+    "@types/express": "^5.0.5",
     "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
@@ -60,10 +59,12 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-license-header": "^0.8.0",
     "eslint-plugin-prettier": "^5.5.4",
-    "prettier": "^3.6.2",
-    "turbo": "latest",
-    "vitest": "^3.2.4",
     "memfs": "^4.36.0",
-    "ts-node": "^10.9.2"
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "turbo": "latest",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0",
+    "vitest": "^3.2.4"
   }
 }

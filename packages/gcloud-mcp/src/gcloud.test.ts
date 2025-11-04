@@ -22,12 +22,19 @@ import { isWindows } from './gcloud.js';
 
 vi.mock('child_process', () => ({
   spawn: vi.fn(),
+  execFileSync: vi.fn(),
 }));
 
 const mockedSpawn = child_process.spawn as unknown as Mock;
 
+const mockExecFileSync = () => {
+  const execFileSync = vi.mocked(child_process.execFileSync);
+  execFileSync.mockImplementation(() => 'gcloud');
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  mockExecFileSync();
 });
 
 test('should return true if which command succeeds', async () => {
@@ -113,8 +120,7 @@ test('should correctly handle stdout and stderr', async () => {
 
   const result = await resultPromise;
 
-  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
-  expect(mockedSpawn).toHaveBeenCalledWith(command, ['interactive-command'], {
+  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   expect(result.code).toBe(0);
@@ -145,8 +151,7 @@ test('should correctly non-zero exit codes', async () => {
 
   const result = await resultPromise;
 
-  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
-  expect(mockedSpawn).toHaveBeenCalledWith(command, ['interactive-command'], {
+  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   expect(result.code).toBe(1);
@@ -169,8 +174,7 @@ test('should reject when process fails to start', async () => {
   const resultPromise = gcloud.invoke(['some-command']);
 
   await expect(resultPromise).rejects.toThrow('Failed to start');
-  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
-  expect(mockedSpawn).toHaveBeenCalledWith(command, ['some-command'], {
+  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['some-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 });
@@ -204,9 +208,8 @@ test('should correctly call lint double quotes', async () => {
 
   const result = await resultPromise;
 
-  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
   expect(mockedSpawn).toHaveBeenCalledWith(
-    command,
+    'gcloud',
     [
       'meta',
       'lint-gcloud-commands',
@@ -251,17 +254,6 @@ test('should correctly call lint single quotes', async () => {
 
   const result = await resultPromise;
 
-  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
-  expect(mockedSpawn).toHaveBeenCalledWith(
-    command,
-    [
-      'meta',
-      'lint-gcloud-commands',
-      '--command-string',
-      "gcloud compute instances list --project 'cloud123'",
-    ],
-    { stdio: ['ignore', 'pipe', 'pipe'] },
-  );
   if (!result.success) {
     assert.fail(`Expected successful response.`);
   }

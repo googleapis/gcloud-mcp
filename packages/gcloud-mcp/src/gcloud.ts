@@ -16,6 +16,7 @@
 
 import { z } from 'zod';
 import * as child_process from 'child_process';
+import { execFileSync } from 'child_process';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 
@@ -30,6 +31,38 @@ export const isAvailable = (): Promise<boolean> =>
     });
   });
 
+/**
+ * Finds the absolute path of gcloud by calling the native
+ * 'which' (POSIX) or 'where' (Windows) command.
+ *
+ * @returns The absolute path to the gcloud executable, or `null` if not found.
+ */
+export const findGcloudPath = (): string | null => {
+  const command = isWindows() ? 'where' : 'which';
+
+  try {
+    // Run the command. This will throw an error if the command fails
+    // (e.g., non-zero exit code if the file is not found).
+    const output = execFileSync(command, ['gcloud'], {
+      encoding: 'utf8', // Get string output, not a buffer
+      windowsHide: true, // Don't flash a console window on Windows
+      timeout: 2000, // Set a 2-second timeout
+    });
+
+    // The output may contain multiple lines (especially 'where')
+    // We'll split by newline, filter empty lines, and take the first one.
+    const lines = output.split(/\r?\n/).filter((line) => line.trim() !== '');
+    return lines[0]?.trim() ?? null; // Return the first path found
+  } catch (e: unknown) {
+    // This catch block handles all errors:
+    // 1. 'which'/'where' not found (ENOENT)
+    // 2. Command times out
+    // 3. Command returns non-zero exit code (e.g., executable not found)
+    // In all these "failure" cases, we safely return null.
+    return null;
+  }
+};
+
 export interface GcloudInvocationResult {
   code: number | null;
   stdout: string;
@@ -41,7 +74,11 @@ export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
     let stdout = '';
     let stderr = '';
 
-    const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
+    const command = findGcloudPath();
+    if (!command) {
+      reject('gcloud executable not found');
+      return;
+    }
     const gcloud = child_process.spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
     gcloud.stdout.on('data', (data) => {

@@ -60,6 +60,32 @@ jobs:
         run: |
           npm run test:i
 
+  integration-test:
+    name: Test (Node ${{ matrix.node-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: lint
+    permissions:
+      contents: read # For checkout
+    strategy:
+      fail-fast: false # So we can see all test failures
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: ['22.x']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:integration --workspace packages/gcloud-mcp
+
   coverage:
     if: github.actor != 'dependabot[bot]'
     name: Coverage

@@ -113,7 +113,8 @@ test('should correctly handle stdout and stderr', async () => {
 
   const result = await resultPromise;
 
-  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
+  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
+  expect(mockedSpawn).toHaveBeenCalledWith(command, ['interactive-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   expect(result.code).toBe(0);
@@ -144,7 +145,8 @@ test('should correctly non-zero exit codes', async () => {
 
   const result = await resultPromise;
 
-  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
+  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
+  expect(mockedSpawn).toHaveBeenCalledWith(command, ['interactive-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   expect(result.code).toBe(1);
@@ -167,7 +169,8 @@ test('should reject when process fails to start', async () => {
   const resultPromise = gcloud.invoke(['some-command']);
 
   await expect(resultPromise).rejects.toThrow('Failed to start');
-  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['some-command'], {
+  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
+  expect(mockedSpawn).toHaveBeenCalledWith(command, ['some-command'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 });
@@ -201,8 +204,9 @@ test('should correctly call lint double quotes', async () => {
 
   const result = await resultPromise;
 
+  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
   expect(mockedSpawn).toHaveBeenCalledWith(
-    'gcloud',
+    command,
     [
       'meta',
       'lint-gcloud-commands',
@@ -247,8 +251,9 @@ test('should correctly call lint single quotes', async () => {
 
   const result = await resultPromise;
 
+  const command = isWindows() ? 'gcloud.cmd' : 'gcloud';
   expect(mockedSpawn).toHaveBeenCalledWith(
-    'gcloud',
+    command,
     [
       'meta',
       'lint-gcloud-commands',

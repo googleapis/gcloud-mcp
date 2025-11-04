@@ -68,7 +68,7 @@ func testCallGcloudMCPTool() error {
 
 	var parsedOutput mcpOutput
 	if err := json.Unmarshal([]byte(output), &parsedOutput); err != nil {
-		return fmt.Errorf("error parsing MCP output: %v", err)
+		return fmt.Errorf("error parsing MCP output: %v\nOutput: %s", err, output)
 	}
 
 	if len(parsedOutput.Content) == 0 {
@@ -77,7 +77,7 @@ func testCallGcloudMCPTool() error {
 
 	var config gcloudConfig
 	if err := json.Unmarshal([]byte(parsedOutput.Content[0].Text), &config); err != nil {
-		return fmt.Errorf("error parsing gcloud config from MCP output: %v", err)
+		return fmt.Errorf("error parsing gcloud config from MCP output: %v\nOutput: %s", err, parsedOutput)
 	}
 
 	if config.Core.Project == "gcloud-mcp-testing" {

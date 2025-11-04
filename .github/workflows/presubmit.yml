@@ -60,10 +60,10 @@ jobs:
         run: |
           npm run test:i
 
-  integration-test:
-    name: Test (Node ${{ matrix.node-version }}, ${{ matrix.os }})
+  gcloud-test:
+    name: gcloud Test (Node ${{ matrix.node-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    needs: lint
+    needs: test
     permissions:
       contents: read # For checkout
     strategy:
@@ -82,6 +82,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3
+        with:
+          version: '>= 363.0.0'
 
       - name: Run tests
         run: npm run test:integration --workspace packages/gcloud-mcp

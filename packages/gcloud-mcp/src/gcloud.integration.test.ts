@@ -27,3 +27,23 @@ test('can invoke gcloud to lint a command', async () => {
   assert(result.success);
   expect(result.parsedCommand).toBe('compute instances list');
 }, 30000);
+
+test('cannot inject a command by appending arguments', async () => {
+  const result = await gcloud.invoke(['config', 'list', '&&', 'echo', 'other']);
+  expect(result.code).toBeGreaterThan(0);
+}, 30000);
+
+test('cannot inject a command by appending command', async () => {
+  const result = await gcloud.invoke(['config', 'list', '&&', 'echo other']);
+  expect(result.code).toBeGreaterThan(0);
+}, 30000);
+
+test('cannot inject a command with a final argument', async () => {
+  const result = await gcloud.invoke(['config', 'list', '&& echo other']);
+  expect(result.code).toBeGreaterThan(0);
+}, 30000);
+
+test('cannot inject a command with a single argument', async () => {
+  const result = await gcloud.invoke(['config list && echo other']);
+  expect(result.code).toBeGreaterThan(0);
+}, 30000);

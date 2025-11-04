@@ -19,16 +19,28 @@ import * as child_process from 'child_process';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 
-export const isAvailable = (): Promise<boolean> =>
-  new Promise((resolve) => {
-    const which = child_process.spawn(isWindows() ? 'where' : 'which', ['gcloud']);
-    which.on('close', (code) => {
-      resolve(code === 0);
+export const isAvailable = (): boolean => findExecutablePath('gcloud') !== null;
+
+export const findExecutablePath = (exeName: string): string | null => {
+  try {
+    const output = child_process.execFileSync(isWindows() ? 'where' : 'which', [exeName], {
+      encoding: 'utf8',
+      windowsHide: true, // Don't flash a console window on Windows
+      timeout: 3000,
     });
-    which.on('error', () => {
-      resolve(false);
-    });
-  });
+    const lines = output.split(/\r?\n/).filter((line) => line.trim() !== '');
+    return lines[0]?.trim() ?? null;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
+    // This catch block handles all errors:
+    // 1. 'which'/'where' not found (ENOENT)
+    // 2. Command times out
+    // 3. Command returns non-zero exit code (e.g., executable not found)
+    // In all these "failure" cases, we safely return null.
+    return null;
+  }
+};
 
 export interface GcloudInvocationResult {
   code: number | null;
@@ -36,21 +48,43 @@ export interface GcloudInvocationResult {
   stderr: string;
 }
 
+const createProcess = async (args: string[]): Promise<child_process.ChildProcess> => {
+  const stdio: child_process.StdioOptions = ['ignore', 'pipe', 'pipe'];
+
+  if (isWindows()) {
+    const cmdPath = findExecutablePath('cmd.exe');
+    if (!cmdPath) {
+      throw new Error('unable to find path to cmd.exe');
+    }
+
+    const gcloudPath = findExecutablePath('gcloud');
+    if (!gcloudPath) {
+      throw new Error('unable to find path to gcloud');
+    }
+
+    return child_process.spawn(gcloudPath, args, {
+      stdio,
+      env: {
+        ...process.env,
+        COMSPEC: cmdPath,
+      },
+    });
+  }
+
+  return child_process.spawn('gcloud', args, { stdio });
+};
+
 export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
-  new Promise((resolve, reject) => {
+  new Promise(async (resolve, reject) => {
     let stdout = '';
     let stderr = '';
 
-    const gcloudCommand = isWindows() ? 'cmd.exe' : 'gcloud';
-    const gcloudArgs = isWindows() ? ['/c', 'gcloud.cmd', ...args] : args;
-    const gcloud = child_process.spawn(gcloudCommand, gcloudArgs, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const gcloud = await createProcess(args);
 
-    gcloud.stdout.on('data', (data) => {
+    gcloud.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
-    gcloud.stderr.on('data', (data) => {
+    gcloud.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
 

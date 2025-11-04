@@ -29,7 +29,8 @@ test('can invoke gcloud to lint a command', async () => {
 }, 30000);
 
 test('cannot inject a command by appending arguments', async () => {
-  const result = await gcloud.invoke(['config', 'list', '&&', 'echo', 'other']);
+  const result = await gcloud.invoke(['config', 'list', '&&', 'echo', 'asdf']);
+  expect(result.stdout).not.toContain('asdf');
   expect(result.code).toBeGreaterThan(0);
 }, 30000);
 

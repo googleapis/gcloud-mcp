@@ -46,13 +46,15 @@ export const findGcloudPath = (): string | null => {
     const output = execFileSync(command, ['gcloud'], {
       encoding: 'utf8', // Get string output, not a buffer
       windowsHide: true, // Don't flash a console window on Windows
-      timeout: 2000, // Set a 2-second timeout
+      timeout: 3000, // Set a 3-second timeout
     });
 
     // The output may contain multiple lines (especially 'where')
     // We'll split by newline, filter empty lines, and take the first one.
     const lines = output.split(/\r?\n/).filter((line) => line.trim() !== '');
     return lines[0]?.trim() ?? null; // Return the first path found
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e: unknown) {
     // This catch block handles all errors:
     // 1. 'which'/'where' not found (ENOENT)

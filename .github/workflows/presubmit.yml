@@ -20,6 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
+          cache: 'npm'
           node-version-file: '.nvmrc'
 
       - name: Install dependencies
@@ -51,6 +52,7 @@ jobs:
       - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
+          cache: 'npm'
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
@@ -74,6 +76,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
+          cache: 'npm'
           node-version-file: '.nvmrc'
 
       - name: Install dependencies

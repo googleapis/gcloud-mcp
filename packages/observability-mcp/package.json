@@ -41,6 +41,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",
     "@types/yargs": "^17.0.33",
+    "express": "^5.1.0",
     "google-auth-library": "^10.1.0",
     "googleapis": "^155.0.0",
     "yargs": "^18.0.0",

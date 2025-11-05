@@ -47,6 +47,33 @@ gemini mcp list
 > ✓ gcloud: npx -y @google-cloud/gcloud-mcp (stdio) - Connected
 ```
 
+### Streamable HTTP
+
+The gcloud-mcp server supports a streamable HTTP transport mode, leveraging an Express server. Below are the steps to set up, configure, and verify this mode.
+
+
+```shell
+npx @google-cloud/gcloud-mcp --transport=http
+```
+This command will initialize an express gcloud MCP server that listens on the default port(3000)
+
+```shell
+npx @google-cloud/gcloud-mcp init --agent=gemini-cli --transport=http
+```
+This command creates the necessary configuration for gemini-cli to connect to a http gcloud MCP server
+
+After the initialization process, you can verify the gcloud MCP server is configured correctly by running the following command:
+
+```
+gemini mcp list
+
+> ✓ gcloud (from gcloud-mcp): http://localhost:3000/mcp (http) - Connected
+```
+
+Disclaimer:
+
+Please be aware that gcloud itself is not designed to be multi-threading safe. Running gcloud-mcp, which may invoke gcloud commands, could potentially lead to concurrency issues in a multi-request environment.
+
 ### Allowlist / Denylist Commands
 
 The gcloud MCP server also allows for allowlisting/denylisting commands. For more information, see the [denylist documentation](../../doc/denylist.md).

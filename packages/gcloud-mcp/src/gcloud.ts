@@ -57,10 +57,11 @@ const createProcess = async (args: string[]): Promise<child_process.ChildProcess
       throw new Error('unable to find path to cmd.exe');
     }
 
-    const gcloudPath = findExecutablePath('gcloud');
+    let gcloudPath = findExecutablePath('gcloud');
     if (!gcloudPath) {
       throw new Error('unable to find path to gcloud');
     }
+    gcloudPath = gcloudPath.endsWith('.cmd') ? gcloudPath : `${gcloudPath}.cmd`;
 
     return child_process.spawn(gcloudPath, args, {
       stdio,

@@ -20,13 +20,13 @@ import { defineConfig } from 'vitest/config';
 // eslint-disable-next-line import/no-default-export
 export default defineConfig({
   test: {
-    include: ['**/src/**/*.test.ts', '**/src/**/*.test.js'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/src/**/*.integration.test.ts'],
+    include: ['**/src/**/*.integration.test.ts', '**/src/**/*.integration.test.js'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
     environment: 'node',
     globals: true,
     reporters: ['default', 'junit'],
     silent: true,
-    outputFile: { junit: 'junit.xml' },
+    outputFile: { junit: 'junit.integration.xml' },
     coverage: {
       enabled: true,
       provider: 'v8',
@@ -36,10 +36,10 @@ export default defineConfig({
         'cobertura',
         'html',
         'json',
-        ['json-summary', { outputFile: 'coverage-summary.json' }],
+        ['json-summary', { outputFile: 'coverage-summary.integration.json' }],
         'lcov',
         'text',
-        ['text', { file: 'full-text-summary.txt' }],
+        ['text', { file: 'full-text-summary.integration.txt' }],
       ],
     },
   },

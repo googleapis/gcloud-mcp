@@ -504,7 +504,8 @@ export const registerTools = (server: McpServer): void => {
     {
       parent: z.string().describe(
         `Required. The parent project to list alerts for.
-        The required format is: projects/[PROJECT_ID_OR_NUMBER]`),
+        The required format is: projects/[PROJECT_ID_OR_NUMBER]`,
+      ),
       filter: z
         .string()
         .optional()
@@ -525,10 +526,10 @@ export const registerTools = (server: McpServer): void => {
       pageSize: z
         .number()
         .optional()
-        .default(50)
+        .default(20)
         .describe(
           `Optional. The maximum number of results to return in a single response. 
-          Default is 50. If the value is negative, the request is rejected. 
+          Default is 20. If the value is negative, the request is rejected. 
           The maximum value is 1000; values above 1000 will be coerced to 1000.`,
         ),
       pageToken: z

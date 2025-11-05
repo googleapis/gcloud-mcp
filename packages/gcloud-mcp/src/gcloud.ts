@@ -48,55 +48,35 @@ export interface GcloudInvocationResult {
   stderr: string;
 }
 
-const createProcess = async (args: string[]): Promise<child_process.ChildProcess> => {
-  const stdio: child_process.StdioOptions = ['ignore', 'pipe', 'pipe'];
-
-  if (isWindows()) {
-    const cmdPath = findExecutablePath('cmd.exe');
-    if (!cmdPath) {
-      throw new Error('unable to find path to cmd.exe');
-    }
-
-    let gcloudPath = findExecutablePath('gcloud');
-    if (!gcloudPath) {
-      throw new Error('unable to find path to gcloud');
-    }
-    gcloudPath = gcloudPath.endsWith('.cmd') ? gcloudPath : `${gcloudPath}.cmd`;
-
-    return child_process.spawn(gcloudPath, args, {
-      stdio,
-      env: {
-        ...process.env,
-        COMSPEC: cmdPath,
-      },
-    });
-  }
-
-  return child_process.spawn('gcloud', args, { stdio });
-};
-
 export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
   new Promise(async (resolve, reject) => {
     let stdout = '';
     let stderr = '';
 
-    const gcloud = await createProcess(args);
+    try {
+      const command = isWindows() ? 'gcloud.ps1' : 'gcloud';
+      const gcloud = child_process.spawn(command, args, {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
 
-    gcloud.stdout?.on('data', (data) => {
-      stdout += data.toString();
-    });
-    gcloud.stderr?.on('data', (data) => {
-      stderr += data.toString();
-    });
+      gcloud.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+      gcloud.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
 
-    gcloud.on('close', (code) => {
-      // All responses from gcloud, including non-zero codes.
-      resolve({ code, stdout, stderr });
-    });
-    gcloud.on('error', (err) => {
-      // Process failed to start. gcloud isn't able to be invoked.
-      reject(err);
-    });
+      gcloud.on('close', (code) => {
+        // All responses from gcloud, including non-zero codes.
+        resolve({ code, stdout, stderr });
+      });
+      gcloud.on('error', (err) => {
+        // Process failed to start. gcloud isn't able to be invoked.
+        reject(err);
+      });
+    } catch (e: unknown) {
+      reject(e);
+    }
   });
 
 // There are more fields in this object, but we're only parsing the ones currently in use.

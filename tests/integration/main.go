@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 )
 
 func testGeminiMcpList() error {
@@ -60,24 +61,31 @@ func testCallGcloudMCPTool() error {
 			Text string `json:"text"`
 		} `json:"content"`
 	}
-	type gcloudConfig struct {
-		Core struct {
-			Project string `json:"project"`
-		} `json:"core"`
-	}
 
 	var parsedOutput mcpOutput
 	if err := json.Unmarshal([]byte(output), &parsedOutput); err != nil {
-		return fmt.Errorf("error parsing MCP output: %v", err)
+		return fmt.Errorf("error parsing MCP output: %v\nOutput: %s", err, output)
 	}
 
 	if len(parsedOutput.Content) == 0 {
 		return fmt.Errorf("MCP output content is empty")
 	}
 
+	// Look for STDERR in the output and truncate the string before this keyword if found.
+	parsedText := parsedOutput.Content[0].Text
+	stderrIndex := strings.Index(parsedText, "STDERR")
+	if stderrIndex != -1 {
+		parsedText = parsedText[:stderrIndex]
+	}
+
+	type gcloudConfig struct {
+		Core struct {
+			Project string `json:"project"`
+		} `json:"core"`
+	}
 	var config gcloudConfig
-	if err := json.Unmarshal([]byte(parsedOutput.Content[0].Text), &config); err != nil {
-		return fmt.Errorf("error parsing gcloud config from MCP output: %v", err)
+	if err := json.Unmarshal([]byte(parsedText), &config); err != nil {
+		return fmt.Errorf("error parsing gcloud config from MCP output: %v\nOutput: %s", err, parsedText)
 	}
 
 	if config.Core.Project == "gcloud-mcp-testing" {

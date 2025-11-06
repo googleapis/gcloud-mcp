@@ -20,26 +20,19 @@ import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 import { TableField } from '@google-cloud/bigquery';
+import { protos } from '@google-cloud/service-usage';
+
+type ServiceResource = protos.google.api.serviceusage.v1.IService;
 
 const serviceName = 'storageinsights.googleapis.com';
 
 const inputSchema = {
-  datasetConfigName: z
-    .string()
-    .describe(
-      'The name of the dataset configuration.',
-    ),
-  datasetConfigLocation: z
-    .string()
-    .describe(
-      'The location of the dataset configuration.',
-    ),
+  datasetConfigName: z.string().describe('The name of the dataset configuration.'),
+  datasetConfigLocation: z.string().describe('The location of the dataset configuration.'),
   projectId: z
     .string()
     .optional()
-    .describe(
-      'The project ID to check Storage Insights availability for.',
-    ),
+    .describe('The project ID to check Storage Insights availability for.'),
 };
 
 type GetMetadataTableSchemaParams = z.infer<z.ZodObject<typeof inputSchema>>;
@@ -54,7 +47,8 @@ export async function getMetadataTableSchema(
   const bigqueryClient = apiClientFactory.getBigQueryClient();
   const storageInsightsClient = apiClientFactory.getStorageInsightsClient();
   const serviceUsageClient = apiClientFactory.getServiceUsageClient();
-  const projectId = params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
+  const projectId =
+    params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
 
   if (!projectId) {
     throw new Error(
@@ -67,7 +61,9 @@ export async function getMetadataTableSchema(
     filter: 'state:ENABLED',
   });
 
-  const isEnabled = services.some((service: any) => service.config?.name === serviceName);
+  const isEnabled = services.some(
+    (service: ServiceResource) => service.config?.name === serviceName,
+  );
 
   if (!isEnabled) {
     throw new Error(

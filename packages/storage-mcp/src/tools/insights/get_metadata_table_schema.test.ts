@@ -15,7 +15,10 @@
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getMetadataTableSchema, registerGetMetadataTableSchemaTool } from './get_metadata_table_schema';
+import {
+  getMetadataTableSchema,
+  registerGetMetadataTableSchemaTool,
+} from './get_metadata_table_schema';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -49,9 +52,13 @@ describe('getMetadataTableSchema', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue({ getDatasetConfig: mockGetDatasetConfig });
+    (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue({
+      getDatasetConfig: mockGetDatasetConfig,
+    });
     (apiClientFactory.getBigQueryClient as vi.Mock).mockReturnValue(mockBigQueryClient);
-    (apiClientFactory.getServiceUsageClient as vi.Mock).mockReturnValue({ listServices: mockListServices });
+    (apiClientFactory.getServiceUsageClient as vi.Mock).mockReturnValue({
+      listServices: mockListServices,
+    });
 
     mockListServices.mockResolvedValue([[{ config: { name: 'storageinsights.googleapis.com' } }]]);
     process.env['GOOGLE_CLOUD_PROJECT'] = 'insights-test-project';
@@ -66,17 +73,36 @@ describe('getMetadataTableSchema', () => {
   it('returns schemas with hints for a valid config', async () => {
     mockGetDatasetConfig.mockResolvedValue([validConfig]);
     mockGetMetadata.mockResolvedValueOnce([
-      { schema: { fields: [{ name: 'name', type: 'STRING' }, { name: 'testField', type: 'STRING' }] } },
+      {
+        schema: {
+          fields: [
+            { name: 'name', type: 'STRING' },
+            { name: 'testField', type: 'STRING' },
+          ],
+        },
+      },
     ]);
     mockGetMetadata.mockResolvedValueOnce([
-      { schema: { fields: [{ name: 'bucket', type: 'STRING' }, { name: 'anotherField', type: 'INTEGER' }] } },
+      {
+        schema: {
+          fields: [
+            { name: 'bucket', type: 'STRING' },
+            { name: 'anotherField', type: 'INTEGER' },
+          ],
+        },
+      },
     ]);
 
     const result = await getMetadataTableSchema(validParams);
     const resultData = JSON.parse(result.content[0].text as string);
 
-    expect(mockListServices).toHaveBeenCalledWith({ parent: 'projects/insights-test-project', filter: 'state:ENABLED' });
-    expect(mockGetDatasetConfig).toHaveBeenCalledWith({ name: 'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config' });
+    expect(mockListServices).toHaveBeenCalledWith({
+      parent: 'projects/insights-test-project',
+      filter: 'state:ENABLED',
+    });
+    expect(mockGetDatasetConfig).toHaveBeenCalledWith({
+      name: 'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config',
+    });
     expect(mockDataset).toHaveBeenCalledWith('test-dataset');
     expect(mockGetMetadata).toHaveBeenCalledTimes(2);
 
@@ -102,7 +128,10 @@ describe('getMetadataTableSchema', () => {
       error: 'Failed to get metadata table schema',
       details: 'Configuration does not have a linked dataset.',
     });
-    expect(logger.error).toHaveBeenCalledWith('Error getting metadata table schema:', expect.any(Error));
+    expect(logger.error).toHaveBeenCalledWith(
+      'Error getting metadata table schema:',
+      expect.any(Error),
+    );
   });
 
   it('returns error if BigQuery API fails', async () => {
@@ -148,7 +177,12 @@ describe('getMetadataTableSchema', () => {
     delete process.env['GOOGLE_CLOUD_PROJECT'];
     delete process.env['GCP_PROJECT_ID'];
 
-    await expect(getMetadataTableSchema({ datasetConfigName: 'test-config', datasetConfigLocation: 'us-central1' })).rejects.toThrow(
+    await expect(
+      getMetadataTableSchema({
+        datasetConfigName: 'test-config',
+        datasetConfigLocation: 'us-central1',
+      }),
+    ).rejects.toThrow(
       'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',
     );
   });
@@ -183,7 +217,9 @@ describe('getMetadataTableSchema', () => {
   });
 
   it('returns error if dataset ID cannot be extracted', async () => {
-    const configWithInvalidDataset = { link: { dataset: 'projects/insights-test-project/datasets/' } };
+    const configWithInvalidDataset = {
+      link: { dataset: 'projects/insights-test-project/datasets/' },
+    };
     mockGetDatasetConfig.mockResolvedValue([configWithInvalidDataset]);
 
     const result = await getMetadataTableSchema(validParams);
@@ -193,7 +229,10 @@ describe('getMetadataTableSchema', () => {
       error: 'Failed to get metadata table schema',
       details: 'Could not extract dataset ID from linked dataset.',
     });
-    expect(logger.error).toHaveBeenCalledWith('Error getting metadata table schema:', expect.any(Error));
+    expect(logger.error).toHaveBeenCalledWith(
+      'Error getting metadata table schema:',
+      expect.any(Error),
+    );
   });
 });
 

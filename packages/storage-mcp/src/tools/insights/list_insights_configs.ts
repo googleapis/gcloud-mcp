@@ -33,7 +33,8 @@ export async function listInsightsConfigs(
   params: ListInsightsConfigsParams,
 ): Promise<CallToolResult> {
   const storageInsightsClient = apiClientFactory.getStorageInsightsClient();
-  const projectId = params.projectId || process.env['GOOGLE_CLOUD_PROJECT' ] || process.env['GCP_PROJECT_ID'];
+  const projectId =
+    params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
   if (!projectId) {
     throw new Error(
       'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',

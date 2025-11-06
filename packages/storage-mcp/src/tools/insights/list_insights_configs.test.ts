@@ -37,7 +37,7 @@ describe('listInsightsConfigs', () => {
     (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue(
       mockStorageInsightsClient,
     );
-  
+
     (logger.error as vi.Mock).mockClear();
   });
 

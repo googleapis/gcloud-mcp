@@ -1,0 +1,67 @@
+{
+  "name": "@google-cloud/backupdr-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "files": [
+    "dist/"
+  ],
+  "bin": {
+    "backupdr-mcp": "./dist/bundle.js"
+  },
+  "scripts": {
+    "build": "tsc --noemit && node build.js",
+    "test": "vitest run",
+    "start": "node dist/bundle.js",
+    "lint": "prettier --check . && eslint . --max-warnings 0",
+    "fix": "prettier --write . && eslint . --fix",
+    "prepare": "npm run build",
+    "pretest": "npm run build",
+    "posttest": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/googleapis/gcloud-mcp.git",
+    "directory": "packages/backupdr-mcp"
+  },
+  "keywords": [
+    "backup",
+    "disaster recovery",
+    "gcp",
+    "google cloud",
+    "mcp",
+    "mcp server"
+  ],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/googleapis/gcloud-mcp/issues"
+  },
+  "homepage": "https://github.com/googleapis/gcloud-mcp#readme",
+  "description": "Model Context Protocol (MCP) Server for interacting with Google Cloud Backup and Disaster Recovery",
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0",
+    "@tsconfig/strictest": "^2.0.5",
+    "@types/node": "^24.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "esbuild": "^0.25.10",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-license-header": "^0.8.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "turbo": "latest",
+    "vitest": "^3.2.4",
+    "memfs": "^4.36.0",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@types/yargs": "^17.0.33",
+    "yargs": "^18.0.0",
+    "zod": "^3.25.76",
+    "@google-cloud/backupdr": "^0.5.0"
+  }
+}

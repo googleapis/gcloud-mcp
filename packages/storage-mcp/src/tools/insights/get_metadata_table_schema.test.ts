@@ -15,14 +15,10 @@
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-<<<<<<< HEAD
 import {
   getMetadataTableSchema,
   registerGetMetadataTableSchemaTool,
 } from './get_metadata_table_schema';
-=======
-import { getMetadataTableSchema, registerGetMetadataTableSchemaTool } from './get_metadata_table_schema';
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -56,7 +52,6 @@ describe('getMetadataTableSchema', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-<<<<<<< HEAD
     (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue({
       getDatasetConfig: mockGetDatasetConfig,
     });
@@ -64,11 +59,6 @@ describe('getMetadataTableSchema', () => {
     (apiClientFactory.getServiceUsageClient as vi.Mock).mockReturnValue({
       listServices: mockListServices,
     });
-=======
-    (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue({ getDatasetConfig: mockGetDatasetConfig });
-    (apiClientFactory.getBigQueryClient as vi.Mock).mockReturnValue(mockBigQueryClient);
-    (apiClientFactory.getServiceUsageClient as vi.Mock).mockReturnValue({ listServices: mockListServices });
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
 
     mockListServices.mockResolvedValue([[{ config: { name: 'storageinsights.googleapis.com' } }]]);
     process.env['GOOGLE_CLOUD_PROJECT'] = 'insights-test-project';
@@ -83,7 +73,6 @@ describe('getMetadataTableSchema', () => {
   it('returns schemas with hints for a valid config', async () => {
     mockGetDatasetConfig.mockResolvedValue([validConfig]);
     mockGetMetadata.mockResolvedValueOnce([
-<<<<<<< HEAD
       {
         schema: {
           fields: [
@@ -102,18 +91,11 @@ describe('getMetadataTableSchema', () => {
           ],
         },
       },
-=======
-      { schema: { fields: [{ name: 'name', type: 'STRING' }, { name: 'testField', type: 'STRING' }] } },
-    ]);
-    mockGetMetadata.mockResolvedValueOnce([
-      { schema: { fields: [{ name: 'bucket', type: 'STRING' }, { name: 'anotherField', type: 'INTEGER' }] } },
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
     ]);
 
     const result = await getMetadataTableSchema(validParams);
     const resultData = JSON.parse(result.content[0].text as string);
 
-<<<<<<< HEAD
     expect(mockListServices).toHaveBeenCalledWith({
       parent: 'projects/insights-test-project',
       filter: 'state:ENABLED',
@@ -121,10 +103,6 @@ describe('getMetadataTableSchema', () => {
     expect(mockGetDatasetConfig).toHaveBeenCalledWith({
       name: 'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config',
     });
-=======
-    expect(mockListServices).toHaveBeenCalledWith({ parent: 'projects/insights-test-project', filter: 'state:ENABLED' });
-    expect(mockGetDatasetConfig).toHaveBeenCalledWith({ name: 'projects/insights-test-project/locations/us-central1/datasetConfigs/test-config' });
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
     expect(mockDataset).toHaveBeenCalledWith('test-dataset');
     expect(mockGetMetadata).toHaveBeenCalledTimes(2);
 
@@ -150,21 +128,16 @@ describe('getMetadataTableSchema', () => {
       error: 'Failed to get metadata table schema',
       details: 'Configuration does not have a linked dataset.',
     });
-<<<<<<< HEAD
     expect(logger.error).toHaveBeenCalledWith(
       'Error getting metadata table schema:',
       expect.any(Error),
     );
-=======
-    expect(logger.error).toHaveBeenCalledWith('Error getting metadata table schema:', expect.any(Error));
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
   });
 
   it('returns error if BigQuery API fails', async () => {
     mockGetDatasetConfig.mockResolvedValue([validConfig]);
     const fakeError = new Error('BigQuery API error');
     mockGetMetadata.mockRejectedValue(fakeError);
-<<<<<<< HEAD
 
     const result = await getMetadataTableSchema(validParams);
     const resultData = JSON.parse(result.content[0].text as string);
@@ -248,102 +221,18 @@ describe('getMetadataTableSchema', () => {
       link: { dataset: 'projects/insights-test-project/datasets/' },
     };
     mockGetDatasetConfig.mockResolvedValue([configWithInvalidDataset]);
-=======
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
 
     const result = await getMetadataTableSchema(validParams);
     const resultData = JSON.parse(result.content[0].text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to get metadata table schema',
-<<<<<<< HEAD
       details: 'Could not extract dataset ID from linked dataset.',
     });
     expect(logger.error).toHaveBeenCalledWith(
       'Error getting metadata table schema:',
       expect.any(Error),
     );
-=======
-      details: 'BigQuery API error',
-    });
-    expect(logger.error).toHaveBeenCalledWith('Error getting metadata table schema:', fakeError);
-  });
-
-  it('returns error if getDatasetConfig fails', async () => {
-    const fakeError = new Error('Dataset config not found');
-    mockGetDatasetConfig.mockRejectedValue(fakeError);
-
-    const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
-
-    expect(resultData).toEqual({
-      error: 'Failed to retrieve dataset configuration',
-      details: 'Dataset config not found',
-    });
-    expect(logger.error).toHaveBeenCalledWith('Error getting dataset config:', fakeError);
-  });
-
-  it('throws error if Storage Insights API is not enabled', async () => {
-    mockListServices.mockResolvedValue([[]]);
-
-    await expect(getMetadataTableSchema(validParams)).rejects.toThrow(
-      'Storage Insights API is not enabled for project insights-test-project. Please enable it to proceed.',
-    );
-    expect(mockListServices).toHaveBeenCalled();
-    expect(mockGetDatasetConfig).not.toHaveBeenCalled();
-  });
-
-  it('throws error if projectId is not provided', async () => {
-    delete process.env['GOOGLE_CLOUD_PROJECT'];
-    delete process.env['GCP_PROJECT_ID'];
-
-    await expect(getMetadataTableSchema({ datasetConfigName: 'test-config', datasetConfigLocation: 'us-central1' })).rejects.toThrow(
-      'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',
-    );
-  });
-
-  it('handles non-Error objects thrown during getDatasetConfig', async () => {
-    const fakeNonError = { code: 500, message: 'Non-Error issue' };
-    mockGetDatasetConfig.mockRejectedValue(fakeNonError);
-
-    const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
-
-    expect(resultData).toEqual({
-      error: 'Failed to retrieve dataset configuration',
-      details: undefined,
-    });
-    expect(logger.error).toHaveBeenCalledWith('Error getting dataset config:', undefined);
-  });
-
-  it('handles non-Error objects thrown during BigQuery calls', async () => {
-    mockGetDatasetConfig.mockResolvedValue([validConfig]);
-    const fakeNonError = { status: 'failed' };
-    mockGetMetadata.mockRejectedValue(fakeNonError);
-
-    const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
-
-    expect(resultData).toEqual({
-      error: 'Failed to get metadata table schema',
-      details: undefined,
-    });
-    expect(logger.error).toHaveBeenCalledWith('Error getting metadata table schema:', undefined);
-  });
-
-  it('returns error if dataset ID cannot be extracted', async () => {
-    const configWithInvalidDataset = { link: { dataset: 'projects/insights-test-project/datasets/' } };
-    mockGetDatasetConfig.mockResolvedValue([configWithInvalidDataset]);
-
-    const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
-
-    expect(resultData).toEqual({
-      error: 'Failed to get metadata table schema',
-      details: 'Could not extract dataset ID from linked dataset.',
-    });
-    expect(logger.error).toHaveBeenCalledWith('Error getting metadata table schema:', expect.any(Error));
->>>>>>> 9d2465b (fix(storage-mcp): Fix failing metadata schema tests and increase tools coverage to 100% (#274))
   });
 });
 

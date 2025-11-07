@@ -159,7 +159,6 @@ describe('listInsightsConfigs', () => {
     expect(mockListDatasetConfigsAsync).toHaveBeenCalledWith({
       parent: 'projects/test-project/locations/-',
     });
-
     expect(result.content).toEqual([
       {
         type: 'text',
@@ -169,7 +168,6 @@ describe('listInsightsConfigs', () => {
         }),
       },
     ]);
-
     expect(logger.error).toHaveBeenCalledWith('Error listing dataset configs:', undefined);
   });
 

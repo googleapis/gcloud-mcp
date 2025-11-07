@@ -25,9 +25,7 @@ const inputSchema = {
   projectId: z
     .string()
     .optional()
-    .describe(
-      'The project ID to check Storage Insights availability for.',
-    ),
+    .describe('The project ID to check Storage Insights availability for.'),
 };
 
 type CheckInsightsAvailabilityParams = z.infer<z.ZodObject<typeof inputSchema>>;
@@ -36,7 +34,8 @@ export async function checkInsightsAvailability(
   params: CheckInsightsAvailabilityParams,
 ): Promise<CallToolResult> {
   const serviceUsageClient = apiClientFactory.getServiceUsageClient();
-  const projectId = params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
+  const projectId =
+    params.projectId || process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
   if (!projectId) {
     throw new Error(
       'Project ID not specified. Please specify via the projectId parameter or GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID environment variable.',

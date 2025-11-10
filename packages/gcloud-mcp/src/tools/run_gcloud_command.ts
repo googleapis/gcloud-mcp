@@ -74,7 +74,7 @@ export const createRunGcloudCommand = (acl: AccessControlList, windowsCloudSDKSe
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          const parsedLintResult = await gcloud.lint(args.join(' '));
+          const parsedLintResult = await gcloud.lint(args.join(' '), windowsCloudSDKSettings);
           if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }

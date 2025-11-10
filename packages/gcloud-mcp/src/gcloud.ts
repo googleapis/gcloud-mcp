@@ -16,6 +16,9 @@
 
 import { z } from 'zod';
 import * as child_process from 'child_process';
+import * as path from 'path';
+import { WindowsCloudSDKSettings } from './windows_gcloud_utils.js';
+import Stream from 'stream';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 
@@ -36,12 +39,24 @@ export interface GcloudInvocationResult {
   stderr: string;
 }
 
-export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
+
+
+export const invoke = (args: string[], windowsCloudSDKSettings: WindowsCloudSDKSettings | null = null): Promise<GcloudInvocationResult> =>
   new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
-
-    const gcloud = child_process.spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    
+    let gcloud: child_process.ChildProcessByStdio<null, Stream.Readable, Stream.Readable>;
+    if (windowsCloudSDKSettings && windowsCloudSDKSettings.isWindowsPlatform && windowsCloudSDKSettings.cloudSDKSettings) {
+      // Use the specialized logic to invoke gcloud on Windows
+      const pythonArgs = windowsCloudSDKSettings.cloudSDKSettings.cloudSdkPythonArgs.split(' ').filter(arg => arg.length > 0);
+      const gcloudPath = path.join(windowsCloudSDKSettings.cloudSDKSettings.cloudSdkRootDir, 'bin', 'gcloud');
+      const newArgs = [...pythonArgs, gcloudPath, ...args];
+      gcloud = child_process.spawn(windowsCloudSDKSettings.cloudSDKSettings.cloudSdkPython, newArgs, { stdio: ['ignore', 'pipe', 'pipe'], env: windowsCloudSDKSettings.cloudSDKSettings.env });
+    }
+    else {
+      gcloud = child_process.spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    }
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();
@@ -81,13 +96,13 @@ export type ParsedGcloudLintResult =
       error: string;
     };
 
-export const lint = async (command: string): Promise<ParsedGcloudLintResult> => {
+export const lint = async (command: string, windowsCloudSDKSettings: WindowsCloudSDKSettings | null = null): Promise<ParsedGcloudLintResult> => {
   const { code, stdout, stderr } = await invoke([
     'meta',
     'lint-gcloud-commands',
     '--command-string',
     `gcloud ${command}`,
-  ]);
+  ], windowsCloudSDKSettings);
 
   const json = JSON.parse(stdout);
   const lintCommands: LintCommandsOutput = LintCommandsSchema.parse(json);

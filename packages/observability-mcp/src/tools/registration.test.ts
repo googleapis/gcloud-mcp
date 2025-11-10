@@ -32,6 +32,7 @@ vi.mock('./index.js', () => ({
   listMetricDescriptors: vi.fn(),
   listTimeSeries: vi.fn(),
   listAlertPolicies: vi.fn(),
+  listAlerts: vi.fn(),
   listTraces: vi.fn(),
   getTrace: vi.fn(),
 }));

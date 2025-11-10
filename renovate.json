@@ -2,12 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base", "schedule:weekly"],
   "automerge": false,
-  "stabilityDays": 14,
+  "minimumReleaseAge": "14 days",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "groupName": "all non-major dependency updates",
-      "groupSlug": "all-non-major"
+      "groupName": "standard dependency updates"
+    },
+    {
+      "description": "Allow auto-generated Apiary clients to immediately update",
+      "matchPackageNames": ["googleapis"],
+      "matchUpdateTypes": ["major", "minor", "patch", "pin"],
+      "groupName": "standard dependency updates",
+      "minimumReleaseAge": "0 days"
     }
   ]
 }

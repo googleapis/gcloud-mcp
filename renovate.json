@@ -6,8 +6,14 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "groupName": "all non-major dependency updates",
-      "groupSlug": "all-non-major"
+      "groupName": "standard dependency updates"
+    },
+    {
+      "description": "Allow auto-generated Apiary clients to immediately update",
+      "matchPackageNames": ["googleapis"],
+      "matchUpdateTypes": ["major", "minor", "patch", "pin"],
+      "groupName": "standard dependency updates",
+      "stabilityDays": 0
     }
   ]
 }

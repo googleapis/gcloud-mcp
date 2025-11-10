@@ -20,6 +20,7 @@ import { AccessControlList } from '../denylist.js';
 import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
+import { WindowsCloudSDKSettings } from 'src/windows_gcloud_utils.js';
 
 const suggestionErrorMessage = (suggestedCommand: string) =>
   `Execution denied: This command not permitted. However, a similar command is permitted.
@@ -31,7 +32,7 @@ const aclErrorMessage = (aclMessage: string) =>
   '\n\n' +
   'To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]';
 
-export const createRunGcloudCommand = (acl: AccessControlList) => ({
+export const createRunGcloudCommand = (acl: AccessControlList, windowsCloudSDKSettings: WindowsCloudSDKSettings | null = null) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -62,6 +63,9 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
 
         if (args.join(' ') === 'gcloud-mcp debug config') {
           return successfulTextResult(acl.print());
+        }
+        if (windowsCloudSDKSettings) {
+          console.log("some error");
         }
 
         let parsedCommand;

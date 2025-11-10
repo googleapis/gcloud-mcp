@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base", "schedule:weekly"],
   "automerge": false,
-  "stabilityDays": 14,
+  "minimumReleaseAge": "14 days",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
@@ -13,7 +13,7 @@
       "matchPackageNames": ["googleapis"],
       "matchUpdateTypes": ["major", "minor", "patch", "pin"],
       "groupName": "standard dependency updates",
-      "stabilityDays": 0
+      "minimumReleaseAge": "0 days"
     }
   ]
 }

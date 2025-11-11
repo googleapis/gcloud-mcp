@@ -139,3 +139,39 @@ export async function listAlertPolicies(
     throw new Error('An unknown error occurred while listing alert policies.');
   }
 }
+
+/**
+ * Lists alerts from the Google Cloud Monitoring API.
+ * @param parent Required. The name of the project to list alerts for.
+ * @param filter Optional. An alert is returned if there is a match on any fields belonging to the alert or its subfields.
+ * @param orderBy Optional. A comma-separated list of fields in Alert to use for sorting. The default sort direction is ascending. To specify descending order for a field, add a desc modifier. The following fields are supported: open_time close_timeFor example, close_time desc, open_time will return the alerts closed most recently, with ties broken in the order of older alerts listed first.If the field is not set, the results are sorted by open_time desc.
+ * @param pageSize Optional. The maximum number of results to return in a single response. If not set to a positive number, at most 50 alerts will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.
+ * @param pageToken Optional. If non-empty, page_token must contain a value returned as the next_page_token in a previous response to request the next set of results.
+ * @returns A promise that resolves with a string containing the alerts
+ *     in JSON format, or an error message.
+ */
+export async function listAlerts(
+  parent: string,
+  filter?: string,
+  orderBy?: string,
+  pageSize?: number,
+  pageToken?: string,
+): Promise<string> {
+  const request = {
+    parent,
+    filter,
+    orderBy,
+    pageSize,
+    pageToken,
+  };
+
+  try {
+    const response = await monitoring.projects.alerts.list(request);
+    return JSON.stringify(response.data.alerts || [], null, 2);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to list alerts: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while listing alerts.');
+  }
+}

@@ -25,8 +25,11 @@ import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
 import { log } from './utility/logger.js';
+import fs from 'fs';
+import path from 'path';
+import { createAccessControlList } from './denylist.js';
 
-export const default_denylist: string[] = [
+export const default_deny: string[] = [
   'compute start-iap-tunnel',
   'compute connect-to-serial-port',
   'compute tpus tpu-vm ssh',
@@ -36,6 +39,7 @@ export const default_denylist: string[] = [
   'workstations ssh',
   'app instances ssh',
   'interactive',
+  'meta',
 ];
 
 const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({
@@ -46,18 +50,59 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
   },
 });
 
+interface McpConfig {
+  allow?: string[];
+  deny?: string[];
+}
+
+export type { McpConfig };
+
 const main = async () => {
-  await yargs(hideBin(process.argv))
-    .command('$0', 'Run the gcloud mcp server')
+  const argv = (await yargs(hideBin(process.argv))
+    .command('$0', 'Run the gcloud mcp server', (yargs) =>
+      yargs.option('config', {
+        type: 'string',
+        description: 'Path to a JSON configuration file for allowlist/denylist.',
+        alias: 'c',
+      }),
+    )
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
-    .parse();
+    .parse()) as { config?: string; [key: string]: unknown };
 
   const isAvailable = await gcloud.isAvailable();
   if (!isAvailable) {
     log.error('Unable to start gcloud mcp server: gcloud executable not found.');
     process.exit(1);
+  }
+
+  let config: McpConfig = {};
+  const configFile = argv.config;
+
+  if (configFile) {
+    try {
+      if (!path.isAbsolute(configFile)) {
+        log.error(`Config file path must be absolute: ${configFile}`);
+        process.exit(1);
+      }
+      const configFileContent = fs.readFileSync(configFile, 'utf-8');
+      config = JSON.parse(configFileContent);
+
+      if (config.allow && config.deny) {
+        log.error(
+          'Configuration can not specify both "allow" and "deny" lists. Please choose one.',
+        );
+        process.exit(1);
+      }
+      log.info(`Loaded configuration from ${configFile}`);
+    } catch (error) {
+      log.error(
+        `Error reading or parsing config file: ${configFile}`,
+        error instanceof Error ? error : undefined,
+      );
+      process.exit(1);
+    }
   }
 
   const server = new McpServer(
@@ -67,7 +112,8 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
-  createRunGcloudCommand(default_denylist).register(server);
+  const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
+  createRunGcloudCommand(acl).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { test, expect, beforeEach, Mock, vi } from 'vitest';
+import { test, expect, beforeEach, Mock, vi, assert } from 'vitest';
 import * as child_process from 'child_process';
 import { PassThrough } from 'stream';
 import * as gcloud from './gcloud.js';
+import { isWindows } from './gcloud.js';
 
 vi.mock('child_process', () => ({
   spawn: vi.fn(),
@@ -42,7 +43,11 @@ test('should return true if which command succeeds', async () => {
   const result = await gcloud.isAvailable();
 
   expect(result).toBe(true);
-  expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  if (isWindows()) {
+    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
+  } else {
+    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  }
 });
 
 test('should return false if which command fails with non-zero exit code', async () => {
@@ -58,7 +63,11 @@ test('should return false if which command fails with non-zero exit code', async
   const result = await gcloud.isAvailable();
 
   expect(result).toBe(false);
-  expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  if (isWindows()) {
+    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
+  } else {
+    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  }
 });
 
 test('should return false if which command fails', async () => {
@@ -74,7 +83,11 @@ test('should return false if which command fails', async () => {
   const result = await gcloud.isAvailable();
 
   expect(result).toBe(false);
-  expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  if (isWindows()) {
+    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
+  } else {
+    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
+  }
 });
 
 test('should correctly handle stdout and stderr', async () => {
@@ -174,10 +187,16 @@ test('should correctly call lint double quotes', async () => {
 
   const resultPromise = gcloud.lint('compute instances list --project "cloud123"');
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
+  const json = JSON.stringify([
+    {
+      command_string_no_args: 'gcloud compute instances list',
+      success: true,
+      error_message: null,
+      error_type: null,
+    },
+  ]);
+  mockChildProcess.stdout.emit('data', json);
+  mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
   const result = await resultPromise;
@@ -192,9 +211,11 @@ test('should correctly call lint double quotes', async () => {
     ],
     { stdio: ['ignore', 'pipe', 'pipe'] },
   );
-  expect(result.code).toBe(0);
-  expect(result.stdout).toContain('Standard output');
-  expect(result.stderr).toContain('Standard error');
+
+  if (!result.success) {
+    assert.fail(`Expected successful response.`);
+  }
+  expect(result.parsedCommand).toBe('compute instances list');
 });
 
 test('should correctly call lint single quotes', async () => {
@@ -212,10 +233,16 @@ test('should correctly call lint single quotes', async () => {
 
   const resultPromise = gcloud.lint("compute instances list --project 'cloud123'");
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
+  const json = JSON.stringify([
+    {
+      command_string_no_args: 'gcloud compute instances list',
+      success: true,
+      error_message: null,
+      error_type: null,
+    },
+  ]);
+  mockChildProcess.stdout.emit('data', json);
+  mockChildProcess.stderr.emit('data', 'Update available');
   mockChildProcess.stdout.end();
 
   const result = await resultPromise;
@@ -230,7 +257,8 @@ test('should correctly call lint single quotes', async () => {
     ],
     { stdio: ['ignore', 'pipe', 'pipe'] },
   );
-  expect(result.code).toBe(0);
-  expect(result.stdout).toContain('Standard output');
-  expect(result.stderr).toContain('Standard error');
+  if (!result.success) {
+    assert.fail(`Expected successful response.`);
+  }
+  expect(result.parsedCommand).toBe('compute instances list');
 });

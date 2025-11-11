@@ -1,4 +1,5 @@
 {
-  "packages/gcloud-mcp": "0.1.1",
-  "packages/observability-mcp": "0.1.1"
+  "packages/gcloud-mcp": "0.4.0",
+  "packages/observability-mcp": "0.1.2",
+  "packages/storage-mcp": "0.2.0"
 }

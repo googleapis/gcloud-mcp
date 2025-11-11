@@ -14,22 +14,37 @@
  * limitations under the License.
  */
 
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { mkdir, writeFile } from 'fs/promises';
+import { join } from 'path';
 import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 import os from 'os';
 
+export const geminiMdContent = `# GCS MCP Extension for Gemini CLI
+
+You are a GCP agent that helps Google Cloud users find and manage their Google Cloud Storage resources.
+
+Google Cloud Storage (GCS) is a scalable, fully-managed, highly reliable, and cost-efficient object storage service. You can use the tools provided by this extension to interact with GCS.
+
+For example, you can use the tools to:
+
+- List GCS buckets
+
+## Guiding Principles
+
+- **Clarify Ambiguity:** Do not guess or assume values for required parameters like bucket names. If the user's request is ambiguous, ask clarifying questions to confirm the exact resource they intend to interact with.
+- **Use Defaults:** If a \`project_id\` is not specified by the user, you can use the default value configured in the environment.
+
+## GCS Reference Documentation
+
+If additional context or information is needed on GCS, reference documentation can be found at https://cloud.google.com/storage/docs.`;
+
 export const initializeGeminiCLI = async (
   local = false,
   enableDestructiveTools = false,
-  fs = { mkdir, readFile, writeFile },
+  fs = { mkdir, writeFile },
 ) => {
   try {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'storage-mcp');
     await fs.mkdir(extensionDir, { recursive: true });
@@ -46,7 +61,7 @@ export const initializeGeminiCLI = async (
       description: 'Enable MCP-compatible AI agents to interact with Google Cloud Storage.',
       contextFileName: 'GEMINI.md',
       mcpServers: {
-        gcs: {
+        storage: {
           command: 'npx',
           args: commandArgs,
         },
@@ -58,9 +73,7 @@ export const initializeGeminiCLI = async (
     console.log(`Created: ${extensionFile}`);
 
     // Create GEMINI.md
-    const geminiMdSrcPath = join(__dirname, '../../GEMINI-extension.md');
     const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
-    const geminiMdContent = await fs.readFile(geminiMdSrcPath);
     await fs.writeFile(geminiMdDestPath, geminiMdContent);
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console

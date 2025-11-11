@@ -15,7 +15,7 @@
  */
 
 import { test, expect, vi, beforeEach } from 'vitest';
-import { initializeGeminiCLI } from './init-gemini-cli.js';
+import { geminiMd, initializeGeminiCLI } from './init-gemini-cli.js';
 import { join } from 'path';
 import pkg from '../../package.json' with { type: 'json' };
 import os from 'os';
@@ -35,12 +35,10 @@ test('initializeGeminiCLI should create directory and write files', async () => 
   vi.spyOn(os, 'homedir').mockReturnValue(homedir);
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
-  const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
 
   await initializeGeminiCLI(undefined, {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
-    readFile: mockReadFile,
   });
 
   const extensionDir = join(homedir, '.gemini', 'extensions', 'observability-mcp');
@@ -68,22 +66,19 @@ test('initializeGeminiCLI should create directory and write files', async () => 
     JSON.stringify(expectedExtensionJson, null, 2),
   );
 
-  // Verify GEMINI.md reading and writing
-  expect(mockReadFile).toHaveBeenCalled();
-  expect(mockWriteFile).toHaveBeenCalledWith(geminiMdDestPath, 'Test content for GEMINI.md');
+  // Verify GEMINI.md writing
+  expect(mockWriteFile).toHaveBeenCalledWith(geminiMdDestPath, geminiMd);
 });
 
 test('initializeGeminiCLI should log error if mkdir fails', async () => {
   const error = new Error('mkdir failed');
   const mockMkdir = vi.fn().mockRejectedValue(error);
   const mockWriteFile = vi.fn();
-  const mockReadFile = vi.fn();
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
   await initializeGeminiCLI(undefined, {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
-    readFile: mockReadFile,
   });
 
   expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -100,12 +95,10 @@ test('initializeGeminiCLI should create directory and write files with local=tru
   vi.spyOn(os, 'homedir').mockReturnValue(homedir);
   const mockMkdir = vi.fn();
   const mockWriteFile = vi.fn();
-  const mockReadFile = vi.fn().mockResolvedValue('Test content for GEMINI.md');
 
   await initializeGeminiCLI(true, {
     mkdir: mockMkdir,
     writeFile: mockWriteFile,
-    readFile: mockReadFile,
   });
 
   const extensionDir = join(homedir, '.gemini', 'extensions', 'observability-mcp');
@@ -133,7 +126,6 @@ test('initializeGeminiCLI should create directory and write files with local=tru
     JSON.stringify(expectedExtensionJson, null, 2),
   );
 
-  // Verify GEMINI.md reading and writing
-  expect(mockReadFile).toHaveBeenCalled();
-  expect(mockWriteFile).toHaveBeenCalledWith(geminiMdDestPath, 'Test content for GEMINI.md');
+  // Verify GEMINI.md writing
+  expect(mockWriteFile).toHaveBeenCalledWith(geminiMdDestPath, geminiMd);
 });

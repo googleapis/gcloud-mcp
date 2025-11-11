@@ -22,6 +22,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { MAX_CONTENT_SIZE } from '../../utility/gcs_helpers.js';
+import { detectBufferType } from '../../utility/file_type_detector.js';
 import { logger } from '../../utility/logger.js';
 
 const inputSchema = {
@@ -58,8 +59,6 @@ const supportedMimeTypes = [
   'audio/webm',
 ];
 
-const knownTextEncodings = ['UTF-8', 'UTF-16LE', 'UTF-16BE', 'ASCII', 'ISO-8859-1'];
-
 type ReadObjectContentParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function readObjectContent(params: ReadObjectContentParams): Promise<CallToolResult> {
@@ -92,17 +91,14 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
     }
 
     const [buffer] = await file.download();
+    const detectedType = detectBufferType(buffer, contentType, params.object_name);
+    let encoding = chardet.detect(buffer);
 
-    // Try to detect character encoding for reasonably sized files
-    const encoding = chardet.detect(buffer);
-
-    if (
-      encoding &&
-      knownTextEncodings.includes(encoding) &&
-      contentType !== 'application/octet-stream'
-    ) {
+    if (detectedType === 'text' && contentType !== 'application/octet-stream') {
       try {
-        // Try to decode as text.
+        // Default to text encoding utf-8 if chardet couldn't figure it out.
+        // We trust that detectBufferType has is correct in guessing 'text'.
+        encoding = encoding || 'utf-8';
         const content = decode(buffer, encoding);
         const result = {
           bucket: params.bucket_name,

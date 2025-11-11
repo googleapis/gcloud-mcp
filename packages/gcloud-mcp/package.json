@@ -1,15 +1,17 @@
 {
   "name": "@google-cloud/gcloud-mcp",
-  "version": "0.1.1",
+  "version": "0.4.0",
   "type": "module",
-  "main": "dist/src/index.js",
+  "files": [
+    "dist/"
+  ],
   "bin": {
-    "gcloud-mcp": "./dist/src/index.js"
+    "gcloud-mcp": "./dist/bundle.js"
   },
   "scripts": {
-    "build": "tsc -p . && cp GEMINI-extension.md dist/ && cp ../../README.md .",
+    "build": "tsc --noemit && node build.js",
     "test": "vitest run",
-    "start": "node dist/src/index.js",
+    "start": "node dist/bundle.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",
     "fix": "prettier --write . && eslint . --fix",
     "prepare": "npm run build",
@@ -42,6 +44,7 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "esbuild": "^0.25.10",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",

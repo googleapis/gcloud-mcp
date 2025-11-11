@@ -28,6 +28,7 @@ import {
   listMetricDescriptors,
   listTimeSeries,
   listAlertPolicies,
+  listAlerts,
   listTraces,
   getTrace,
 } from './index.js';
@@ -492,6 +493,62 @@ export const registerTools = (server: McpServer): void => {
           params.pageSize,
           params.pageToken,
         ),
+      ),
+  );
+
+  server.tool(
+    'list_alerts',
+    `Use this as the primary tool to list the alerts in a Google Cloud project.
+    An alert is the representation of a violation of an alert policy.
+    This is useful for understanding current and past violations of an alert policy.`,
+    {
+      parent: z.string().describe(
+        `Required. The parent project to list alerts for.
+        The required format is: projects/[PROJECT_ID_OR_NUMBER]`,
+      ),
+      filter: z
+        .string()
+        .optional()
+        .describe(
+          `Optional. An alert is returned if there is a match on any fields belonging to the alert or its subfields.
+          An example to filter for only OPEN alerts would be: state="OPEN"`,
+        ),
+      orderBy: z
+        .string()
+        .optional()
+        .describe(
+          `Optional. A comma-separated list of fields in Alert to use for sorting. 
+          The default sort direction is ascending. To specify descending order for a field, add a desc modifier. 
+          The following fields are supported: 'open_time', 'close_time'. 
+          For example, 'close_time desc, open_time' will return the alerts closed most recently, with ties broken in the order of older alerts listed first. 
+          If the field is not set, the results are sorted by 'open_time desc'.`,
+        ),
+      pageSize: z
+        .number()
+        .optional()
+        .default(20)
+        .describe(
+          `Optional. The maximum number of results to return in a single response. 
+          Default is 20. If the value is negative, the request is rejected. 
+          The maximum value is 1000; values above 1000 will be coerced to 1000.`,
+        ),
+      pageToken: z
+        .string()
+        .optional()
+        .describe(
+          `Optional. If non-empty, page_token must contain a value returned as the next_page_token in a previous response to request the next set of results. 
+          The values of other method parameters should be identical to those in the previous call.`,
+        ),
+    },
+    (params: {
+      parent: string;
+      filter?: string;
+      orderBy?: string;
+      pageSize?: number;
+      pageToken?: string;
+    }) =>
+      toolWrapper(async () =>
+        listAlerts(params.parent, params.filter, params.orderBy, params.pageSize, params.pageToken),
       ),
   );
 

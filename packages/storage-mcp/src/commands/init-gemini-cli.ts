@@ -29,7 +29,6 @@ Google Cloud Storage (GCS) is a scalable, fully-managed, highly reliable, and co
 For example, you can use the tools to:
 
 - List GCS buckets
-- Get the largest object for a content type
 
 ## Guiding Principles
 

@@ -113,6 +113,7 @@ describe('copyObjectSafe', () => {
       },
     ]);
   });
+
   it('should return a "NotFound" error if the source or destination is not found (404)', async () => {
     const mockError = { message: 'Not Found', code: 404 };
     const mockFile = {

@@ -109,6 +109,7 @@ describe('writeObjectSafe', () => {
       },
     ]);
   });
+
   it('should return an "InvalidContent" error if the content is not valid base64', async () => {
     const mockError = new Error('Content is not a valid base64 string.');
     (validateBase64Content as vi.Mock).mockImplementation(() => {

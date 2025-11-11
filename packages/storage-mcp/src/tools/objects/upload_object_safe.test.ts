@@ -134,6 +134,7 @@ describe('uploadObjectSafe', () => {
       },
     ]);
   });
+
   it('should return an "AlreadyExists" error if the condition is not met', async () => {
     const mockError = {
       message: 'condition not met',

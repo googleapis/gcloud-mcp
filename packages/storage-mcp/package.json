@@ -7,7 +7,7 @@
     "storage-mcp": "./dist/src/index.js"
   },
   "scripts": {
-    "build": "tsc -p . && cp GEMINI-extension.md dist/ && cp CLAUDE-extension.md dist/",
+    "build": "tsc -p . && cp GEMINI-extension.md dist/",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.config.integration.ts",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",

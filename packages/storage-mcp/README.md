@@ -27,13 +27,9 @@ bucket and object management. With the Storage MCP server you can:
   aggregations and compute statistics on entire storage inventory using [Storage Insights
   Datasets](https://cloud.google.com/storage/docs/insights/datasets)
 
-  <img src="./assets/easy_access_3x.gif" width="80%" alt="Easy Access Demo">
-
 - **Run advanced filters and searches on your data.** Search and filter your objects
   by file type, size and other metadata fields using [Storage Insights
   Datasets](https://cloud.google.com/storage/docs/insights/datasets)
-
-  <img src="./assets/easy_access_3x.gif" width="80%" alt="Easy Access Demo">
 
 ## 🚀 Getting Started
 

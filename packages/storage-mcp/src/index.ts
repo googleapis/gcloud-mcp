@@ -43,18 +43,20 @@ const main = async () => {
     .command(
       'init',
       'Initialize the storage-mcp extension for Gemini CLI',
-      (yargs) =>
-        yargs
+      (yargs) => {
+        return yargs
           .option('local', {
             type: 'boolean',
             description: 'Install from local source',
             default: false,
           })
           .option('enable-destructive-tools', {
-            describe: 'Enable tools that can modify or delete existing GCS content.',
+            describe:
+              'Enable tools that can modify or delete existing GCS content.',
             type: 'boolean',
             default: false,
-          }),
+          });
+      },
       async (argv) => {
         await initializeGeminiCLI(argv.local, argv.enableDestructiveTools);
         process.exit(0);
@@ -63,18 +65,20 @@ const main = async () => {
     .command(
       'init-claude',
       'Initialize the storage-mcp extension for Claude',
-      (yargs) =>
-        yargs
+      (yargs) => {
+        return yargs
           .option('local', {
             type: 'boolean',
             description: 'Install from local source',
             default: false,
           })
           .option('enable-destructive-tools', {
-            describe: 'Enable tools that can modify or delete existing GCS content.',
+            describe:
+              'Enable tools that can modify or delete existing GCS content.',
             type: 'boolean',
             default: false,
-          }),
+          });
+      },
       async (argv) => {
         await initializeClaude(argv.local, argv.enableDestructiveTools);
         process.exit(0);

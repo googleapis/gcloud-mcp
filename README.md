@@ -166,7 +166,10 @@ For more information regarding installing the repository locally, please see
 |               | `update_bucket_labels`    | Updates labels for a bucket.                                                                                                                              |
 |               | `get_bucket_location`     | Gets the location of a bucket.                                                                                                                            |
 |               | `view_iam_policy`         | Views the IAM policy for a bucket.                                                                                                                        |
-|               | `check_iam_permissions`   | Tests IAM permissions for a bucket.                                                                                                                       |
+|               | `check_iam_permissions`   | Tests IAM permissions for a bucket.                                                                                         |
+|               | `get_metadata_table_schema` | Checks if GCS insights service is enabled and returns the BigQuery table schema for a given insights dataset configuration. |
+|               | `execute_insights_query`    | Executes a BigQuery SQL query against an insights dataset and returns the result.                                         |
+|               | `list_insights_configs`     | Lists the names of all Storage Insights dataset configurations for a given project.                                       |
 
 ## 🔑 MCP Permissions
 

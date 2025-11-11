@@ -1,22 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"integration/client"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
-func main() {
+func testGeminiMcpList() error {
 	fmt.Println("🚀 Starting gcloud-mcp integration test...")
 
 	cmd := exec.Command("gemini", "mcp", "list")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error executing command: %v\n", err)
-		fmt.Println("Output:")
-		fmt.Println(string(output))
-		os.Exit(1)
+		return fmt.Errorf("error executing command: %v\nOutput:\n%s", err, string(output))
 	}
 
 	fmt.Println("Command output:")
@@ -25,16 +25,89 @@ func main() {
 	expectedMCPServers := map[string]string{
 		"gcloud":        "gcloud-mcp",
 		"observability": "observability-mcp",
+		"storage":       "storage-mcp",
 	}
 
 	for serverName, binCommand := range expectedMCPServers {
-		expectedOutput := fmt.Sprintf("%s: npx -y %s (stdio) - Connected", serverName, binCommand)
-		if strings.Contains(string(output), expectedOutput) {
-			fmt.Printf("✅ Assertion passed: Output contains the connected %s server line.\n", serverName)
-		} else {
-			fmt.Printf("❌ Assertion failed: Output did not contain the connected %s server line.\n", serverName)
-			os.Exit(1)
+		expectedRegexMatch := fmt.Sprintf(".*%s.*: npx -y %s .*\\(stdio\\) - Connected", serverName, binCommand)
+		matched, err := regexp.MatchString(expectedRegexMatch, string(output))
+		if err != nil {
+			return fmt.Errorf("error compiling regex: %v", err)
 		}
+		if !matched {
+			return fmt.Errorf("assertion failed: output did not contain the connected %s server line. Expected regex: %s, Output: %s", serverName, expectedRegexMatch, string(output))
+		}
+		fmt.Printf("✅ Assertion passed: Output regex matched the connected %s server line.\n", serverName)
 	}
-	os.Exit(0)
+	return nil
+}
+
+func testCallGcloudMCPTool() error {
+	fmt.Println("🚀 Starting gcloud-mcp tool call integration test...")
+	gcloudToolCall := client.ToolCall{
+		ServerCmd: []string{"gcloud-mcp"},
+		ToolName:  "run_gcloud_command",
+		ToolArgs: map[string]any{
+			"args": []string{"config", "list", "--format=json"},
+		},
+	}
+
+	output, err := client.InvokeMCPTool(gcloudToolCall)
+	if err != nil {
+		return fmt.Errorf("error executing command: %v\nOutput:\n%s", err, string(output))
+	}
+	type mcpOutput struct {
+		Content []struct {
+			Text string `json:"text"`
+		} `json:"content"`
+	}
+
+	var parsedOutput mcpOutput
+	if err := json.Unmarshal([]byte(output), &parsedOutput); err != nil {
+		return fmt.Errorf("error parsing MCP output: %v\nOutput: %s", err, output)
+	}
+
+	if len(parsedOutput.Content) == 0 {
+		return fmt.Errorf("MCP output content is empty")
+	}
+
+	// Look for STDERR in the output and truncate the string before this keyword if found.
+	parsedText := parsedOutput.Content[0].Text
+	stderrIndex := strings.Index(parsedText, "STDERR")
+	if stderrIndex != -1 {
+		parsedText = parsedText[:stderrIndex]
+	}
+
+	type gcloudConfig struct {
+		Core struct {
+			Project string `json:"project"`
+		} `json:"core"`
+	}
+	var config gcloudConfig
+	if err := json.Unmarshal([]byte(parsedText), &config); err != nil {
+		return fmt.Errorf("error parsing gcloud config from MCP output: %v\nOutput: %s", err, parsedText)
+	}
+
+	if config.Core.Project == "gcloud-mcp-testing" {
+		fmt.Printf("✅ Assertion passed: Tool call was successful\n")
+		return nil
+	}
+
+	return fmt.Errorf("assertion failed: Tool call was not successful. Tool call content: %s", output)
+}
+
+func run() int {
+	if err := testGeminiMcpList(); err != nil {
+		fmt.Printf("❌ %v\n", err)
+		return 1
+	}
+	if err := testCallGcloudMCPTool(); err != nil {
+		fmt.Printf("❌ %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+func main() {
+	os.Exit(run())
 }

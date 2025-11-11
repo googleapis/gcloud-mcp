@@ -16,11 +16,22 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as gcloud from '../gcloud.js';
-import { deniedCommands } from '../denylist.js';
+import { AccessControlList } from '../denylist.js';
+import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
 
-export const createRunGcloudCommand = (denylist: string[] = []) => ({
+const suggestionErrorMessage = (suggestedCommand: string) =>
+  `Execution denied: This command not permitted. However, a similar command is permitted.
+  To fix the issue, invoke this tool again with this alternative command:
+  ${suggestedCommand}`;
+
+const aclErrorMessage = (aclMessage: string) =>
+  aclMessage +
+  '\n\n' +
+  'To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]';
+
+export const createRunGcloudCommand = (acl: AccessControlList) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -48,30 +59,40 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
       },
       async ({ args }) => {
         const toolLogger = log.mcp('run_gcloud_command', args);
-        const command = args.join(' ');
+
+        if (args.join(' ') === 'gcloud-mcp debug config') {
+          return successfulTextResult(acl.print());
+        }
+
+        let parsedCommand;
         try {
           // Lint parses and isolates the gcloud command from flags and positionals.
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          let { code, stdout, stderr } = await gcloud.lint(command);
-          const parsedJson = JSON.parse(stdout);
-          const commandNoArgs = parsedJson[0]['command_string_no_args'];
-          const commandArgsNoGcloud = commandNoArgs.split(' ').slice(1).join(' '); // Remove gcloud prefix
+          const parsedLintResult = await gcloud.lint(args.join(' '));
+          if (!parsedLintResult.success) {
+            return errorTextResult(parsedLintResult.error);
+          }
+          parsedCommand = parsedLintResult.parsedCommand;
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
+          return errorTextResult(`Failed to parse the input command. ${msg}`);
+        }
 
-          if (deniedCommands(denylist).matches(commandArgsNoGcloud)) {
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `Command is part of this tool's current denylist of disabled commands.`,
-                },
-              ],
-            };
+        try {
+          const accessControlResult = acl.check(parsedCommand);
+          if (!accessControlResult.permitted) {
+            const suggestion = await findSuggestedAlternativeCommand(args, acl);
+            if (suggestion) {
+              return errorTextResult(suggestionErrorMessage(suggestion));
+            } else {
+              return errorTextResult(aclErrorMessage(accessControlResult.message));
+            }
           }
 
           toolLogger.info('Executing run_gcloud_command');
-          ({ code, stdout, stderr } = await gcloud.invoke(args));
+          const { code, stdout, stderr } = await gcloud.invoke(args);
           // If the exit status is not zero, an error occurred and the output may be
           // incomplete unless the command documentation notes otherwise. For example,
           // a command that creates multiple resources may only create a few, list them
@@ -79,18 +100,29 @@ export const createRunGcloudCommand = (denylist: string[] = []) => ({
           // See https://cloud.google.com/sdk/docs/scripting-gcloud#best_practices
           let result = stdout;
           if (code !== 0 || stderr) {
-            result += `\nstderr:\n${stderr}`;
+            result += `\nSTDERR:\n${stderr}`;
           }
-          return { content: [{ type: 'text', text: result }] };
+          return successfulTextResult(result);
         } catch (e: unknown) {
           toolLogger.error(
             'run_gcloud_command failed',
             e instanceof Error ? e : new Error(String(e)),
           );
           const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
-          return { content: [{ type: 'text', text: msg }], isError: true };
+          return errorTextResult(msg);
         }
       },
     );
   },
+});
+
+type TextResultType = { content: [{ type: 'text'; text: string }]; isError?: boolean };
+
+const successfulTextResult = (text: string): TextResultType => ({
+  content: [{ type: 'text', text }],
+});
+
+const errorTextResult = (text: string): TextResultType => ({
+  content: [{ type: 'text', text }],
+  isError: true,
 });

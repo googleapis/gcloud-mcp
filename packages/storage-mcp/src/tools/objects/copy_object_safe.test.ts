@@ -113,6 +113,69 @@ describe('copyObjectSafe', () => {
       },
     ]);
   });
+  it('should return a "NotFound" error if the source or destination is not found (404)', async () => {
+    const mockError = { message: 'Not Found', code: 404 };
+    const mockFile = {
+      copy: vi.fn().mockRejectedValue(mockError),
+    };
+    const mockBucket = {
+      file: vi.fn().mockReturnValue(mockFile),
+    };
+    const mockStorageClient = {
+      bucket: vi.fn().mockReturnValue(mockBucket),
+    };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+
+    const result = await copyObjectSafe({
+      source_bucket_name: 'non-existent-source-bucket',
+      source_object_name: 'source-object',
+      destination_bucket_name: 'dest-bucket',
+      destination_object_name: 'dest-object',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error copying object: Not Found',
+          error_type: 'NotFound',
+        }),
+      },
+    ]);
+  });
+
+  it('should return a "Forbidden" error if permissions are insufficient (403)', async () => {
+    const mockError = { message: 'Forbidden', code: 403 };
+    const mockFile = {
+      copy: vi.fn().mockRejectedValue(mockError),
+    };
+    const mockBucket = {
+      file: vi.fn().mockReturnValue(mockFile),
+    };
+    const mockStorageClient = {
+      bucket: vi.fn().mockReturnValue(mockBucket),
+    };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+
+    const result = await copyObjectSafe({
+      source_bucket_name: 'forbidden-source-bucket',
+      source_object_name: 'source-object',
+      destination_bucket_name: 'dest-bucket',
+      destination_object_name: 'dest-object',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error copying object: Forbidden',
+          error_type: 'Forbidden',
+        }),
+      },
+    ]);
+  });
 });
 
 describe('registerCopyObjectSafeTool', () => {

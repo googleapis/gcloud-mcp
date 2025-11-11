@@ -16,7 +16,6 @@
 
 import { Argv, ArgumentsCamelCase, CommandModule } from 'yargs';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
-import { initializeClaude } from './init-claude.js';
 
 interface InstallArgs {
   agent: string;
@@ -32,7 +31,7 @@ export const init: CommandModule<object, InstallArgs> = {
       .option('agent', {
         describe: 'The agent to initialize the MCP server with.',
         type: 'string',
-        choices: ['gemini-cli', 'claude'] as const,
+        choices: ['gemini-cli'] as const,
         demandOption: true,
       })
       .option('local', {
@@ -48,8 +47,6 @@ export const init: CommandModule<object, InstallArgs> = {
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
       await initializeGeminiCLI(argv['local'], argv['enable-destructive-tools']);
-    } else if (argv.agent === 'claude') {
-      await initializeClaude(argv['local'], argv['enable-destructive-tools']);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

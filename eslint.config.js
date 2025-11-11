@@ -20,6 +20,7 @@ import prettierConfig from 'eslint-config-prettier';
 import licenseHeader from 'eslint-plugin-license-header';
 import importPlugin from 'eslint-plugin-import';
 
+// eslint-disable-next-line import/no-default-export
 export default tseslint.config(
   prettierConfig,
   {
@@ -27,7 +28,7 @@ export default tseslint.config(
   },
   ...tseslint.configs.recommended,
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.js'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -119,7 +120,6 @@ export default tseslint.config(
       'no-console': 'off',
     },
   },
-
   {
     files: ['./**/*.{tsx,ts,js}'],
     plugins: {

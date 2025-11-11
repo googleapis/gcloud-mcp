@@ -21,6 +21,7 @@ import {
   listMetricDescriptors,
   listTimeSeries,
   listAlertPolicies,
+  listAlerts,
 } from './monitoring_api_tools.js';
 import { apiClientFactory } from '../../utils/api_client_factory.js';
 
@@ -38,6 +39,9 @@ vi.mock('../../utils/api_client_factory.js', () => {
         list: vi.fn(),
       },
       alertPolicies: {
+        list: vi.fn(),
+      },
+      alerts: {
         list: vi.fn(),
       },
     },
@@ -251,6 +255,36 @@ describe('listAlertPolicies', () => {
 
     await expect(listAlertPolicies(TEST_PROJECT_RESOURCE)).rejects.toThrow(
       `Failed to list alert policies: ${errorMessage}`,
+    );
+  });
+});
+
+describe('listAlerts', () => {
+  it('should return alerts when API call is successful', async () => {
+    const mockAlerts = [{ name: 'alert1' }, { name: 'alert2' }];
+    const monitoringClient = apiClientFactory.getMonitoringClient();
+    (monitoringClient.projects.alerts.list as Mock).mockResolvedValue({
+      data: { alerts: mockAlerts },
+    });
+
+    const result = await listAlerts('test-project');
+    expect(result).toEqual(JSON.stringify(mockAlerts, null, 2));
+    expect(monitoringClient.projects.alerts.list).toHaveBeenCalledWith({
+      parent: 'test-project',
+      filter: undefined,
+      orderBy: undefined,
+      pageSize: undefined,
+      pageToken: undefined,
+    });
+  });
+
+  it('should throw an error when API call fails', async () => {
+    const mockError = new Error('API Error');
+    const monitoringClient = apiClientFactory.getMonitoringClient();
+    (monitoringClient.projects.alerts.list as Mock).mockRejectedValue(mockError);
+
+    await expect(listAlerts('test-project')).rejects.toThrow(
+      `Failed to list alerts: ${mockError.message}`,
     );
   });
 });

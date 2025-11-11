@@ -1,17 +1,20 @@
 {
   "name": "@google-cloud/storage-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "main": "dist/src/index.js",
+  "main": "dist/bundle.js",
   "bin": {
-    "storage-mcp": "./dist/src/index.js"
+    "storage-mcp": "./dist/bundle.js"
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "build": "tsc -p . && cp GEMINI-extension.md dist/ && cp CLAUDE-extension.md dist/",
+    "build": "tsc --noemit && node build.js",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.config.integration.ts",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
-    "start": "node dist/src/index.js",
+    "start": "node dist/bundle.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",
     "fix": "prettier --write . && eslint . --fix",
     "prepare": "npm run build",

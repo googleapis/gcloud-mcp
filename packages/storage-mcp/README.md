@@ -23,6 +23,14 @@ bucket and object management. With the Storage MCP server you can:
 
   <img src="./assets/easy_access_3x.gif" width="80%" alt="Easy Access Demo">
 
+- **Perform analytical and aggregation queries on your objects and buckets.** Perform
+  aggregations and compute statistics on entire storage inventory using [Storage Insights
+  Datasets](https://cloud.google.com/storage/docs/insights/datasets)
+
+- **Run advanced filters and searches on your data.** Search and filter your objects
+  by file type, size and other metadata fields using [Storage Insights
+  Datasets](https://cloud.google.com/storage/docs/insights/datasets)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -126,21 +134,24 @@ accidental data loss.
 Safe tools are read-only or only create new objects without affecting existing
 ones. They will never modify or delete existing data in GCS.
 
-| Tool                    | Description                                                                     |
-| :---------------------- | :------------------------------------------------------------------------------ |
-| `list_buckets`          | Lists all buckets in a project.                                                 |
-| `get_bucket_metadata`   | Gets comprehensive metadata for a specific bucket.                              |
-| `get_bucket_location`   | Gets the location of a bucket.                                                  |
-| `view_iam_policy`       | Views the IAM policy for a bucket.                                              |
-| `check_iam_permissions` | Tests IAM permissions for a bucket.                                             |
-| `create_bucket`         | Creates a new bucket. Fails if the bucket already exists.                       |
-| `list_objects`          | Lists objects in a GCS bucket.                                                  |
-| `read_object_metadata`  | Reads comprehensive metadata for a specific object.                             |
-| `read_object_content`   | Reads the content of a specific object.                                         |
-| `download_object`       | Downloads an object from GCS to a local file.                                   |
-| `write_object_new`      | Writes a new object. Fails if the object already exists.                        |
-| `upload_object_new`     | Uploads a file to a new object. Fails if the object already exists.             |
-| `copy_object_new`       | Copies an object to a new destination. Fails if the destination already exists. |
+| Tool                        | Description                                                                                                                 |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| `list_buckets`              | Lists all buckets in a project.                                                                                             |
+| `get_bucket_metadata`       | Gets comprehensive metadata for a specific bucket.                                                                          |
+| `get_bucket_location`       | Gets the location of a bucket.                                                                                              |
+| `view_iam_policy`           | Views the IAM policy for a bucket.                                                                                          |
+| `check_iam_permissions`     | Tests IAM permissions for a bucket.                                                                                         |
+| `create_bucket`             | Creates a new bucket. Fails if the bucket already exists.                                                                   |
+| `list_objects`              | Lists objects in a GCS bucket.                                                                                              |
+| `read_object_metadata`      | Reads comprehensive metadata for a specific object.                                                                         |
+| `read_object_content`       | Reads the content of a specific object.                                                                                     |
+| `download_object`           | Downloads an object from GCS to a local file.                                                                               |
+| `write_object_new`          | Writes a new object. Fails if the object already exists.                                                                    |
+| `upload_object_new`         | Uploads a file to a new object. Fails if the object already exists.                                                         |
+| `copy_object_new`           | Copies an object to a new destination. Fails if the destination already exists.                                             |
+| `get_metadata_table_schema` | Checks if GCS insights service is enabled and returns the BigQuery table schema for a given insights dataset configuration. |
+| `execute_insights_query`    | Executes a BigQuery SQL query against an insights dataset and returns the result.                                           |
+| `list_insights_configs`     | Lists the names of all Storage Insights dataset configurations for a given project.                                         |
 
 ### Destructive Tools
 
@@ -179,11 +190,17 @@ We welcome contributions! Whether you're fixing bugs, sharing feedback, or
 improving documentation, your contributions are welcome. Please read our
 [Contributing Guide](CONTRIBUTING.md) to get started.
 
-## 🎬 Demo
+## 🎬 Demos
 
 <p align="center"><b>Click to watch the Storage MCP demo</b><br/>
 <a href="./assets/storage_mcp_demo.mp4" title="Click to play demo">
 <img width="80%" alt="Storage MCP Demo Video" src="./assets/storage_mcp_demo_thumbnail.png">
+</a>
+</p>
+
+<p align="center"><b>Click to watch the Storage MCP demo powered by Storage Insights</b><br/>
+<a href="./assets/storage_insights_demo.mp4" title="Click to play demo">
+<img width="80%" alt="Storage Insights MCP Demo Video" src="./assets/storage_insights_demo_thumbnail.png">
 </a>
 </p>
 

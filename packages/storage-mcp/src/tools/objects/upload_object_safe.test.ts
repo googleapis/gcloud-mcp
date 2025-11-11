@@ -134,6 +134,62 @@ describe('uploadObjectSafe', () => {
       },
     ]);
   });
+  it('should return an "AlreadyExists" error if the condition is not met', async () => {
+    const mockError = {
+      message: 'condition not met',
+      errors: [{ reason: 'conditionNotMet' }],
+    };
+    const mockSave = vi.fn().mockRejectedValue(mockError);
+    const mockFile = vi.fn().mockReturnValue({
+      save: mockSave,
+    });
+    const mockBucket = vi.fn().mockReturnValue({
+      file: mockFile,
+    });
+
+    const mockStorageClient = {
+      bucket: mockBucket,
+    };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (fs.existsSync as vi.Mock).mockReturnValue(true);
+
+    const result = await uploadObjectSafe({
+      bucket_name: 'test-bucket',
+      file_path: '/path/to/file',
+      object_name: 'test-object',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Error uploading file: condition not met',
+          error_type: 'AlreadyExists',
+        }),
+      },
+    ]);
+  });
+
+  it('should return an "Unknown" error if object_name cannot be determined from file_path', async () => {
+    (fs.existsSync as vi.Mock).mockReturnValue(true);
+
+    const result = await uploadObjectSafe({
+      bucket_name: 'test-bucket',
+      file_path: '/path/to/directory/',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error:
+            'Error uploading file: Could not determine object name from file path: /path/to/directory/',
+          error_type: 'Unknown',
+        }),
+      },
+    ]);
+  });
 });
 
 describe('registerUploadObjectSafeTool', () => {

@@ -24,19 +24,11 @@ server. An up to date list is below, and links to other Google Cloud MCP
 servers hosted outside of this repo are
 [here](#-other-google-cloud-mcp-servers).
 
-<<<<<<< HEAD
 | MCP Server Name | Description                                                                   | Package Name        | Version                                                                                                                                   |
 | :-------------- | :---------------------------------------------------------------------------- | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------- |
 | gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        | [![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp)               |
 | observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` | [![Version](https://img.shields.io/npm/v/@google-cloud/observability-mcp)](https://www.npmjs.com/package/@google-cloud/observability-mcp) |
 | storage         | Interact with Google Cloud Storage for bucket and object management.          | `storage-mcp`       | [![Version](https://img.shields.io/npm/v/@google-cloud/storage-mcp)](https://www.npmjs.com/package/@google-cloud/storage-mcp)             |
-=======
-| MCP Server Name | Description                                                                   | Package Name        | Version                                                                                                                                   |
-| :-------------- | :---------------------------------------------------------------------------- | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------- |
-| gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        | [![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp)               |
-| observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` | [![Version](https://img.shields.io/npm/v/@google-cloud/observability-mcp)](https://www.npmjs.com/package/@google-cloud/observability-mcp) |
-| storage         | Interact with Google Cloud Storage for bucket and object management.          | `storage-mcp`       | [![Version](https://img.shields.io/npm/v/@google-cloud/storage-mcp)](https://www.npmjs.com/package/@google-cloud/storage-mcp)             |
->>>>>>> main
 
 ## 🚀 Getting Started
 
@@ -157,11 +149,7 @@ For more information regarding installing the repository locally, please see
 |               | `list_traces`             | Searches for traces in a project.                                                                                                                         |
 |               | `get_trace`               | Gets a specific trace by id in a project.                                                                                                                 |
 |               | `list_group_stats`        | Lists the error groups for a project.                                                                                                                     |
-<<<<<<< HEAD
 | storage       | `list_objects`            | Lists objects in a GCS bucket.                                                                                                                            |
-=======
-| storage       | `list_objects`            | Lists objects in a GCS bucket.                                                                                                                            |
->>>>>>> main
 |               | `read_object_metadata`    | Reads comprehensive metadata for a specific object.                                                                                                       |
 |               | `read_object_content`     | Reads the content of a specific object.                                                                                                                   |
 |               | `delete_object`           | Deletes a specific object from a bucket.                                                                                                                  |

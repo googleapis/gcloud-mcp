@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
+import { BigQuery } from '@google-cloud/bigquery';
 import { Storage } from '@google-cloud/storage';
+import { ServiceUsageClient } from '@google-cloud/service-usage';
+import { StorageInsightsClient } from '@google-cloud/storageinsights';
 
 export class ApiClientFactory {
   private static instance: ApiClientFactory;
   private storageClient?: Storage;
+  private serviceUsageClient?: ServiceUsageClient;
+  private storageInsightsClient?: StorageInsightsClient;
+  private bigqueryClient?: BigQuery;
 
   private constructor() {}
 
@@ -34,6 +40,27 @@ export class ApiClientFactory {
       this.storageClient = new Storage();
     }
     return this.storageClient;
+  }
+
+  getServiceUsageClient(): ServiceUsageClient {
+    if (!this.serviceUsageClient) {
+      this.serviceUsageClient = new ServiceUsageClient();
+    }
+    return this.serviceUsageClient;
+  }
+
+  getStorageInsightsClient(): StorageInsightsClient {
+    if (!this.storageInsightsClient) {
+      this.storageInsightsClient = new StorageInsightsClient();
+    }
+    return this.storageInsightsClient;
+  }
+
+  getBigQueryClient(): BigQuery {
+    if (!this.bigqueryClient) {
+      this.bigqueryClient = new BigQuery();
+    }
+    return this.bigqueryClient;
   }
 }
 

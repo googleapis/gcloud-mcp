@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/googleapis/gcloud-mcp/compare/observability-mcp-v0.1.2...observability-mcp-v0.2.0) (2025-11-13)
+
+
+### Features
+
+* Create ListAlerts tool for Observability MCP ([b4ba8a3](https://github.com/googleapis/gcloud-mcp/commit/b4ba8a321cdcf66e22c697dcba1cf13476f8b79c))
+* Create ListAlerts tool for Observability MCP ([#278](https://github.com/googleapis/gcloud-mcp/issues/278)) ([b4ba8a3](https://github.com/googleapis/gcloud-mcp/commit/b4ba8a321cdcf66e22c697dcba1cf13476f8b79c))
+
 ## [0.1.2](https://github.com/googleapis/gcloud-mcp/compare/observability-mcp-v0.1.1...observability-mcp-v0.1.2) (2025-09-30)
 
 

@@ -22,7 +22,7 @@ export interface WindowsCloudSDKSettings {
 export function runWhere(command: string, spawnEnv: {[key: string]: string|undefined}): string[] {
     try {
         const result = child_process
-                            .execSync(`where ${command}`, {
+                            .execSync(`which ${command}`, {
                                 encoding: 'utf8',
                                 stdio: ['pipe', 'pipe', 'ignore'],
                                 env: spawnEnv,  // Use updated PATH for where command
@@ -88,16 +88,37 @@ export function findWindowsPythonPath(spawnEnv: {[key: string]: string|undefined
     return "python.exe"; // Fallback to default python command
 }
 
+export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
+    let cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
+    if (cloudSdkRootDir) {
+        return cloudSdkRootDir;
+    }
+
+    try {
+        // Use 'where gcloud' to find the gcloud executable on Windows
+        const gcloudPathOutput = child_process.execSync('where gcloud', { encoding: 'utf8', env: env }).trim();
+        const gcloudPath = gcloudPathOutput.split(/\r?\n/)[0]; // Take the first path if multiple are returned
+
+        if (gcloudPath) {
+            // Assuming gcloud.cmd is in <SDK_ROOT>/bin/gcloud.cmd
+            // We need to go up two levels from the gcloud.cmd path
+            const binDir = path.dirname(gcloudPath);
+            const sdkRoot = path.dirname(binDir);
+            return sdkRoot;
+        }
+    } catch (e) {
+        // gcloud not found in PATH, or other error
+        console.warn('gcloud not found in PATH. Please ensure Google Cloud SDK is installed and configured.');
+    }
+
+    return ''; // Return empty string if not found
+}
 
 export function getCloudSDKSettings(
     currentEnv: NodeJS.ProcessEnv = process.env,
-    scriptDir: string = __dirname,
 ): CloudSdkSettings {
     const env = {...currentEnv };
-    let cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
-    if (!cloudSdkRootDir) {
-        cloudSdkRootDir = path.resolve(scriptDir, '..');
-    }
+    let cloudSdkRootDir = getSDKRootDirectory(env);
     const sdkBinPath = path.join(cloudSdkRootDir, 'bin', 'sdk');
     const newPath = `${sdkBinPath}${path.delimiter}${env['PATH'] || ''}`;
     const pythonHome = undefined;

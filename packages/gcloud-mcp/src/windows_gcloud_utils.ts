@@ -96,7 +96,7 @@ export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
 
     try {
         // Use 'where gcloud' to find the gcloud executable on Windows
-        const gcloudPathOutput = child_process.execSync('where gcloud', { encoding: 'utf8', env: env }).trim();
+        const gcloudPathOutput = child_process.execSync('which gcloud', { encoding: 'utf8', env: env }).trim();
         const gcloudPath = gcloudPathOutput.split(/\r?\n/)[0]; // Take the first path if multiple are returned
 
         if (gcloudPath) {

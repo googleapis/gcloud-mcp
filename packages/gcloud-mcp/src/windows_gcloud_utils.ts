@@ -190,7 +190,7 @@ export function getCloudSDKSettings(
 
 export function getWindowsCloudSDKSettings() : WindowsCloudSDKSettings {
     const isWindowsPlatform = os.platform() === 'win32';
-    if (isWindowsPlatform) {
+    if (!isWindowsPlatform) {
         return {
             isWindowsPlatform: true,
             cloudSDKSettings: getCloudSDKSettings(),
@@ -202,4 +202,8 @@ export function getWindowsCloudSDKSettings() : WindowsCloudSDKSettings {
             cloudSDKSettings: null
         }
     }
+}
+
+export function getGcloudLibPath(cloudSdkRootDir: string) : string {
+    return path.join(cloudSdkRootDir, 'lib', 'gcloud');
 }

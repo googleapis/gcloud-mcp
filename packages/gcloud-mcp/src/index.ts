@@ -114,10 +114,10 @@ const main = async () => {
     { capabilities: { tools: {} } },
   );
   const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
-  const windowsCloudSettings = getWindowsCloudSDKSettings();
-  log.info("WHat in the world");
-  log.info(`Windows Cloud SDK Settings: ${JSON.stringify(windowsCloudSettings)}`);
-  createRunGcloudCommand(acl,windowsCloudSettings).register(server);
+  // const windowsCloudSettings = getWindowsCloudSDKSettings();
+  // log.info("WHat in the world");
+  // log.info(`Windows Cloud SDK Settings: ${JSON.stringify(windowsCloudSettings)}`);
+  createRunGcloudCommand(acl).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 

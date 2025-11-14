@@ -17,7 +17,7 @@
 import { z } from 'zod';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import { getCloudSDKSettings, getWindowsCloudSDKSettings } from './windows_gcloud_utils.js';
+import { getWindowsCloudSDKSettings } from './windows_gcloud_utils.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 export const windowsCloudSDKSettings = getWindowsCloudSDKSettings();
@@ -38,8 +38,6 @@ export interface GcloudInvocationResult {
   stdout: string;
   stderr: string;
 }
-
-
 
 export const getPlatformSpecificGcloudCommand = (args: string[]) : {command: string, args: string[]} => {
   if (windowsCloudSDKSettings.isWindowsPlatform && windowsCloudSDKSettings.cloudSDKSettings) {

@@ -20,7 +20,6 @@ import { AccessControlList } from '../denylist.js';
 import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
-import { WindowsCloudSDKSettings } from 'src/windows_gcloud_utils.js';
 
 const suggestionErrorMessage = (suggestedCommand: string) =>
   `Execution denied: This command not permitted. However, a similar command is permitted.
@@ -32,7 +31,7 @@ const aclErrorMessage = (aclMessage: string) =>
   '\n\n' +
   'To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]';
 
-export const createRunGcloudCommand = (acl: AccessControlList, windowsCloudSDKSettings: WindowsCloudSDKSettings | null = null) => ({
+export const createRunGcloudCommand = (acl: AccessControlList) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -64,9 +63,6 @@ export const createRunGcloudCommand = (acl: AccessControlList, windowsCloudSDKSe
         if (args.join(' ') === 'gcloud-mcp debug config') {
           return successfulTextResult(acl.print());
         }
-        if (windowsCloudSDKSettings) {
-          console.log("some error");
-        }
 
         let parsedCommand;
         try {
@@ -74,7 +70,7 @@ export const createRunGcloudCommand = (acl: AccessControlList, windowsCloudSDKSe
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          const parsedLintResult = await gcloud.lint(args.join(' '), windowsCloudSDKSettings);
+          const parsedLintResult = await gcloud.lint(args.join(' '));
           if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }

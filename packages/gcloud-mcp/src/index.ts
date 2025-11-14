@@ -28,7 +28,6 @@ import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { createAccessControlList } from './denylist.js';
-import { getWindowsCloudSDKSettings } from './windows_gcloud_utils.js';
 
 export const default_deny: string[] = [
   'compute start-iap-tunnel',
@@ -114,9 +113,6 @@ const main = async () => {
     { capabilities: { tools: {} } },
   );
   const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
-  // const windowsCloudSettings = getWindowsCloudSDKSettings();
-  // log.info("WHat in the world");
-  // log.info(`Windows Cloud SDK Settings: ${JSON.stringify(windowsCloudSettings)}`);
   createRunGcloudCommand(acl).register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');

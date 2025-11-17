@@ -119,9 +119,7 @@ export function getCloudSDKSettings(
 ): CloudSdkSettings {
     const env = {...currentEnv };
     let cloudSdkRootDir = getSDKRootDirectory(env);
-    const spawnEnv: {[key: string]: string|undefined} = {
-        ...env,
-    };
+
     let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
     // Find bundled python if no python is set in the environment.
     if (!cloudSdkPython) {
@@ -137,13 +135,13 @@ export function getCloudSDKSettings(
     }
     // If not bundled Python is found, try to find a Python installation on windows
     if (!cloudSdkPython) {
-        cloudSdkPython = findWindowsPythonPath(spawnEnv);
+        cloudSdkPython = findWindowsPythonPath(env);
     }
     
     // Where always exist in a Windows Platform
     let noWorkingPythonFound = false;
     // Juggling check to hit null and undefined at the same time
-    if (!getPythonVersion(cloudSdkPython, spawnEnv)) {
+    if (!getPythonVersion(cloudSdkPython, env)) {
         noWorkingPythonFound = true;
     }
 
@@ -168,7 +166,7 @@ export function getCloudSDKSettings(
         cloudSdkPython,
         cloudSdkPythonArgs,
         noWorkingPythonFound,
-        env: spawnEnv,
+        env: env,
     };
 }
 

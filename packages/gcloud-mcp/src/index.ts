@@ -115,14 +115,6 @@ const main = async () => {
     { capabilities: { tools: {} } },
   );
 
-  const windows = getWindowsCloudSDKSettings();
-  log.info(` what in the fuck ${JSON.stringify(windows)}`);
-  const commandArgList = ["config", "list"];
-  const { code, stdout, stderr } = await invoke(commandArgList);
-  log.info(`What code ${JSON.stringify(code)}`);
-  log.info(`What stdout ${JSON.stringify(stdout)}`);
-  log.info(`What stderr ${JSON.stringify(stderr)}`);  
-
   const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
   createRunGcloudCommand(acl).register(server);
   await server.connect(new StdioServerTransport());

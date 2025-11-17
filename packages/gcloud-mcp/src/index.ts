@@ -28,8 +28,6 @@ import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { createAccessControlList } from './denylist.js';
-import { getWindowsCloudSDKSettings } from './windows_gcloud_utils.js';
-import {invoke} from "./gcloud.js";
 
 export const default_deny: string[] = [
   'compute start-iap-tunnel',

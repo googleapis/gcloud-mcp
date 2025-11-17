@@ -18,9 +18,12 @@ import { z } from 'zod';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import { getWindowsCloudSDKSettings } from './windows_gcloud_utils.js';
+import { log } from './utility/logger.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 export const windowsCloudSDKSettings = getWindowsCloudSDKSettings();
+log.info("What happened here");
+log.info(`${JSON.stringify(windowsCloudSDKSettings)}`)
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
@@ -48,7 +51,7 @@ export const getPlatformSpecificGcloudCommand = (args: string[]) : {command: str
     return {
       command : pythonPath,
       args: [
-        ...windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkPythonArgs,
+        windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkPythonArgs,
         windowsPathForGcloudPy,
         ...args
       ]

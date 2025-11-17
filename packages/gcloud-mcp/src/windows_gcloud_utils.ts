@@ -2,11 +2,11 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+// import { log } from './utility/logger.js';
 
 export interface CloudSdkSettings {
  cloudSdkRootDir: string;
  cloudSdkPython: string;
- cloudSdkGsutilPython: string;
  cloudSdkPythonArgs: string;
  noWorkingPythonFound: boolean;
  /** Environment variables to use when spawning gcloud.py */
@@ -19,10 +19,10 @@ export interface WindowsCloudSDKSettings {
 }
 
 
-export function runWhere(command: string, spawnEnv: {[key: string]: string|undefined}): string[] {
+export function execWhere(command: string, spawnEnv: {[key: string]: string|undefined}): string[] {
     try {
         const result = child_process
-                            .execSync(`which ${command}`, {
+                            .execSync(`where ${command}`, {
                                 encoding: 'utf8',
                                 stdio: ['pipe', 'pipe', 'ignore'],
                                 env: spawnEnv,  // Use updated PATH for where command
@@ -56,7 +56,7 @@ export function findWindowsPythonPath(spawnEnv: {[key: string]: string|undefined
     // Try to find a Python installation on Windows
     // Try Python, python3, python2
     
-    const pythonCandidates = runWhere('python', spawnEnv);
+    const pythonCandidates = execWhere('python', spawnEnv);
     if (pythonCandidates.length > 0) {
         for (const candidate of pythonCandidates) {
             const version = getPythonVersion(candidate, spawnEnv);
@@ -66,7 +66,7 @@ export function findWindowsPythonPath(spawnEnv: {[key: string]: string|undefined
         }
     }   
 
-    const python3Candidates = runWhere('python3', spawnEnv);
+    const python3Candidates = execWhere('python3', spawnEnv);
     if (python3Candidates.length > 0) {
         for (const candidate of python3Candidates) {
             const version = getPythonVersion(candidate, spawnEnv);
@@ -96,7 +96,7 @@ export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
 
     try {
         // Use 'where gcloud' to find the gcloud executable on Windows
-        const gcloudPathOutput = child_process.execSync('which gcloud', { encoding: 'utf8', env: env }).trim();
+        const gcloudPathOutput = child_process.execSync('where gcloud', { encoding: 'utf8', env: env }).trim();
         const gcloudPath = gcloudPathOutput.split(/\r?\n/)[0]; // Take the first path if multiple are returned
 
         if (gcloudPath) {
@@ -119,13 +119,8 @@ export function getCloudSDKSettings(
 ): CloudSdkSettings {
     const env = {...currentEnv };
     let cloudSdkRootDir = getSDKRootDirectory(env);
-    const sdkBinPath = path.join(cloudSdkRootDir, 'bin', 'sdk');
-    const newPath = `${sdkBinPath}${path.delimiter}${env['PATH'] || ''}`;
-    const pythonHome = undefined;
     const spawnEnv: {[key: string]: string|undefined} = {
         ...env,
-        PATH: newPath,
-        PYTHONHOME: pythonHome,
     };
     let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
     // Find bundled python if no python is set in the environment.
@@ -140,7 +135,7 @@ export function getCloudSDKSettings(
             cloudSdkPython = bundledPython;
         }
     }
-    // If not bundled Python is found, try to find a Python installatikon on windows
+    // If not bundled Python is found, try to find a Python installation on windows
     if (!cloudSdkPython) {
         cloudSdkPython = findWindowsPythonPath(spawnEnv);
     }
@@ -151,8 +146,9 @@ export function getCloudSDKSettings(
     if (!getPythonVersion(cloudSdkPython, spawnEnv)) {
         noWorkingPythonFound = true;
     }
-    // ? Not sure the point of this is
-    let cloudSdkPythonSitePackages = env['CLOUDSDK_PYTHON_SITEPACKAGES'];
+
+    // Check if the User has site package enabled
+    let cloudSdkPythonSitePackages = env['CLOUDSDK_PYTHON_SITEPACKAGES'] || '';
     if (cloudSdkPythonSitePackages === undefined) {
         if (env['VIRTUAL_ENV']) {
             cloudSdkPythonSitePackages = '1';
@@ -163,25 +159,13 @@ export function getCloudSDKSettings(
 
     let cloudSdkPythonArgs = env['CLOUDSDK_PYTHON_ARGS'] || '';
     const argsWithoutS = cloudSdkPythonArgs.replace('-S', '').trim();
-    if (!cloudSdkPythonSitePackages) {
-        // Site packages disabled
-        if (!cloudSdkPythonArgs.includes('-S')) {
-        cloudSdkPythonArgs = argsWithoutS ? `${argsWithoutS} -S` : '-S';
-    }
-    } else {
-    // Site packages enabled
-        cloudSdkPythonArgs = argsWithoutS;
-    }
 
-    const cloudSdkGsutilPython = env['CLOUDSDK_GSUTIL_PYTHON'] || cloudSdkPython;
+    // Spacing here matters
+    cloudSdkPythonArgs = !cloudSdkPythonSitePackages ? `${argsWithoutS}-S` : argsWithoutS;
 
-    if (env['CLOUDSDK_ENCODING']) {
-        spawnEnv['PYTHONIOENCODING'] = env['CLOUDSDK_ENCODING'];
-    }
     return {
         cloudSdkRootDir,
         cloudSdkPython,
-        cloudSdkGsutilPython,
         cloudSdkPythonArgs,
         noWorkingPythonFound,
         env: spawnEnv,
@@ -190,7 +174,7 @@ export function getCloudSDKSettings(
 
 export function getWindowsCloudSDKSettings() : WindowsCloudSDKSettings {
     const isWindowsPlatform = os.platform() === 'win32';
-    if (!isWindowsPlatform) {
+    if (isWindowsPlatform) {
         return {
             isWindowsPlatform: true,
             cloudSDKSettings: getCloudSDKSettings(),

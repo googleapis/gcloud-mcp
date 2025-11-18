@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { log } from './utility/logger.js';
 
-export interface CloudSdkSettings {
+export interface WindowsCloudSDKSettings {
   cloudSdkRootDir: string;
   cloudSdkPython: string;
   cloudSdkPythonArgs: string;
@@ -29,9 +29,9 @@ export interface CloudSdkSettings {
   env: { [key: string]: string | undefined };
 }
 
-export interface WindowsCloudSDKSettings {
+export interface CloudSDKSettings {
   isWindowsPlatform: boolean;
-  cloudSDKSettings: CloudSdkSettings | null;
+  windowsCloudSDKSettings: WindowsCloudSDKSettings | null;
 }
 
 export function execWhere(
@@ -135,7 +135,7 @@ export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
   return ''; // Return empty string if not found
 }
 
-export function getCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = process.env): CloudSdkSettings {
+export function getWindowsCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = process.env): WindowsCloudSDKSettings {
   const env = { ...currentEnv };
   const cloudSdkRootDir = getSDKRootDirectory(env);
 
@@ -184,17 +184,10 @@ export function getCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = process.env)
   };
 }
 
-export function getWindowsCloudSDKSettings(): WindowsCloudSDKSettings {
+export function getCloudSDKSettings(): CloudSDKSettings {
   const isWindowsPlatform = os.platform() === 'win32';
-  if (isWindowsPlatform) {
-    return {
-      isWindowsPlatform: true,
-      cloudSDKSettings: getCloudSDKSettings(),
-    };
-  } else {
-    return {
-      isWindowsPlatform: false,
-      cloudSDKSettings: null,
-    };
+  return {
+    isWindowsPlatform : isWindowsPlatform,
+    windowsCloudSDKSettings : isWindowsPlatform ? getWindowsCloudSDKSettings() : null,
   }
 }

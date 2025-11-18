@@ -154,3 +154,28 @@ test('should exit if config file is invalid JSON', async () => {
   );
   expect(process.exit).toHaveBeenCalledWith(1);
 });
+
+
+test('should exit if os is windows and it can not find working python', async () => {
+  process.argv = ['node', 'index.js'];
+  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettings').mockResolvedValue({
+    isWindowsPlatform: true,
+    windowsCloudSDKSettings: {
+      cloudSdkRootDir: '',
+      cloudSdkPython: '',
+      cloudSdkPythonArgs: '',
+      noWorkingPythonFound: true,
+      env: {},
+    },
+  })
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+
+  await import('./index.js');
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining('Unable to start gcloud mcp server: No working Python installation found for Windows gcloud execution.'),
+  );
+  expect(process.exit).toHaveBeenCalledWith(1);
+});

@@ -17,10 +17,10 @@
 import { z } from 'zod';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import { getWindowsCloudSDKSettings } from './windows_gcloud_utils.js';
+import { getCloudSDKSettings } from './windows_gcloud_utils.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
-export const windowsCloudSDKSettings = getWindowsCloudSDKSettings();
+export const cloudSDKSettings = getCloudSDKSettings();
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
@@ -42,18 +42,18 @@ export interface GcloudInvocationResult {
 export const getPlatformSpecificGcloudCommand = (
   args: string[],
 ): { command: string; args: string[] } => {
-  if (windowsCloudSDKSettings.isWindowsPlatform && windowsCloudSDKSettings.cloudSDKSettings) {
+  if (cloudSDKSettings.isWindowsPlatform && cloudSDKSettings.windowsCloudSDKSettings) {
     const windowsPathForGcloudPy = path.join(
-      windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkRootDir,
+      cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkRootDir,
       'lib',
       'gcloud.py',
     );
-    const pythonPath = windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkPython;
+    const pythonPath = cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPython;
 
     return {
       command: pythonPath,
       args: [
-        windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkPythonArgs,
+        cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPythonArgs,
         windowsPathForGcloudPy,
         ...args,
       ],

@@ -1,3 +1,19 @@
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
@@ -23,9 +39,16 @@ describe('windows_gcloud_utils', () => {
 
   describe('execWhere', () => {
     it('should return paths when command is found', () => {
-      vi.spyOn(child_process, 'execSync').mockReturnValue('C:\\Program Files\\Python\\Python39\\python.exe\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe');
+      vi.spyOn(child_process, 'execSync').mockReturnValue(
+        'C:\\Program Files\\Python\\Python39\\python.exe\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
+      );
       const result = execWhere('command', {});
-      expect(result).toEqual(['C:\\Program Files\\Python\\Python39\\python.exe', 'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe'].map(p => path.win32.normalize(p)));
+      expect(result).toEqual(
+        [
+          'C:\\Program Files\\Python\\Python39\\python.exe',
+          'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
+        ].map((p) => path.win32.normalize(p)),
+      );
     });
 
     it('should return empty array when command is not found', () => {
@@ -57,9 +80,7 @@ describe('windows_gcloud_utils', () => {
     it('should find python3 when multiple python versions are present', () => {
       // Mock `execWhere('python', ...)` to return a list of python paths
       vi.spyOn(child_process, 'execSync')
-        .mockReturnValueOnce(
-          'C:\\Python27\\python.exe\nC:\\Python39\\python.exe'
-        ) // For execWhere('python')
+        .mockReturnValueOnce('C:\\Python27\\python.exe\nC:\\Python39\\python.exe') // For execWhere('python')
         .mockReturnValueOnce('2.7.18') // For getPythonVersion('C:\\Python27\\python.exe')
         .mockReturnValueOnce('3.9.5') // For getPythonVersion('C:\\Python39\\python.exe')
         .mockReturnValueOnce(''); // For execWhere('python3') - no python3 found
@@ -71,9 +92,7 @@ describe('windows_gcloud_utils', () => {
     it('should find python2 if no python3 is available', () => {
       // Mock `execWhere('python', ...)` to return a list of python paths
       vi.spyOn(child_process, 'execSync')
-        .mockReturnValueOnce(
-          'C:\\Python27\\python.exe'
-        ) // For execWhere('python')
+        .mockReturnValueOnce('C:\\Python27\\python.exe') // For execWhere('python')
         .mockReturnValueOnce('2.7.18') // For getPythonVersion('C:\\Python27\\python.exe')
         .mockReturnValueOnce('') // For execWhere('python3') - no python3 found
         .mockReturnValueOnce('2.7.18'); // For getPythonVersion('C:\\Python27\\python.exe') - second check for python2
@@ -97,7 +116,9 @@ describe('windows_gcloud_utils', () => {
     });
 
     it('should get root directory from where gcloud', () => {
-      vi.spyOn(child_process, 'execSync').mockReturnValue('C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd');
+      vi.spyOn(child_process, 'execSync').mockReturnValue(
+        'C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd',
+      );
       const sdkRoot = getSDKRootDirectory({});
       expect(sdkRoot).toBe(path.win32.normalize('C:\\Program Files\\Google\\Cloud SDK'));
     });
@@ -118,11 +139,13 @@ describe('windows_gcloud_utils', () => {
 
       const settings = getWindowsCloudSDKSettings({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
-        CLOUDSDK_PYTHON_SITEPACKAGES: '' // no site packages
+        CLOUDSDK_PYTHON_SITEPACKAGES: '', // no site packages
       });
 
       expect(settings.cloudSdkRootDir).toBe(path.win32.normalize('C:\\CloudSDK'));
-      expect(settings.cloudSdkPython).toBe(path.win32.normalize('C:\\CloudSDK\\platform\\bundledpython\\python.exe'));
+      expect(settings.cloudSdkPython).toBe(
+        path.win32.normalize('C:\\CloudSDK\\platform\\bundledpython\\python.exe'),
+      );
       expect(settings.cloudSdkPythonArgs).toBe('-S'); // Expect -S to be added
       expect(settings.noWorkingPythonFound).toBe(false);
     });
@@ -177,7 +200,7 @@ describe('windows_gcloud_utils', () => {
       const settings = getWindowsCloudSDKSettings({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_ARGS: '-v',
-        CLOUDSDK_PYTHON_SITEPACKAGES: ''
+        CLOUDSDK_PYTHON_SITEPACKAGES: '',
       });
       expect(settings.cloudSdkPythonArgs).toBe('-v -S');
     });
@@ -189,7 +212,7 @@ describe('windows_gcloud_utils', () => {
       const settings = getWindowsCloudSDKSettings({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_ARGS: '-v -S',
-        CLOUDSDK_PYTHON_SITEPACKAGES: '1'
+        CLOUDSDK_PYTHON_SITEPACKAGES: '1',
       });
       expect(settings.cloudSdkPythonArgs).toBe('-v');
     });

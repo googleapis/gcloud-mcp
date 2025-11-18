@@ -112,7 +112,7 @@ export function findWindowsPythonPath(spawnEnv: { [key: string]: string | undefi
 }
 
 export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
-  let cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
+  const cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
   if (cloudSdkRootDir) {
     return path.win32.normalize(cloudSdkRootDir);
   }
@@ -138,14 +138,21 @@ export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
   return ''; // Return empty string if not found
 }
 
-export function getWindowsCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = process.env): WindowsCloudSDKSettings {
+export function getWindowsCloudSDKSettings(
+  currentEnv: NodeJS.ProcessEnv = process.env,
+): WindowsCloudSDKSettings {
   const env = { ...currentEnv };
   const cloudSdkRootDir = getSDKRootDirectory(env);
 
   let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
   // Find bundled python if no python is set in the environment.
   if (!cloudSdkPython) {
-    const bundledPython = path.win32.join(cloudSdkRootDir, 'platform', 'bundledpython', 'python.exe');
+    const bundledPython = path.win32.join(
+      cloudSdkRootDir,
+      'platform',
+      'bundledpython',
+      'python.exe',
+    );
     if (fs.existsSync(bundledPython)) {
       cloudSdkPython = bundledPython;
     }
@@ -171,7 +178,7 @@ export function getWindowsCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = proce
       cloudSdkPythonSitePackages = '';
     }
   } else if (cloudSdkPythonSitePackages === null) {
-      cloudSdkPythonSitePackages = '';
+    cloudSdkPythonSitePackages = '';
   }
 
   let cloudSdkPythonArgs = env['CLOUDSDK_PYTHON_ARGS'] || '';
@@ -194,7 +201,7 @@ export function getWindowsCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = proce
 export function getCloudSDKSettings(): CloudSDKSettings {
   const isWindowsPlatform = os.platform() === 'win32';
   return {
-    isWindowsPlatform : isWindowsPlatform,
-    windowsCloudSDKSettings : isWindowsPlatform ? getWindowsCloudSDKSettings() : null,
-  }
+    isWindowsPlatform,
+    windowsCloudSDKSettings: isWindowsPlatform ? getWindowsCloudSDKSettings() : null,
+  };
 }

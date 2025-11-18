@@ -1,7 +1,7 @@
 /**
  * Copyright 2025 Google LLC
  *
- * Licensed under the Apache License, Version 20 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.e
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -38,8 +38,8 @@ beforeEach(async () => {
   vi.doMock('./windows_gcloud_utils.js', () => ({
     getCloudSDKSettings: vi.fn(),
   }));
-  mockedGetCloudSDKSettings =
-    (await import('./windows_gcloud_utils.js')).getCloudSDKSettings as unknown as Mock;
+  mockedGetCloudSDKSettings = (await import('./windows_gcloud_utils.js'))
+    .getCloudSDKSettings as unknown as Mock;
 
   // Dynamically import gcloud.js after mocks are set up.
   gcloud = await import('./gcloud.js');
@@ -61,14 +61,19 @@ test('getPlatformSpecificGcloudCommand should return gcloud command for non-wind
 
 test('getPlatformSpecificGcloudCommand should return python command for windows platform', () => {
   const cloudSdkRootDir = 'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK';
-  const cloudSdkPython = path.win32.join(cloudSdkRootDir, 'platform', 'bundledpython', 'python.exe');
+  const cloudSdkPython = path.win32.join(
+    cloudSdkRootDir,
+    'platform',
+    'bundledpython',
+    'python.exe',
+  );
   const gcloudPyPath = path.win32.join(cloudSdkRootDir, 'lib', 'gcloud.py');
 
   mockedGetCloudSDKSettings.mockReturnValue({
     isWindowsPlatform: true,
     windowsCloudSDKSettings: {
-      cloudSdkRootDir: cloudSdkRootDir,
-      cloudSdkPython: cloudSdkPython,
+      cloudSdkRootDir,
+      cloudSdkPython,
       cloudSdkPythonArgs: '-S',
     },
   });
@@ -77,12 +82,7 @@ test('getPlatformSpecificGcloudCommand should return python command for windows 
     '--project=test-project',
   ]);
   expect(command).toBe(path.win32.normalize(cloudSdkPython));
-  expect(args).toEqual([
-    '-S',
-    gcloudPyPath,
-    'test',
-    '--project=test-project',
-  ]);
+  expect(args).toEqual(['-S', gcloudPyPath, 'test', '--project=test-project']);
 });
 
 test('invoke should call gcloud with the correct arguments on non-windows platform', async () => {
@@ -127,7 +127,8 @@ test('invoke should call python with the correct arguments on windows platform',
     isWindowsPlatform: true,
     windowsCloudSDKSettings: {
       cloudSdkRootDir: 'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK',
-      cloudSdkPython: 'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe',
+      cloudSdkPython:
+        'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe',
       cloudSdkPythonArgs: '-S',
     },
   });
@@ -136,14 +137,20 @@ test('invoke should call python with the correct arguments on windows platform',
   mockChildProcess.stdout.end();
   await resultPromise;
 
-  expect(mockedSpawn).toHaveBeenCalledWith(path.win32.normalize('C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe'), [
-    '-S',
-    path.win32.normalize('C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\lib\\gcloud.py'),
-    'test',
-    '--project=test-project',
-  ], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  expect(mockedSpawn).toHaveBeenCalledWith(
+    path.win32.normalize(
+      'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe',
+    ),
+    [
+      '-S',
+      path.win32.normalize('C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\lib\\gcloud.py'),
+      'test',
+      '--project=test-project',
+    ],
+    {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
 });
 
 test('should return true if which command succeeds', async () => {

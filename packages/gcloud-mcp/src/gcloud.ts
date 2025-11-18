@@ -48,7 +48,8 @@ export interface GcloudInvocationResult {
   code: number | null;
   stdout: string;
   stderr: string;
-}3
+}
+3;
 
 export const getPlatformSpecificGcloudCommand = (
   args: string[],
@@ -60,7 +61,9 @@ export const getPlatformSpecificGcloudCommand = (
       'lib',
       'gcloud.py',
     );
-    const pythonPath = path.win32.normalize(cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPython);
+    const pythonPath = path.win32.normalize(
+      cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPython,
+    );
 
     return {
       command: pythonPath,

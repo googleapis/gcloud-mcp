@@ -46,7 +46,10 @@ export function execWhere(
         env: spawnEnv, // Use updated PATH for where command
       })
       .trim();
-    return result.split(/\r?\n/).filter((line) => line.length > 0);
+    return result
+      .split(/\r?\n/)
+      .filter((line) => line.length > 0)
+      .map((line) => path.win32.normalize(line));
   } catch {
     return [];
   }
@@ -109,9 +112,9 @@ export function findWindowsPythonPath(spawnEnv: { [key: string]: string | undefi
 }
 
 export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
-  const cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
+  let cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
   if (cloudSdkRootDir) {
-    return cloudSdkRootDir;
+    return path.win32.normalize(cloudSdkRootDir);
   }
 
   try {
@@ -121,8 +124,8 @@ export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
     if (gcloudPathOutput) {
       // Assuming gcloud.cmd is in <SDK_ROOT>/bin/gcloud.cmd
       // We need to go up two levels from the gcloud.cmd path
-      const binDir = path.dirname(gcloudPathOutput);
-      const sdkRoot = path.dirname(binDir);
+      const binDir = path.win32.dirname(gcloudPathOutput);
+      const sdkRoot = path.win32.dirname(binDir);
       return sdkRoot;
     }
   } catch {
@@ -142,7 +145,7 @@ export function getWindowsCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = proce
   let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
   // Find bundled python if no python is set in the environment.
   if (!cloudSdkPython) {
-    const bundledPython = path.join(cloudSdkRootDir, 'platform', 'bundledpython', 'python.exe');
+    const bundledPython = path.win32.join(cloudSdkRootDir, 'platform', 'bundledpython', 'python.exe');
     if (fs.existsSync(bundledPython)) {
       cloudSdkPython = bundledPython;
     }

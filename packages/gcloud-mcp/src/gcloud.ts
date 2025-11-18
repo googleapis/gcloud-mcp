@@ -17,10 +17,21 @@
 import { z } from 'zod';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import { getCloudSDKSettings } from './windows_gcloud_utils.js';
+import {
+  getCloudSDKSettings as getRealCloudSDKSettings,
+  CloudSDKSettings,
+} from './windows_gcloud_utils.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
-export const cloudSDKSettings = getCloudSDKSettings();
+
+let memoizedCloudSDKSettings: CloudSDKSettings | undefined;
+
+function getMemoizedCloudSDKSettings(): CloudSDKSettings {
+  if (!memoizedCloudSDKSettings) {
+    memoizedCloudSDKSettings = getRealCloudSDKSettings();
+  }
+  return memoizedCloudSDKSettings;
+}
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
@@ -37,18 +48,19 @@ export interface GcloudInvocationResult {
   code: number | null;
   stdout: string;
   stderr: string;
-}
+}3
 
 export const getPlatformSpecificGcloudCommand = (
   args: string[],
 ): { command: string; args: string[] } => {
+  const cloudSDKSettings = getMemoizedCloudSDKSettings();
   if (cloudSDKSettings.isWindowsPlatform && cloudSDKSettings.windowsCloudSDKSettings) {
-    const windowsPathForGcloudPy = path.join(
+    const windowsPathForGcloudPy = path.win32.join(
       cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkRootDir,
       'lib',
       'gcloud.py',
     );
-    const pythonPath = cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPython;
+    const pythonPath = path.win32.normalize(cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPython);
 
     return {
       command: pythonPath,

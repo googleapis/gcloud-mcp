@@ -15,7 +15,6 @@ import {
 vi.mock('child_process');
 vi.mock('fs');
 vi.mock('os');
-vi.mock('path');
 
 describe('windows_gcloud_utils', () => {
   beforeEach(() => {
@@ -26,7 +25,7 @@ describe('windows_gcloud_utils', () => {
     it('should return paths when command is found', () => {
       vi.spyOn(child_process, 'execSync').mockReturnValue('C:\\Program Files\\Python\\Python39\\python.exe\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe');
       const result = execWhere('command', {});
-      expect(result).toEqual(['C:\\Program Files\\Python\\Python39\\python.exe', 'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe']);
+      expect(result).toEqual(['C:\\Program Files\\Python\\Python39\\python.exe', 'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe'].map(p => path.win32.normalize(p)));
     });
 
     it('should return empty array when command is not found', () => {
@@ -94,18 +93,13 @@ describe('windows_gcloud_utils', () => {
   describe('getSDKRootDirectory', () => {
     it('should get root directory from CLOUDSDK_ROOT_DIR', () => {
       const sdkRoot = getSDKRootDirectory({ CLOUDSDK_ROOT_DIR: 'sdk_root' });
-      expect(sdkRoot).toBe('sdk_root');
+      expect(sdkRoot).toBe(path.win32.normalize('sdk_root'));
     });
 
     it('should get root directory from where gcloud', () => {
       vi.spyOn(child_process, 'execSync').mockReturnValue('C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd');
-      vi.spyOn(path, 'dirname').mockImplementation((p) => {
-        if (p === 'C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd') return 'C:\\Program Files\\Google\\Cloud SDK\\bin';
-        if (p === 'C:\\Program Files\\Google\\Cloud SDK\\bin') return 'C:\\Program Files\\Google\\Cloud SDK';
-        return p;
-      });
       const sdkRoot = getSDKRootDirectory({});
-      expect(sdkRoot).toBe('C:\\Program Files\\Google\\Cloud SDK');
+      expect(sdkRoot).toBe(path.win32.normalize('C:\\Program Files\\Google\\Cloud SDK'));
     });
 
     it('should return empty string if gcloud not found', () => {
@@ -120,7 +114,6 @@ describe('windows_gcloud_utils', () => {
   describe('getWindowsCloudSDKSettings', () => {
     it('should get settings with bundled python', () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(path, 'join').mockImplementation((...args) => args.join('\\'));
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0'); // For getPythonVersion
 
       const settings = getWindowsCloudSDKSettings({
@@ -128,8 +121,8 @@ describe('windows_gcloud_utils', () => {
         CLOUDSDK_PYTHON_SITEPACKAGES: '' // no site packages
       });
 
-      expect(settings.cloudSdkRootDir).toBe('C:\\CloudSDK');
-      expect(settings.cloudSdkPython).toBe('C:\\CloudSDK\\platform\\bundledpython\\python.exe');
+      expect(settings.cloudSdkRootDir).toBe(path.win32.normalize('C:\\CloudSDK'));
+      expect(settings.cloudSdkPython).toBe(path.win32.normalize('C:\\CloudSDK\\platform\\bundledpython\\python.exe'));
       expect(settings.cloudSdkPythonArgs).toBe('-S'); // Expect -S to be added
       expect(settings.noWorkingPythonFound).toBe(false);
     });
@@ -144,7 +137,7 @@ describe('windows_gcloud_utils', () => {
         CLOUDSDK_PYTHON_SITEPACKAGES: '1',
       });
 
-      expect(settings.cloudSdkRootDir).toBe('C:\\CloudSDK');
+      expect(settings.cloudSdkRootDir).toBe(path.win32.normalize('C:\\CloudSDK'));
       expect(settings.cloudSdkPython).toBe('C:\\Python39\\python.exe');
       expect(settings.cloudSdkPythonArgs).toBe(''); // Expect no -S
       expect(settings.noWorkingPythonFound).toBe(false);
@@ -179,7 +172,6 @@ describe('windows_gcloud_utils', () => {
 
     it('should keep existing CLOUDSDK_PYTHON_ARGS and add -S if no site packages', () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(path, 'join').mockImplementation((...args) => args.join('\\'));
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
 
       const settings = getWindowsCloudSDKSettings({
@@ -192,7 +184,6 @@ describe('windows_gcloud_utils', () => {
 
     it('should remove -S from CLOUDSDK_PYTHON_ARGS if site packages enabled', () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(path, 'join').mockImplementation((...args) => args.join('\\'));
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
 
       const settings = getWindowsCloudSDKSettings({
@@ -209,7 +200,6 @@ describe('windows_gcloud_utils', () => {
       vi.spyOn(os, 'platform').mockReturnValue('win32');
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(path, 'join').mockImplementation((...args) => args.join('\\'));
 
       const settings = getCloudSDKSettings();
       expect(settings.isWindowsPlatform).toBe(true);

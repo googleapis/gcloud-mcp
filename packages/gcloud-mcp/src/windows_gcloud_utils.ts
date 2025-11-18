@@ -96,13 +96,12 @@ export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
 
     try {
         // Use 'where gcloud' to find the gcloud executable on Windows
-        const gcloudPathOutput = child_process.execSync('where gcloud', { encoding: 'utf8', env: env }).trim();
-        const gcloudPath = gcloudPathOutput.split(/\r?\n/)[0]; // Take the first path if multiple are returned
+        const gcloudPathOutput = execWhere("gcloud", env)[0];
 
-        if (gcloudPath) {
+        if (gcloudPathOutput) {
             // Assuming gcloud.cmd is in <SDK_ROOT>/bin/gcloud.cmd
             // We need to go up two levels from the gcloud.cmd path
-            const binDir = path.dirname(gcloudPath);
+            const binDir = path.dirname(gcloudPathOutput);
             const sdkRoot = path.dirname(binDir);
             return sdkRoot;
         }
@@ -138,7 +137,7 @@ export function getCloudSDKSettings(
         cloudSdkPython = findWindowsPythonPath(env);
     }
     
-    // Where always exist in a Windows Platform
+    // Where.exe always exist in a Windows Platform
     let noWorkingPythonFound = false;
     // Juggling check to hit null and undefined at the same time
     if (!getPythonVersion(cloudSdkPython, env)) {
@@ -184,8 +183,4 @@ export function getWindowsCloudSDKSettings() : WindowsCloudSDKSettings {
             cloudSDKSettings: null
         }
     }
-}
-
-export function getGcloudLibPath(cloudSdkRootDir: string) : string {
-    return path.join(cloudSdkRootDir, 'lib', 'gcloud');
 }

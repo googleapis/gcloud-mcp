@@ -66,9 +66,9 @@ export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
     let stdout = '';
     let stderr = '';
     
-    const { command: command, args: allArgs } = getPlatformSpecificGcloudCommand(args);
+    const { command: command, args: executionArgs } = getPlatformSpecificGcloudCommand(args);
 
-    const gcloud = child_process.spawn(command, allArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const gcloud = child_process.spawn(command, executionArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();

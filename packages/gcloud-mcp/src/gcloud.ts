@@ -49,7 +49,6 @@ export interface GcloudInvocationResult {
   stdout: string;
   stderr: string;
 }
-3;
 
 export const getPlatformSpecificGcloudCommand = (
   args: string[],

@@ -160,20 +160,24 @@ export function getWindowsCloudSDKSettings(currentEnv: NodeJS.ProcessEnv = proce
   }
 
   // Check if the User has site package enabled
-  let cloudSdkPythonSitePackages = env['CLOUDSDK_PYTHON_SITEPACKAGES'] || '';
+  let cloudSdkPythonSitePackages = currentEnv['CLOUDSDK_PYTHON_SITEPACKAGES'];
   if (cloudSdkPythonSitePackages === undefined) {
-    if (env['VIRTUAL_ENV']) {
+    if (currentEnv['VIRTUAL_ENV']) {
       cloudSdkPythonSitePackages = '1';
     } else {
       cloudSdkPythonSitePackages = '';
     }
+  } else if (cloudSdkPythonSitePackages === null) {
+      cloudSdkPythonSitePackages = '';
   }
 
   let cloudSdkPythonArgs = env['CLOUDSDK_PYTHON_ARGS'] || '';
   const argsWithoutS = cloudSdkPythonArgs.replace('-S', '').trim();
 
   // Spacing here matters
-  cloudSdkPythonArgs = !cloudSdkPythonSitePackages ? `${argsWithoutS}-S` : argsWithoutS;
+  cloudSdkPythonArgs = !cloudSdkPythonSitePackages
+    ? `${argsWithoutS}${argsWithoutS ? ' ' : ''}-S`
+    : argsWithoutS;
 
   return {
     cloudSdkRootDir,

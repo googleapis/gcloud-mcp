@@ -45,6 +45,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
   vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettings').mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
   registerToolSpy.mockClear();
 });
 

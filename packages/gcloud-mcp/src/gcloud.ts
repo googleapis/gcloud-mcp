@@ -17,9 +17,21 @@
 import { z } from 'zod';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import { getMemoizedCloudSDKSettings } from './index.js';
+import {
+  getCloudSDKSettings as getRealCloudSDKSettings,
+  CloudSDKSettings,
+} from './windows_gcloud_utils.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
+
+let memoizedCloudSDKSettings: CloudSDKSettings | undefined;
+
+export function getMemoizedCloudSDKSettings(): CloudSDKSettings {
+  if (!memoizedCloudSDKSettings) {
+    memoizedCloudSDKSettings = getRealCloudSDKSettings();
+  }
+  return memoizedCloudSDKSettings;
+}
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {

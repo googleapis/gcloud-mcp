@@ -28,10 +28,7 @@ import { log } from './utility/logger.js';
 import fs from 'fs';
 import path from 'path';
 import { createAccessControlList } from './denylist.js';
-import {
-  getCloudSDKSettings as getRealCloudSDKSettings,
-  CloudSDKSettings,
-} from './windows_gcloud_utils.js';
+import { CloudSDKSettings } from './windows_gcloud_utils.js';
 
 export const default_deny: string[] = [
   'compute start-iap-tunnel',
@@ -61,15 +58,6 @@ interface McpConfig {
 
 export type { McpConfig };
 
-let memoizedCloudSDKSettings: CloudSDKSettings | undefined;
-
-export function getMemoizedCloudSDKSettings(): CloudSDKSettings {
-  if (!memoizedCloudSDKSettings) {
-    memoizedCloudSDKSettings = getRealCloudSDKSettings();
-  }
-  return memoizedCloudSDKSettings;
-}
-
 const main = async () => {
   const argv = (await yargs(hideBin(process.argv))
     .command('$0', 'Run the gcloud mcp server', (yargs) =>
@@ -90,12 +78,11 @@ const main = async () => {
     process.exit(1);
   }
 
+  const cloudSDKSettings: CloudSDKSettings = gcloud.getMemoizedCloudSDKSettings();
   // Platform verification
-  if (memoizedCloudSDKSettings?.isWindowsPlatform) {
-    if (memoizedCloudSDKSettings.windowsCloudSDKSettings == null || memoizedCloudSDKSettings.windowsCloudSDKSettings.noWorkingPythonFound) {
+  if (cloudSDKSettings.isWindowsPlatform && (cloudSDKSettings.windowsCloudSDKSettings == null || cloudSDKSettings.windowsCloudSDKSettings.noWorkingPythonFound)) {
       log.error(`Unable to start gcloud mcp server: No working Python installation found for Windows gcloud execution.`);
       process.exit(1);
-    }
   }
 
   let config: McpConfig = {};

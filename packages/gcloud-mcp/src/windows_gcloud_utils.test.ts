@@ -10,7 +10,7 @@ import {
   getSDKRootDirectory,
   getWindowsCloudSDKSettings,
   getCloudSDKSettings,
-} from './windows_gcloud_utils';
+} from './windows_gcloud_utils.js';
 
 vi.mock('child_process');
 vi.mock('fs');

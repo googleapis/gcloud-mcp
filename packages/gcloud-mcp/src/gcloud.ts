@@ -39,33 +39,40 @@ export interface GcloudInvocationResult {
   stderr: string;
 }
 
-export const getPlatformSpecificGcloudCommand = (args: string[]) : {command: string, args: string[]} => {
+export const getPlatformSpecificGcloudCommand = (
+  args: string[],
+): { command: string; args: string[] } => {
   if (windowsCloudSDKSettings.isWindowsPlatform && windowsCloudSDKSettings.cloudSDKSettings) {
-    
-    const windowsPathForGcloudPy = path.join(windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkRootDir, 'lib', 'gcloud.py');
+    const windowsPathForGcloudPy = path.join(
+      windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkRootDir,
+      'lib',
+      'gcloud.py',
+    );
     const pythonPath = windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkPython;
-    
+
     return {
-      command : pythonPath,
+      command: pythonPath,
       args: [
         windowsCloudSDKSettings.cloudSDKSettings?.cloudSdkPythonArgs,
         windowsPathForGcloudPy,
-        ...args
-      ]
-    }
+        ...args,
+      ],
+    };
   } else {
-    return  { command: 'gcloud', args: args };
+    return { command: 'gcloud', args };
   }
-}
+};
 
 export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
   new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
-    
+
     const { command: command, args: executionArgs } = getPlatformSpecificGcloudCommand(args);
 
-    const gcloud = child_process.spawn(command, executionArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const gcloud = child_process.spawn(command, executionArgs, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();

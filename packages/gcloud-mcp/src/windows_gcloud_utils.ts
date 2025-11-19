@@ -220,9 +220,7 @@ export async function getSDKRootDirectoryAsync(env: NodeJS.ProcessEnv): Promise<
   }
 
   // gcloud not found in PATH, or other error
-  log.warn(
-    'gcloud not found in PATH. Please ensure Google Cloud SDK is installed and configured.',
-  );
+  log.warn('gcloud not found in PATH. Please ensure Google Cloud SDK is installed and configured.');
 
   return ''; // Return empty string if not found
 }

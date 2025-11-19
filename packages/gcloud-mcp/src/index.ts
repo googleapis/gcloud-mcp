@@ -77,7 +77,7 @@ const main = async () => {
     process.exit(1);
   }
 
-  const cloudSDKSettings = await gcloud.getMemoizedCloudSDKSettings();
+  const cloudSDKSettings = await gcloud.getMemoizedCloudSDKSettingsAsync();
   // Platform verification
   if (
     cloudSDKSettings.isWindowsPlatform &&

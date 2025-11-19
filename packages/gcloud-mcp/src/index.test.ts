@@ -45,7 +45,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
   vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
-  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettings').mockResolvedValue({
+  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettingsAsync').mockResolvedValue({
     isWindowsPlatform: false,
     windowsCloudSDKSettings: null,
   });
@@ -158,7 +158,7 @@ test('should exit if config file is invalid JSON', async () => {
 test('should exit if os is windows and it can not find working python', async () => {
   process.argv = ['node', 'index.js'];
   vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
-  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettings').mockResolvedValue({
+  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettingsAsync').mockResolvedValue({
     isWindowsPlatform: true,
     windowsCloudSDKSettings: {
       cloudSdkRootDir: '',

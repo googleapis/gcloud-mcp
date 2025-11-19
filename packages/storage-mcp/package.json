@@ -42,7 +42,7 @@
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",
     "@types/chardet": "^0.8.3",
-    "@types/mime": "^3.0.4",
+    "@types/mime": "^4.0.0",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.39.0",

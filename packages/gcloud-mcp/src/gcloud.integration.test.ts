@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { test, expect, 
-  // assert 
+import {
+  test,
+  expect,
+  // assert
 } from 'vitest';
 // import * as gcloud from './gcloud.js';
 // import path from 'path';
@@ -54,7 +56,7 @@ import { test, expect,
 
 test('can invoke gcloud when there are multiple python args', async () => {
   // Set the environment variables correctly and then reimport gcloud to force it to reload
-  process.env['CLOUDSDK_PYTHON_ARGS'] = "-S -u -B";
+  process.env['CLOUDSDK_PYTHON_ARGS'] = '-S -u -B';
   const gcloud = await import('./gcloud.js');
   const result = await gcloud.invoke(['config list && echo asdf']);
   expect(result.code).toBeGreaterThan(0);

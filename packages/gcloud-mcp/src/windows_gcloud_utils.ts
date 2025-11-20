@@ -62,27 +62,6 @@ export async function execWhereAsync(
   });
 }
 
-export function execWhere(
-  command: string,
-  spawnEnv: { [key: string]: string | undefined },
-): string[] {
-  try {
-    const result = child_process
-      .execSync(`where ${command}`, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore'],
-        env: spawnEnv, // Use updated PATH for where command
-      })
-      .trim();
-    return result
-      .split(/\r?\n/)
-      .filter((line) => line.length > 0)
-      .map((line) => path.win32.normalize(line));
-  } catch {
-    return [];
-  }
-}
-
 export async function getPythonVersionAsync(
   pythonPath: string,
   spawnEnv: { [key: string]: string | undefined },
@@ -106,26 +85,6 @@ export async function getPythonVersionAsync(
       },
     );
   });
-}
-
-export function getPythonVersion(
-  pythonPath: string,
-  spawnEnv: { [key: string]: string | undefined },
-): string | undefined {
-  try {
-    const escapedPath = pythonPath.includes(' ') ? `"${pythonPath}"` : pythonPath;
-    const cmd = `${escapedPath} -c "import sys; print(sys.version)"`;
-    const result = child_process
-      .execSync(cmd, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore'],
-        env: spawnEnv, // Use env without PYTHONHOME
-      })
-      .trim();
-    return result.split(/[\r\n]+/)[0];
-  } catch {
-    return undefined;
-  }
 }
 
 export async function findWindowsPythonPathAsync(spawnEnv: {
@@ -166,42 +125,6 @@ export async function findWindowsPythonPathAsync(spawnEnv: {
   return 'python.exe'; // Fallback to default python command
 }
 
-export function findWindowsPythonPath(spawnEnv: { [key: string]: string | undefined }): string {
-  // Try to find a Python installation on Windows
-  // Try Python, python3, python2
-
-  const pythonCandidates = execWhere('python', spawnEnv);
-  if (pythonCandidates.length > 0) {
-    for (const candidate of pythonCandidates) {
-      const version = getPythonVersion(candidate, spawnEnv);
-      if (version && version.startsWith('3')) {
-        return candidate;
-      }
-    }
-  }
-
-  const python3Candidates = execWhere('python3', spawnEnv);
-  if (python3Candidates.length > 0) {
-    for (const candidate of python3Candidates) {
-      const version = getPythonVersion(candidate, spawnEnv);
-      if (version && version.startsWith('3')) {
-        return candidate;
-      }
-    }
-  }
-
-  // Try to find python2 last
-  if (pythonCandidates.length > 0) {
-    for (const candidate of pythonCandidates) {
-      const version = getPythonVersion(candidate, spawnEnv);
-      if (version && version.startsWith('2')) {
-        return candidate;
-      }
-    }
-  }
-  return 'python.exe'; // Fallback to default python command
-}
-
 export async function getSDKRootDirectoryAsync(env: NodeJS.ProcessEnv): Promise<string> {
   const cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
   if (cloudSdkRootDir) {
@@ -221,33 +144,6 @@ export async function getSDKRootDirectoryAsync(env: NodeJS.ProcessEnv): Promise<
 
   // gcloud not found in PATH, or other error
   log.warn('gcloud not found in PATH. Please ensure Google Cloud SDK is installed and configured.');
-
-  return ''; // Return empty string if not found
-}
-
-export function getSDKRootDirectory(env: NodeJS.ProcessEnv): string {
-  const cloudSdkRootDir = env['CLOUDSDK_ROOT_DIR'] || '';
-  if (cloudSdkRootDir) {
-    return path.win32.normalize(cloudSdkRootDir);
-  }
-
-  try {
-    // Use 'where gcloud' to find the gcloud executable on Windows
-    const gcloudPathOutput = execWhere('gcloud', env)[0];
-
-    if (gcloudPathOutput) {
-      // Assuming gcloud.cmd is in <SDK_ROOT>/bin/gcloud.cmd
-      // We need to go up two levels from the gcloud.cmd path
-      const binDir = path.win32.dirname(gcloudPathOutput);
-      const sdkRoot = path.win32.dirname(binDir);
-      return sdkRoot;
-    }
-  } catch {
-    // gcloud not found in PATH, or other error
-    log.warn(
-      'gcloud not found in PATH. Please ensure Google Cloud SDK is installed and configured.',
-    );
-  }
 
   return ''; // Return empty string if not found
 }
@@ -302,8 +198,8 @@ export async function getWindowsCloudSDKSettingsAsync(
   cloudSdkPythonArgs = !cloudSdkPythonSitePackages
     ? `${argsWithoutS}${argsWithoutS ? ' ' : ''}-S`
     : argsWithoutS;
-  
-  const cloudSdkPythonArgsList = cloudSdkPythonArgs.split(" ") == undefined ? [] : cloudSdkPythonArgs.split(" ");
+
+  const cloudSdkPythonArgsList = cloudSdkPythonArgs ? cloudSdkPythonArgs.split(' ') : [];
 
   return {
     cloudSdkRootDir,
@@ -314,7 +210,6 @@ export async function getWindowsCloudSDKSettingsAsync(
   };
 }
 
-
 export async function getCloudSDKSettingsAsync(): Promise<CloudSDKSettings> {
   const isWindowsPlatform = os.platform() === 'win32';
   return {
@@ -322,4 +217,3 @@ export async function getCloudSDKSettingsAsync(): Promise<CloudSDKSettings> {
     windowsCloudSDKSettings: isWindowsPlatform ? await getWindowsCloudSDKSettingsAsync() : null,
   };
 }
-

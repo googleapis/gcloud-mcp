@@ -20,10 +20,10 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
-  execWhere,
-  getPythonVersion,
-  findWindowsPythonPath,
-  getSDKRootDirectory,
+  execWhereAsync,
+  getPythonVersionAsync,
+  findWindowsPythonPathAsync,
+  getSDKRootDirectoryAsync,
   getWindowsCloudSDKSettingsAsync,
   getCloudSDKSettingsAsync,
 } from './windows_gcloud_utils.js';
@@ -37,13 +37,20 @@ describe('windows_gcloud_utils', () => {
     vi.resetAllMocks();
   });
 
-  describe('execWhere', () => {
-    it('should return paths when command is found', () => {
-      vi.spyOn(child_process, 'execSync').mockReturnValue(
-        'C:\\Program Files\\Python\\Python39\\python.exe\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
-      );
-      const result = execWhere('command', {});
-      expect(result).toEqual(
+  describe('execWhereAsync', () => {
+    it('should return paths when command is found', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(
+            null,
+            'C:\\Program Files\\Python\\Python39\\python.exe\r\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
+            '',
+          );
+        }
+        return {} as child_process.ChildProcess;
+      });
+      const result = await execWhereAsync('command', {});
+      expect(result).toStrictEqual(
         [
           'C:\\Program Files\\Python\\Python39\\python.exe',
           'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
@@ -51,91 +58,156 @@ describe('windows_gcloud_utils', () => {
       );
     });
 
-    it('should return empty array when command is not found', () => {
-      vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-        throw new Error();
+    it('should return empty array when command is not found', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(new Error('not found'), '', '');
+        }
+        return {} as child_process.ChildProcess;
       });
-      const result = execWhere('command', {});
-      expect(result).toEqual([]);
+      const result = await execWhereAsync('command', {});
+      expect(result).toStrictEqual([]);
     });
   });
 
-  describe('getPythonVersion', () => {
-    it('should return python version', () => {
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
-      const version = getPythonVersion('python', {});
+  describe('getPythonVersionAsync', () => {
+    it('should return python version', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      const version = await getPythonVersionAsync('python', {});
       expect(version).toBe('3.9.0');
     });
 
-    it('should return undefined if python not found', () => {
-      vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-        throw new Error();
+    it('should return undefined if python not found', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(new Error('not found'), '', '');
+        }
+        return {} as child_process.ChildProcess;
       });
-      const version = getPythonVersion('python', {});
+      const version = await getPythonVersionAsync('python', {});
       expect(version).toBeUndefined();
     });
   });
 
-  describe('findWindowsPythonPath', () => {
-    it('should find python3 when multiple python versions are present', () => {
-      // Mock `execWhere('python', ...)` to return a list of python paths
-      vi.spyOn(child_process, 'execSync')
-        .mockReturnValueOnce('C:\\Python27\\python.exe\nC:\\Python39\\python.exe') // For execWhere('python')
-        .mockReturnValueOnce('2.7.18') // For getPythonVersion('C:\\Python27\\python.exe')
-        .mockReturnValueOnce('3.9.5') // For getPythonVersion('C:\\Python39\\python.exe')
-        .mockReturnValueOnce(''); // For execWhere('python3') - no python3 found
+  describe('findWindowsPythonPathAsync', () => {
+    it('should find python3 when multiple python versions are present', async () => {
+      const execMock = vi.spyOn(child_process, 'exec');
+      // Mock for execWhereAsync('python', spawnEnv)
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(null, 'C:\\Python27\\python.exe\r\nC:\\Python39\\python.exe', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      // Mock for getPythonVersionAsync('C:\\Python27\\python.exe', spawnEnv)
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '2.7.18', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      // Mock for getPythonVersionAsync('C:\\Python39\\python.exe', spawnEnv)
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.5', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
 
-      const pythonPath = findWindowsPythonPath({});
+      const pythonPath = await findWindowsPythonPathAsync({});
       expect(pythonPath).toBe('C:\\Python39\\python.exe');
     });
 
-    it('should find python2 if no python3 is available', () => {
-      // Mock `execWhere('python', ...)` to return a list of python paths
-      vi.spyOn(child_process, 'execSync')
-        .mockReturnValueOnce('C:\\Python27\\python.exe') // For execWhere('python')
-        .mockReturnValueOnce('2.7.18') // For getPythonVersion('C:\\Python27\\python.exe')
-        .mockReturnValueOnce('') // For execWhere('python3') - no python3 found
-        .mockReturnValueOnce('2.7.18'); // For getPythonVersion('C:\\Python27\\python.exe') - second check for python2
+    it('should find python2 if no python3 is available', async () => {
+      const execMock = vi.spyOn(child_process, 'exec');
+      // Mock for execWhereAsync('python', spawnEnv)
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(null, 'C:\\Python27\\python.exe', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      // Mock for getPythonVersionAsync('C:\\Python27\\python.exe', spawnEnv)
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '2.7.18', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      // Mock for execWhereAsync('python3', spawnEnv)
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(new Error('not found'), '', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      // Mock for the second loop of pythonCandidates
+      execMock.mockImplementationOnce((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '2.7.18', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
 
-      const pythonPath = findWindowsPythonPath({});
+      const pythonPath = await findWindowsPythonPathAsync({});
       expect(pythonPath).toBe('C:\\Python27\\python.exe');
     });
 
-    it('should return default python.exe if no python is found', () => {
-      vi.spyOn(child_process, 'execSync').mockReturnValueOnce(''); // For execWhere('python')
-      vi.spyOn(child_process, 'execSync').mockReturnValueOnce(''); // For execWhere('python3')
-      const pythonPath = findWindowsPythonPath({});
+    it('should return default python.exe if no python is found', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(new Error('not found'), '', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      const pythonPath = await findWindowsPythonPathAsync({});
       expect(pythonPath).toBe('python.exe');
     });
   });
 
-  describe('getSDKRootDirectory', () => {
-    it('should get root directory from CLOUDSDK_ROOT_DIR', () => {
-      const sdkRoot = getSDKRootDirectory({ CLOUDSDK_ROOT_DIR: 'sdk_root' });
+  describe('getSDKRootDirectoryAsync', () => {
+    it('should get root directory from CLOUDSDK_ROOT_DIR', async () => {
+      const sdkRoot = await getSDKRootDirectoryAsync({ CLOUDSDK_ROOT_DIR: 'sdk_root' });
       expect(sdkRoot).toBe(path.win32.normalize('sdk_root'));
     });
 
-    it('should get root directory from where gcloud', () => {
-      vi.spyOn(child_process, 'execSync').mockReturnValue(
-        'C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd',
-      );
-      const sdkRoot = getSDKRootDirectory({});
+    it('should get root directory from where gcloud', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, 'C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
+      const sdkRoot = await getSDKRootDirectoryAsync({});
       expect(sdkRoot).toBe(path.win32.normalize('C:\\Program Files\\Google\\Cloud SDK'));
     });
 
-    it('should return empty string if gcloud not found', () => {
-      vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-        throw new Error('gcloud not found');
+    it('should return empty string if gcloud not found', async () => {
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(new Error('not found'), '', '');
+        }
+        return {} as child_process.ChildProcess;
       });
-      const sdkRoot = getSDKRootDirectory({});
+      const sdkRoot = await getSDKRootDirectoryAsync({});
       expect(sdkRoot).toBe('');
     });
   });
 
   describe('getWindowsCloudSDKSettingsAsync', () => {
-    it('should get settings with bundled python',  async () => {
+    it('should get settings with bundled python', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0'); // For getPythonVersion
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess; // Return a mock ChildProcess
+      }); // For getPythonVersionAsync
 
       const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
@@ -146,14 +218,18 @@ describe('windows_gcloud_utils', () => {
       expect(settings.cloudSdkPython).toBe(
         path.win32.normalize('C:\\CloudSDK\\platform\\bundledpython\\python.exe'),
       );
-      expect(settings.cloudSdkPythonArgsList).toBe(['-S']); // Expect -S to be added
+      expect(settings.cloudSdkPythonArgsList).toStrictEqual(['-S']); // Expect -S to be added
       expect(settings.noWorkingPythonFound).toBe(false);
     });
 
     it('should get settings with CLOUDSDK_PYTHON and site packages enabled', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false); // No bundled python
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0'); // For getPythonVersion
-
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess; // Return a mock ChildProcess
+      }); // For getPythonVersionAsync
       const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON: 'C:\\Python39\\python.exe',
@@ -162,14 +238,17 @@ describe('windows_gcloud_utils', () => {
 
       expect(settings.cloudSdkRootDir).toBe(path.win32.normalize('C:\\CloudSDK'));
       expect(settings.cloudSdkPython).toBe('C:\\Python39\\python.exe');
-      expect(settings.cloudSdkPythonArgsList).toBe([]); // Expect no -S
+      expect(settings.cloudSdkPythonArgsList).toStrictEqual([]); // Expect no -S
       expect(settings.noWorkingPythonFound).toBe(false);
     });
 
     it('should set noWorkingPythonFound to true if python version cannot be determined', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false); // No bundled python
-      vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-        throw new Error();
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(new Error('whoops'), '', '');
+        }
+        return {} as child_process.ChildProcess;
       }); // getPythonVersion throws
 
       const settings = await getWindowsCloudSDKSettingsAsync({
@@ -182,7 +261,12 @@ describe('windows_gcloud_utils', () => {
 
     it('should handle VIRTUAL_ENV for site packages', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false);
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess; // Return a mock ChildProcess
+      }); // For getPythonVersionAsync
 
       const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
@@ -190,38 +274,53 @@ describe('windows_gcloud_utils', () => {
         VIRTUAL_ENV: 'C:\\MyVirtualEnv',
         CLOUDSDK_PYTHON_SITEPACKAGES: undefined, // Ensure this is undefined to hit the if condition
       });
-      expect(settings.cloudSdkPythonArgsList).toBe([]);
+      expect(settings.cloudSdkPythonArgsList).toStrictEqual([]);
     });
 
     it('should keep existing CLOUDSDK_PYTHON_ARGS and add -S if no site packages', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess; // Return a mock ChildProcess
+      }); // For getPythonVersionAsync
 
       const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_ARGS: '-v',
         CLOUDSDK_PYTHON_SITEPACKAGES: '',
       });
-      expect(settings.cloudSdkPythonArgsList).toBe(['-v', '-S']);
+      expect(settings.cloudSdkPythonArgsList).toStrictEqual(['-v', '-S']);
     });
 
     it('should remove -S from CLOUDSDK_PYTHON_ARGS if site packages enabled', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess;
+      });
 
       const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_ARGS: '-v -S',
         CLOUDSDK_PYTHON_SITEPACKAGES: '1',
       });
-      expect(settings.cloudSdkPythonArgsList).toBe(['-v']);
+      expect(settings.cloudSdkPythonArgsList).toStrictEqual(['-v']);
     });
   });
 
   describe('getCloudSDKSettingsAsync', () => {
     it('should return windows settings on windows', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('win32');
-      vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
+      vi.spyOn(child_process, 'exec').mockImplementation((_command, _options, callback) => {
+        if (callback) {
+          callback(null, '3.9.0', '');
+        }
+        return {} as child_process.ChildProcess; // Return a mock ChildProcess
+      }); // For getPythonVersionAsync
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
 
       const settings = await getCloudSDKSettingsAsync();

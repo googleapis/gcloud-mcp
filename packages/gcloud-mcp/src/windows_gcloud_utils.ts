@@ -23,7 +23,7 @@ import { log } from './utility/logger.js';
 export interface WindowsCloudSDKSettings {
   cloudSdkRootDir: string;
   cloudSdkPython: string;
-  cloudSdkPythonArgs: string;
+  cloudSdkPythonArgsList: string[];
   noWorkingPythonFound: boolean;
   /** Environment variables to use when spawning gcloud.py */
   env: { [key: string]: string | undefined };
@@ -302,11 +302,13 @@ export async function getWindowsCloudSDKSettingsAsync(
   cloudSdkPythonArgs = !cloudSdkPythonSitePackages
     ? `${argsWithoutS}${argsWithoutS ? ' ' : ''}-S`
     : argsWithoutS;
+  
+  const cloudSdkPythonArgsList = cloudSdkPythonArgs.split(" ") == undefined ? [] : cloudSdkPythonArgs.split(" ");
 
   return {
     cloudSdkRootDir,
     cloudSdkPython,
-    cloudSdkPythonArgs,
+    cloudSdkPythonArgsList,
     noWorkingPythonFound,
     env,
   };

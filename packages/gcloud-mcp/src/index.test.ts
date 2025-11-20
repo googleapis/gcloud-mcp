@@ -163,7 +163,7 @@ test('should exit if os is windows and it can not find working python', async ()
     windowsCloudSDKSettings: {
       cloudSdkRootDir: '',
       cloudSdkPython: '',
-      cloudSdkPythonArgs: '',
+      cloudSdkPythonArgsList: [],
       noWorkingPythonFound: true,
       env: {},
     },

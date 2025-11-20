@@ -146,7 +146,7 @@ describe('windows_gcloud_utils', () => {
       expect(settings.cloudSdkPython).toBe(
         path.win32.normalize('C:\\CloudSDK\\platform\\bundledpython\\python.exe'),
       );
-      expect(settings.cloudSdkPythonArgs).toBe('-S'); // Expect -S to be added
+      expect(settings.cloudSdkPythonArgsList).toBe(['-S']); // Expect -S to be added
       expect(settings.noWorkingPythonFound).toBe(false);
     });
 
@@ -162,7 +162,7 @@ describe('windows_gcloud_utils', () => {
 
       expect(settings.cloudSdkRootDir).toBe(path.win32.normalize('C:\\CloudSDK'));
       expect(settings.cloudSdkPython).toBe('C:\\Python39\\python.exe');
-      expect(settings.cloudSdkPythonArgs).toBe(''); // Expect no -S
+      expect(settings.cloudSdkPythonArgsList).toBe([]); // Expect no -S
       expect(settings.noWorkingPythonFound).toBe(false);
     });
 
@@ -190,7 +190,7 @@ describe('windows_gcloud_utils', () => {
         VIRTUAL_ENV: 'C:\\MyVirtualEnv',
         CLOUDSDK_PYTHON_SITEPACKAGES: undefined, // Ensure this is undefined to hit the if condition
       });
-      expect(settings.cloudSdkPythonArgs).toBe('');
+      expect(settings.cloudSdkPythonArgsList).toBe([]);
     });
 
     it('should keep existing CLOUDSDK_PYTHON_ARGS and add -S if no site packages', () => {
@@ -202,7 +202,7 @@ describe('windows_gcloud_utils', () => {
         CLOUDSDK_PYTHON_ARGS: '-v',
         CLOUDSDK_PYTHON_SITEPACKAGES: '',
       });
-      expect(settings.cloudSdkPythonArgs).toBe('-v -S');
+      expect(settings.cloudSdkPythonArgsList).toBe(['-v', '-S']);
     });
 
     it('should remove -S from CLOUDSDK_PYTHON_ARGS if site packages enabled', () => {
@@ -214,7 +214,7 @@ describe('windows_gcloud_utils', () => {
         CLOUDSDK_PYTHON_ARGS: '-v -S',
         CLOUDSDK_PYTHON_SITEPACKAGES: '1',
       });
-      expect(settings.cloudSdkPythonArgs).toBe('-v');
+      expect(settings.cloudSdkPythonArgsList).toBe(['-v']);
     });
   });
 

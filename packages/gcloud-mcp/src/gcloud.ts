@@ -67,7 +67,7 @@ export const getPlatformSpecificGcloudCommand = async (
     return {
       command: pythonPath,
       args: [
-        cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPythonArgs,
+        ...cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPythonArgsList,
         windowsPathForGcloudPy,
         ...args,
       ],

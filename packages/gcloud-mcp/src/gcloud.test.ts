@@ -95,7 +95,7 @@ test('getPlatformSpecificGcloudCommand should return python command for windows 
     windowsCloudSDKSettings: {
       cloudSdkRootDir,
       cloudSdkPython,
-      cloudSdkPythonArgs: '-S',
+      cloudSdkPythonArgsList: ['-S'],
     },
   });
   const { command, args } = await gcloud.getPlatformSpecificGcloudCommand([
@@ -132,7 +132,7 @@ test('invoke should call python with the correct arguments on windows platform',
       cloudSdkRootDir: 'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK',
       cloudSdkPython:
         'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe',
-      cloudSdkPythonArgs: '-S',
+      cloudSdkPythonArgsList: ['-S'],
     },
   });
 

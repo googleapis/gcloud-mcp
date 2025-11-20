@@ -314,65 +314,6 @@ export async function getWindowsCloudSDKSettingsAsync(
   };
 }
 
-export function getWindowsCloudSDKSettings(
-  currentEnv: NodeJS.ProcessEnv = process.env,
-): WindowsCloudSDKSettings {
-  const env = { ...currentEnv };
-  const cloudSdkRootDir = getSDKRootDirectory(env);
-
-  let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
-  // Find bundled python if no python is set in the environment.
-  if (!cloudSdkPython) {
-    const bundledPython = path.win32.join(
-      cloudSdkRootDir,
-      'platform',
-      'bundledpython',
-      'python.exe',
-    );
-    if (fs.existsSync(bundledPython)) {
-      cloudSdkPython = bundledPython;
-    }
-  }
-  // If not bundled Python is found, try to find a Python installation on windows
-  if (!cloudSdkPython) {
-    cloudSdkPython = findWindowsPythonPath(env);
-  }
-
-  // Where.exe always exist in a Windows Platform
-  let noWorkingPythonFound = false;
-  // Juggling check to hit null and undefined at the same time
-  if (!getPythonVersion(cloudSdkPython, env)) {
-    noWorkingPythonFound = true;
-  }
-
-  // Check if the User has site package enabled
-  let cloudSdkPythonSitePackages = currentEnv['CLOUDSDK_PYTHON_SITEPACKAGES'];
-  if (cloudSdkPythonSitePackages === undefined) {
-    if (currentEnv['VIRTUAL_ENV']) {
-      cloudSdkPythonSitePackages = '1';
-    } else {
-      cloudSdkPythonSitePackages = '';
-    }
-  } else if (cloudSdkPythonSitePackages === null) {
-    cloudSdkPythonSitePackages = '';
-  }
-
-  let cloudSdkPythonArgs = env['CLOUDSDK_PYTHON_ARGS'] || '';
-  const argsWithoutS = cloudSdkPythonArgs.replace('-S', '').trim();
-
-  // Spacing here matters
-  cloudSdkPythonArgs = !cloudSdkPythonSitePackages
-    ? `${argsWithoutS}${argsWithoutS ? ' ' : ''}-S`
-    : argsWithoutS;
-
-  return {
-    cloudSdkRootDir,
-    cloudSdkPython,
-    cloudSdkPythonArgs,
-    noWorkingPythonFound,
-    env,
-  };
-}
 
 export async function getCloudSDKSettingsAsync(): Promise<CloudSDKSettings> {
   const isWindowsPlatform = os.platform() === 'win32';
@@ -382,10 +323,3 @@ export async function getCloudSDKSettingsAsync(): Promise<CloudSDKSettings> {
   };
 }
 
-export function getCloudSDKSettings(): CloudSDKSettings {
-  const isWindowsPlatform = os.platform() === 'win32';
-  return {
-    isWindowsPlatform,
-    windowsCloudSDKSettings: isWindowsPlatform ? getWindowsCloudSDKSettings() : null,
-  };
-}

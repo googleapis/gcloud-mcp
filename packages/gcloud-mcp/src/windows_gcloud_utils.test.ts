@@ -24,8 +24,8 @@ import {
   getPythonVersion,
   findWindowsPythonPath,
   getSDKRootDirectory,
-  getWindowsCloudSDKSettings,
-  getCloudSDKSettings,
+  getWindowsCloudSDKSettingsAsync,
+  getCloudSDKSettingsAsync,
 } from './windows_gcloud_utils.js';
 
 vi.mock('child_process');
@@ -132,12 +132,12 @@ describe('windows_gcloud_utils', () => {
     });
   });
 
-  describe('getWindowsCloudSDKSettings', () => {
-    it('should get settings with bundled python', () => {
+  describe('getWindowsCloudSDKSettingsAsync', () => {
+    it('should get settings with bundled python',  async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0'); // For getPythonVersion
 
-      const settings = getWindowsCloudSDKSettings({
+      const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_SITEPACKAGES: '', // no site packages
       });
@@ -150,11 +150,11 @@ describe('windows_gcloud_utils', () => {
       expect(settings.noWorkingPythonFound).toBe(false);
     });
 
-    it('should get settings with CLOUDSDK_PYTHON and site packages enabled', () => {
+    it('should get settings with CLOUDSDK_PYTHON and site packages enabled', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false); // No bundled python
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0'); // For getPythonVersion
 
-      const settings = getWindowsCloudSDKSettings({
+      const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON: 'C:\\Python39\\python.exe',
         CLOUDSDK_PYTHON_SITEPACKAGES: '1',
@@ -166,13 +166,13 @@ describe('windows_gcloud_utils', () => {
       expect(settings.noWorkingPythonFound).toBe(false);
     });
 
-    it('should set noWorkingPythonFound to true if python version cannot be determined', () => {
+    it('should set noWorkingPythonFound to true if python version cannot be determined', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false); // No bundled python
       vi.spyOn(child_process, 'execSync').mockImplementation(() => {
         throw new Error();
       }); // getPythonVersion throws
 
-      const settings = getWindowsCloudSDKSettings({
+      const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON: 'C:\\NonExistentPython\\python.exe',
       });
@@ -180,11 +180,11 @@ describe('windows_gcloud_utils', () => {
       expect(settings.noWorkingPythonFound).toBe(true);
     });
 
-    it('should handle VIRTUAL_ENV for site packages', () => {
+    it('should handle VIRTUAL_ENV for site packages', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false);
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
 
-      const settings = getWindowsCloudSDKSettings({
+      const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON: 'C:\\Python39\\python.exe', // Explicitly set python to avoid findWindowsPythonPath
         VIRTUAL_ENV: 'C:\\MyVirtualEnv',
@@ -193,11 +193,11 @@ describe('windows_gcloud_utils', () => {
       expect(settings.cloudSdkPythonArgsList).toBe([]);
     });
 
-    it('should keep existing CLOUDSDK_PYTHON_ARGS and add -S if no site packages', () => {
+    it('should keep existing CLOUDSDK_PYTHON_ARGS and add -S if no site packages', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
 
-      const settings = getWindowsCloudSDKSettings({
+      const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_ARGS: '-v',
         CLOUDSDK_PYTHON_SITEPACKAGES: '',
@@ -205,11 +205,11 @@ describe('windows_gcloud_utils', () => {
       expect(settings.cloudSdkPythonArgsList).toBe(['-v', '-S']);
     });
 
-    it('should remove -S from CLOUDSDK_PYTHON_ARGS if site packages enabled', () => {
+    it('should remove -S from CLOUDSDK_PYTHON_ARGS if site packages enabled', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
 
-      const settings = getWindowsCloudSDKSettings({
+      const settings = await getWindowsCloudSDKSettingsAsync({
         CLOUDSDK_ROOT_DIR: 'C:\\CloudSDK',
         CLOUDSDK_PYTHON_ARGS: '-v -S',
         CLOUDSDK_PYTHON_SITEPACKAGES: '1',
@@ -218,21 +218,21 @@ describe('windows_gcloud_utils', () => {
     });
   });
 
-  describe('getCloudSDKSettings', () => {
-    it('should return windows settings on windows', () => {
+  describe('getCloudSDKSettingsAsync', () => {
+    it('should return windows settings on windows', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('win32');
       vi.spyOn(child_process, 'execSync').mockReturnValue('3.9.0');
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
 
-      const settings = getCloudSDKSettings();
+      const settings = await getCloudSDKSettingsAsync();
       expect(settings.isWindowsPlatform).toBe(true);
       expect(settings.windowsCloudSDKSettings).not.toBeNull();
       expect(settings.windowsCloudSDKSettings?.noWorkingPythonFound).toBe(false);
     });
 
-    it('should not return windows settings on other platforms', () => {
+    it('should not return windows settings on other platforms', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('linux');
-      const settings = getCloudSDKSettings();
+      const settings = await getCloudSDKSettingsAsync();
       expect(settings.isWindowsPlatform).toBe(false);
       expect(settings.windowsCloudSDKSettings).toBeNull();
     });

@@ -24,5 +24,14 @@ build({
   outfile: 'dist/bundle.js',
   platform: 'node',
   format: 'esm',
-  external: ['google-auth-library', 'googleapis', '@google-cloud/storage', 'iconv-lite', 'chardet'],
+  external: [
+    'google-auth-library',
+    'googleapis',
+    '@google-cloud/storage',
+    'iconv-lite',
+    'chardet',
+    '@google-cloud/bigquery',
+    '@google-cloud/service-usage',
+    '@google-cloud/storageinsights',
+  ],
 }).catch(() => process.exit(1));

@@ -16,10 +16,12 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Storage } from '@google-cloud/storage';
+import { ServiceUsageClient } from '@google-cloud/service-usage';
 import { ApiClientFactory as ApiClientFactoryClass } from './api_client_factory.js';
 
 // Mock the @google-cloud/storage library
 vi.mock('@google-cloud/storage');
+vi.mock('@google-cloud/service-usage');
 
 describe('ApiClientFactory', () => {
   let ApiClientFactory: typeof ApiClientFactoryClass;
@@ -44,5 +46,13 @@ describe('ApiClientFactory', () => {
     const client2 = factory.getStorageClient();
     expect(client1).toBe(client2);
     expect(Storage).toHaveBeenCalledTimes(1);
+  });
+
+  it('should create and cache the service usage client', () => {
+    const factory = ApiClientFactory.getInstance();
+    const client1 = factory.getServiceUsageClient();
+    const client2 = factory.getServiceUsageClient();
+    expect(client1).toBe(client2);
+    expect(ServiceUsageClient).toHaveBeenCalledTimes(1);
   });
 });

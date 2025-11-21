@@ -77,6 +77,19 @@ const main = async () => {
     process.exit(1);
   }
 
+  const cloudSDKSettings = await gcloud.getMemoizedCloudSDKSettingsAsync();
+  // Platform verification
+  if (
+    cloudSDKSettings.isWindowsPlatform &&
+    (cloudSDKSettings.windowsCloudSDKSettings == null ||
+      cloudSDKSettings.windowsCloudSDKSettings.noWorkingPythonFound)
+  ) {
+    log.error(
+      `Unable to start gcloud mcp server: No working Python installation found for Windows gcloud execution.`,
+    );
+    process.exit(1);
+  }
+
   let config: McpConfig = {};
   const configFile = argv.config;
 
@@ -112,6 +125,7 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
+
   const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
   createRunGcloudCommand(acl).register(server);
   await server.connect(new StdioServerTransport());

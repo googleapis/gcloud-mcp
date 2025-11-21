@@ -16,8 +16,22 @@
 
 import { z } from 'zod';
 import * as child_process from 'child_process';
+import * as path from 'path';
+import {
+  getCloudSDKSettingsAsync as getRealCloudSDKSettingsAsync,
+  CloudSDKSettings,
+} from './windows_gcloud_utils.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
+
+let memoizedCloudSDKSettings: CloudSDKSettings | undefined;
+
+export async function getMemoizedCloudSDKSettingsAsync(): Promise<CloudSDKSettings> {
+  if (!memoizedCloudSDKSettings) {
+    memoizedCloudSDKSettings = await getRealCloudSDKSettingsAsync();
+  }
+  return memoizedCloudSDKSettings;
+}
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
@@ -36,12 +50,43 @@ export interface GcloudInvocationResult {
   stderr: string;
 }
 
-export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
-  new Promise((resolve, reject) => {
+export const getPlatformSpecificGcloudCommand = async (
+  args: string[],
+): Promise<{ command: string; args: string[] }> => {
+  const cloudSDKSettings = await getMemoizedCloudSDKSettingsAsync();
+  if (cloudSDKSettings.isWindowsPlatform && cloudSDKSettings.windowsCloudSDKSettings) {
+    const windowsPathForGcloudPy = path.win32.join(
+      cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkRootDir,
+      'lib',
+      'gcloud.py',
+    );
+    const pythonPath = path.win32.normalize(
+      cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPython,
+    );
+
+    return {
+      command: pythonPath,
+      args: [
+        ...cloudSDKSettings.windowsCloudSDKSettings?.cloudSdkPythonArgsList,
+        windowsPathForGcloudPy,
+        ...args,
+      ],
+    };
+  } else {
+    return { command: 'gcloud', args };
+  }
+};
+
+export const invoke = async (args: string[]): Promise<GcloudInvocationResult> =>
+  new Promise(async (resolve, reject) => {
     let stdout = '';
     let stderr = '';
 
-    const gcloud = child_process.spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const { command, args: executionArgs } = await getPlatformSpecificGcloudCommand(args);
+
+    const gcloud = child_process.spawn(command, executionArgs, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
 
     gcloud.stdout.on('data', (data) => {
       stdout += data.toString();

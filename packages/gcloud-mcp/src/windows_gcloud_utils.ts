@@ -195,6 +195,8 @@ export async function getWindowsCloudSDKSettingsAsync(
   const argsWithoutS = cloudSdkPythonArgs.replace('-S', '').trim();
 
   // Spacing here matters
+  // When site pacakge is set, invoke without -S
+  // otherwise, invoke with -S
   cloudSdkPythonArgs = !cloudSdkPythonSitePackages
     ? `${argsWithoutS}${argsWithoutS ? ' ' : ''}-S`
     : argsWithoutS;

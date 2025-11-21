@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  test,
-  expect,
-  assert
-} from 'vitest';
+import { test, expect, assert } from 'vitest';
 import * as gcloud from './gcloud.js';
 
 test('gcloud is available', async () => {
@@ -57,7 +53,7 @@ test('can invoke windows gcloud when there are multiple python args', async () =
   // Set the environment variables correctly and then reimport gcloud to force it to reload
   process.env['CLOUDSDK_PYTHON_ARGS'] = '-S -u -B';
   const gcloud = await import('./gcloud.js');
-  const result = await gcloud.invoke(['config','list']);
+  const result = await gcloud.invoke(['config', 'list']);
   expect(result.code).toBe(0);
 }, 10000);
 
@@ -65,7 +61,7 @@ test('can invoke windows gcloud when there are 1 python args', async () => {
   // Set the environment variables correctly and then reimport gcloud to force it to reload
   process.env['CLOUDSDK_PYTHON_ARGS'] = '-u';
   const gcloud = await import('./gcloud.js');
-  const result = await gcloud.invoke(['config','list']);
+  const result = await gcloud.invoke(['config', 'list']);
   expect(result.code).toBe(0);
 }, 10000);
 
@@ -73,7 +69,7 @@ test('can invoke windows gcloud when there are no python args', async () => {
   // Set the environment variables correctly and then reimport gcloud to force it to reload
   process.env['CLOUDSDK_PYTHON_ARGS'] = '';
   const gcloud = await import('./gcloud.js');
-  const result = await gcloud.invoke(['config','list']);
+  const result = await gcloud.invoke(['config', 'list']);
   expect(result.code).toBe(0);
 }, 10000);
 
@@ -81,7 +77,7 @@ test('can invoke windows gcloud when site packages are enabled', async () => {
   // Set the environment variables correctly and then reimport gcloud to force it to reload
   process.env['CLOUDSDK_PYTHON_SITEPACKAGES'] = '1';
   const gcloud = await import('./gcloud.js');
-  const result = await gcloud.invoke(['config','list']);
+  const result = await gcloud.invoke(['config', 'list']);
   expect(result.code).toBe(0);
 }, 10000);
 
@@ -90,6 +86,6 @@ test('can invoke windows gcloud when site packages are enabled and python args e
   process.env['CLOUDSDK_PYTHON_SITEPACKAGES'] = '1';
   process.env['CLOUDSDK_PYTHON_ARGS'] = '-u';
   const gcloud = await import('./gcloud.js');
-  const result = await gcloud.invoke(['config','list']);
+  const result = await gcloud.invoke(['config', 'list']);
   expect(result.code).toBe(0);
 }, 10000);

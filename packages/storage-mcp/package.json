@@ -41,7 +41,7 @@
   "description": "Model Context Protocol (MCP) Server for interacting with GCS APIs",
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5",
-    "@types/chardet": "^0.8.3",
+    "@types/chardet": "^1.0.0",
     "@types/mime": "^3.0.4",
     "@types/mime-types": "^2.1.4",
     "@types/node": "^24.2.1",

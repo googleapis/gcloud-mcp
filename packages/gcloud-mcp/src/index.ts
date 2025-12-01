@@ -71,25 +71,6 @@ const main = async () => {
     .help()
     .parse()) as { config?: string; [key: string]: unknown };
 
-  const isAvailable = await gcloud.isAvailable();
-  if (!isAvailable) {
-    log.error('Unable to start gcloud mcp server: gcloud executable not found.');
-    process.exit(1);
-  }
-
-  const cloudSDKSettings = await gcloud.getMemoizedCloudSDKSettingsAsync();
-  // Platform verification
-  if (
-    cloudSDKSettings.isWindowsPlatform &&
-    (cloudSDKSettings.windowsCloudSDKSettings == null ||
-      cloudSDKSettings.windowsCloudSDKSettings.noWorkingPythonFound)
-  ) {
-    log.error(
-      `Unable to start gcloud mcp server: No working Python installation found for Windows gcloud execution.`,
-    );
-    process.exit(1);
-  }
-
   let config: McpConfig = {};
   const configFile = argv.config;
 
@@ -127,9 +108,18 @@ const main = async () => {
   );
 
   const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
-  createRunGcloudCommand(acl).register(server);
-  await server.connect(new StdioServerTransport());
-  log.info('🚀 gcloud mcp server started');
+
+  try {
+    const cli = await gcloud.create();
+    createRunGcloudCommand(cli, acl).register(server);
+    await server.connect(new StdioServerTransport());
+    log.info('🚀 gcloud mcp server started');
+
+  } catch (e: unknown) {
+    const error = String(e);
+    log.error(`Unable to start gcloud mcp server: ${error}`)
+    process.exit(1);
+  }
 
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();

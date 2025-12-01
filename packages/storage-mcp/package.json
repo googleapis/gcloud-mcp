@@ -60,7 +60,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "^7.0.0",
+    "@google-cloud/bigquery": "^8.0.0",
     "@google-cloud/service-usage": "^4.2.0",
     "@google-cloud/storage": "^7.17.1",
     "@google-cloud/storageinsights": "^2.2.0",

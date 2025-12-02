@@ -39,7 +39,7 @@
   "homepage": "https://github.com/googleapis/gcloud-mcp#readme",
   "author": "Google LLC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "google-auth-library": "^10.1.0",
     "googleapis": "^164.1.0",
     "@types/yargs": "^17.0.33",

@@ -56,9 +56,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: |
-          npm run test:i
+      - name: Run unit tests
+        run: npm run test:i
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3
+        with:
+          version: '>= 530.0.0'
+
+      - name: Run integration tests
+        run: npm run test:integration --workspace packages/gcloud-mcp
 
   coverage:
     if: github.actor != 'dependabot[bot]'

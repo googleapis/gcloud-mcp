@@ -25,6 +25,7 @@ Thumbs.db
 coverage/
 packages/*/coverage/
 junit.xml
+junit.integration.xml
 packages/*/junit.xml
 
 # Ignore package-lock.json files in subdirectories

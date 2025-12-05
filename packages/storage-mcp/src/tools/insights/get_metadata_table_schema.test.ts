@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach, Mock } from 'vitest';
 import {
   getMetadataTableSchema,
   registerGetMetadataTableSchemaTool,
-} from './get_metadata_table_schema';
+} from './get_metadata_table_schema.js';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -52,17 +52,17 @@ describe('getMetadataTableSchema', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue({
+    (apiClientFactory.getStorageInsightsClient as Mock).mockReturnValue({
       getDatasetConfig: mockGetDatasetConfig,
     });
-    (apiClientFactory.getBigQueryClient as vi.Mock).mockReturnValue(mockBigQueryClient);
-    (apiClientFactory.getServiceUsageClient as vi.Mock).mockReturnValue({
+    (apiClientFactory.getBigQueryClient as Mock).mockReturnValue(mockBigQueryClient);
+    (apiClientFactory.getServiceUsageClient as Mock).mockReturnValue({
       listServices: mockListServices,
     });
 
     mockListServices.mockResolvedValue([[{ config: { name: 'storageinsights.googleapis.com' } }]]);
     process.env['GOOGLE_CLOUD_PROJECT'] = 'insights-test-project';
-    (logger.error as vi.Mock).mockClear();
+    (logger.error as Mock).mockClear();
   });
 
   afterEach(() => {
@@ -94,7 +94,11 @@ describe('getMetadataTableSchema', () => {
     ]);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(mockListServices).toHaveBeenCalledWith({
       parent: 'projects/insights-test-project',
@@ -122,7 +126,11 @@ describe('getMetadataTableSchema', () => {
     mockGetDatasetConfig.mockResolvedValue([{}]);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to get metadata table schema',
@@ -140,7 +148,11 @@ describe('getMetadataTableSchema', () => {
     mockGetMetadata.mockRejectedValue(fakeError);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to get metadata table schema',
@@ -154,7 +166,11 @@ describe('getMetadataTableSchema', () => {
     mockGetDatasetConfig.mockRejectedValue(fakeError);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to retrieve dataset configuration',
@@ -192,7 +208,11 @@ describe('getMetadataTableSchema', () => {
     mockGetDatasetConfig.mockRejectedValue(fakeNonError);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to retrieve dataset configuration',
@@ -207,7 +227,11 @@ describe('getMetadataTableSchema', () => {
     mockGetMetadata.mockRejectedValue(fakeNonError);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to get metadata table schema',
@@ -223,7 +247,11 @@ describe('getMetadataTableSchema', () => {
     mockGetDatasetConfig.mockResolvedValue([configWithInvalidDataset]);
 
     const result = await getMetadataTableSchema(validParams);
-    const resultData = JSON.parse(result.content[0].text as string);
+    const content = result.content[0];
+    if (content?.type !== 'text') {
+      assert.fail('Result is of unexpected type');
+    }
+    const resultData = JSON.parse(content?.text as string);
 
     expect(resultData).toEqual({
       error: 'Failed to get metadata table schema',
@@ -238,7 +266,7 @@ describe('getMetadataTableSchema', () => {
 
 describe('registerGetMetadataTableSchemaTool', () => {
   it('should register the get_metadata_table_schema tool with the server', () => {
-    const mockServer = new McpServer();
+    const mockServer = new McpServer({ name: '', version: '' });
     vi.spyOn(mockServer, 'registerTool');
     registerGetMetadataTableSchemaTool(mockServer);
 
@@ -247,7 +275,6 @@ describe('registerGetMetadataTableSchemaTool', () => {
       {
         description: expect.any(String),
         inputSchema: expect.any(Object),
-        annotations: { displayOutput: false },
       },
       getMetadataTableSchema,
     );

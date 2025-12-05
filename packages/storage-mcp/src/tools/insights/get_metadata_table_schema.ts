@@ -296,9 +296,6 @@ export const registerGetMetadataTableSchemaTool = (server: McpServer) => {
       description:
         'Checks if GCS insights service is enabled and returns the BigQuery table schema for a given insights dataset configuration in JSON format. Also returns hints for each column in the table',
       inputSchema,
-      annotations: {
-        displayOutput: false,
-      },
     },
     getMetadataTableSchema,
   );

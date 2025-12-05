@@ -143,7 +143,6 @@ export async function readObjectContent(params: ReadObjectContentParams): Promis
     return {
       content: [
         {
-          message: `Successfully read raw content for object ${params.object_name} (${size} bytes)`,
           type: 'resource',
           resource: {
             uri: `gcs://${params.bucket_name}/${params.object_name}`,

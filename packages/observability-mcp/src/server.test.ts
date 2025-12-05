@@ -53,7 +53,6 @@ test('should start the McpServer', async () => {
     name: 'observability-mcp',
     version: '1.2.3',
     title: 'Cloud Observability MCP',
-    description: 'MCP Server for GCP environment for interacting with various Observability APIs',
   });
 
   const serverInstance = vi.mocked(McpServer).mock.instances[0];

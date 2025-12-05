@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, assert } from 'vitest';
 import { toolWrapper, MAX_CHAR_LIMIT } from './tool_wrapper.js';
 
 describe('toolWrapper', () => {
@@ -71,7 +71,11 @@ describe('toolWrapper', () => {
       throw new Error(errorMessage);
     };
     const result = await toolWrapper(cb);
-    const parsedError = JSON.parse(result.content[0]?.text as string);
+    const content = result.content[0];
+    if (content?.type != 'text') {
+      assert.fail('')
+    }
+    const parsedError = JSON.parse(content?.text as string);
     expect(parsedError.error.name).toBe('Error');
     expect(parsedError.error.message).toBe(errorMessage);
     expect(parsedError.error.stack).toBeDefined();
@@ -83,7 +87,11 @@ describe('toolWrapper', () => {
       throw errorObject;
     };
     const result = await toolWrapper(cb);
-    const parsedError = JSON.parse(result.content[0]?.text as string);
+    const content = result.content[0];
+    if (content?.type != 'text') {
+      assert.fail('')
+    }
+    const parsedError = JSON.parse(content?.text as string);
     expect(parsedError.error.name).toBe('UnknownError');
     expect(parsedError.error.message).toBe(
       `An unknown error occurred: ${JSON.stringify(errorObject)}`,

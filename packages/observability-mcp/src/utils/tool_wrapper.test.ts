@@ -73,7 +73,7 @@ describe('toolWrapper', () => {
     const result = await toolWrapper(cb);
     const content = result.content[0];
     if (content?.type != 'text') {
-      assert.fail('')
+      assert.fail('Result is of unexpected type')
     }
     const parsedError = JSON.parse(content?.text as string);
     expect(parsedError.error.name).toBe('Error');
@@ -89,7 +89,7 @@ describe('toolWrapper', () => {
     const result = await toolWrapper(cb);
     const content = result.content[0];
     if (content?.type != 'text') {
-      assert.fail('')
+      assert.fail('Result is of unexpected type')
     }
     const parsedError = JSON.parse(content?.text as string);
     expect(parsedError.error.name).toBe('UnknownError');

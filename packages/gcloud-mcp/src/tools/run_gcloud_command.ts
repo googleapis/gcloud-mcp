@@ -51,6 +51,11 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
 - Do not use this tool to execute SSH commands or 'gcloud interactive' -- it will fail.
 - Always include all required parameters.
 - Ensure parameter values match the expected format.
+- Always use '--format=json'.
+- Use --filter to restrict results, prioritizing ':' for pattern matching and never quoting the right side of the colon in filters.
+- Access nested data directly with projections and use '.basename()' for URL fields.
+- Retrieve only necessary information for the user intent. Utilize projection capability of '--format' reduce data size.
+- If the exact JSON key path for filtering is unknown, run 'gcloud ... list --limit=1 --format=json' to discover it. 
 
 ## Adhere to the following restrictions:
 - **No command substitution**: Do not use subshells or command substitution (e.g., $(...))

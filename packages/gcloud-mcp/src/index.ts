@@ -20,6 +20,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
 import { createRunGcloudCommand } from './tools/run_gcloud_command.js';
+import { createResearchGcloudCommand } from './tools/research_gcloud_command.js';
 import * as gcloud from './gcloud.js';
 import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -114,6 +115,7 @@ const main = async () => {
   );
   const acl = createAccessControlList(config.allow, [...default_deny, ...(config.deny ?? [])]);
   createRunGcloudCommand(acl).register(server);
+  createResearchGcloudCommand().register(server);
   await server.connect(new StdioServerTransport());
   log.info('🚀 gcloud mcp server started');
 

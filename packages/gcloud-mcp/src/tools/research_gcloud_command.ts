@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 	http://www.apache.org/licenses/LICENSE-2.0
+ *	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,7 @@ This tool mimics the output of 'gcloud help [args]' with markdown formatting.`,
 
           // Part 1: gcloud [args] --document=style=markdown
           const helpCmdArgs = [...args, '--document=style=markdown'];
-          const { 
+          const {
             code: helpCode,
             stdout: helpStdout,
             stderr: helpStderr,
@@ -76,7 +76,7 @@ This tool mimics the output of 'gcloud help [args]' with markdown formatting.`,
                 .join('\n');
             }
           } else {
-             toolLogger.warn(`Failed to get global flags help.\nSTDERR:\n${globalStderr}`);
+            toolLogger.warn(`Failed to get global flags help.\nSTDERR:\n${globalStderr}`);
           }
 
           const result = `

@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 import os from 'os';
 
-export const geminiMd = `
-# BackupDR MCP Extension for Gemini CLI
-
-You are a Google Cloud Backup and Disaster Recovery agent that helps users manage their backups and disaster recovery resources.
-
-## Reference Documentation
-
-If additional context or information is needed on a gcloud command or command group, reference documentation can be found at https://cloud.google.com/backup-disaster-recovery/docs.
-`;
-
-export const initializeGeminiCLI = async (local = false, fs = { mkdir, writeFile }) => {
+export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile, writeFile }) => {
   try {
+    // Read the content of GEMINI-extension.md
+    const geminiMdContent = await fs.readFile(
+      join(process.cwd(), 'packages', 'backupdr-mcp', 'GEMINI-extension.md'),
+      'utf8',
+    );
+
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'backupdr-mcp');
     await fs.mkdir(extensionDir, { recursive: true });
@@ -58,7 +54,7 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, writeFile
 
     // Create GEMINI.md
     const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
-    await fs.writeFile(geminiMdDestPath, geminiMd);
+    await fs.writeFile(geminiMdDestPath, geminiMdContent);
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console
     console.log(`Created: ${geminiMdDestPath}`);

@@ -26,13 +26,25 @@ export const createResearchGcloudCommand = () => ({
       {
         title: 'Research gcloud command',
         inputSchema: {
-          args: z.array(z.string()),
+          command_parts: z
+            .array(z.string())
+            .describe(
+              "The ordered list of command groups and the command itself. Example: for `gcloud compute instances list`, pass `['compute', 'instances', 'list']`. Do not include flags starting with `--`.",
+            ),
         },
-        description: `Returns the help documentation for a gcloud command.
-Use this tool when you need to understand the usage, flags, and arguments of a specific gcloud command.
-This tool mimics the output of 'gcloud help [args]' with markdown formatting.`,
+        description: `Retrieves the official help text and reference documentation for a Google Cloud CLI (gcloud) command.
+
+**CRITICAL INSTRUCTION**: This is a MANDATORY PRECURSOR to the \`run_gcloud_command\` tool. You must use this tool to 'read the manual' before attempting to execute any command. 
+
+**Workflow**:
+1. **Research**: Call this tool with the target command path (e.g., \`['compute', 'instances', 'list']\`). Do NOT include flags (e.g., \`--project\`, \`--zone\`) in the input arguments.
+2. **Verify**: The tool returns the official documentation. You must STOP and analyze this text. Check if your intended flags exist and if your argument syntax is correct.
+3. **Execute**: Only after this verification step is complete, proceed to call \`run_gcloud_command\` with the validated arguments.
+
+Use this tool to prevent syntax errors and hallucinated flags.`,
       },
-      async ({ args }) => {
+      async ({ command_parts }) => {
+        const args = command_parts as string[];
         const toolLogger = log.mcp('research_gcloud_command', args);
 
         try {
@@ -47,8 +59,23 @@ This tool mimics the output of 'gcloud help [args]' with markdown formatting.`,
           } = await gcloud.invoke(helpCmdArgs);
 
           if (helpCode !== 0) {
-            return errorTextResult(
+            toolLogger.error(
               `Failed to get help for command '${args.join(' ')}'.\nSTDERR:\n${helpStderr}`,
+            );
+            return errorTextResult(
+              JSON.stringify(
+                {
+                  status: 'failure',
+                  reason: 'invalid command or group',
+                  instructions_for_agent: {
+                    next_step: 'RESEARCH',
+                    guidance: 'STOP making assumptions. Perform a search for the correct command.',
+                  },
+                  error_details: helpStderr,
+                },
+                null,
+                2,
+              ),
             );
           }
 
@@ -79,17 +106,26 @@ This tool mimics the output of 'gcloud help [args]' with markdown formatting.`,
             toolLogger.warn(`Failed to get global flags help.\nSTDERR:\n${globalStderr}`);
           }
 
-          const result = `
-
-Please provide relevant context for the gcloud command and flags: 
-${args.join(' ')}.
-
-Output of gcloud ${args.join(' ')} --document=style=markdown:
+          const combinedDocumentation = `
 ${helpStdout}
 
-Output of gcloud help --format="markdown(global_flags)" | grep -A10 "GLOBAL FLAGS" | tail -n +2 | head -n 10:
+## GLOBAL FLAGS (Partial)
 ${globalFlagsOutput}
 `;
+
+          const result = JSON.stringify(
+            {
+              status: 'success',
+              documentation: combinedDocumentation,
+              instructions_for_agent: {
+                next_step: 'VERIFY',
+                guidance:
+                  "Compare your user's request against the above documentation. Identify any missing required flags. Ensure the command description aligns with the goal. Confirm the syntax for 'zone' and 'project'. Formulate the final command arguments to strictly adhere to this documentation.",
+              },
+            },
+            null,
+            2,
+          );
 
           return successfulTextResult(result);
         } catch (e: unknown) {
@@ -98,7 +134,17 @@ ${globalFlagsOutput}
             e instanceof Error ? e : new Error(String(e)),
           );
           const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
-          return errorTextResult(msg);
+          return errorTextResult(
+            JSON.stringify(
+              {
+                status: 'failure',
+                reason: 'execution error',
+                error: msg,
+              },
+              null,
+              2,
+            ),
+          );
         }
       },
     );

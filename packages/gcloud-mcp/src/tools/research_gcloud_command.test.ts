@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *	http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,7 +75,7 @@ describe('createResearchGcloudCommand', () => {
       return { code: 1, stdout: '', stderr: 'Unknown command' };
     });
 
-    const result = await tool({ args: inputArgs });
+    const result = await tool({ command_parts: inputArgs });
 
     expect(gcloud.invoke).toHaveBeenCalledTimes(2);
     // Verify gcloud command for help was called with correct args
@@ -88,12 +88,14 @@ describe('createResearchGcloudCommand', () => {
     // Verify gcloud command for global flags was called
     expect(gcloud.invoke).toHaveBeenCalledWith(['help', '--format=markdown(global_flags)']);
 
-    const output = result.content[0].text;
-    expect(output).toContain(helpStdout);
-    expect(output).toContain('flag1');
-    expect(output).toContain('flag10');
-    expect(output).not.toContain('PREAMBLE');
-    expect(output).not.toContain('flag11-should-be-excluded');
+    const output = JSON.parse(result.content[0].text);
+    expect(output.status).toBe('success');
+    expect(output.documentation).toContain(helpStdout);
+    expect(output.documentation).toContain('flag1');
+    expect(output.documentation).toContain('flag10');
+    expect(output.documentation).not.toContain('PREAMBLE');
+    expect(output.documentation).not.toContain('flag11-should-be-excluded');
+    expect(output.instructions_for_agent.next_step).toBe('VERIFY');
   });
 
   test('returns error when help command fails', async () => {
@@ -108,13 +110,16 @@ describe('createResearchGcloudCommand', () => {
       return { code: 0, stdout: '', stderr: '' };
     });
 
-    const result = await tool({ args: inputArgs });
+    const result = await tool({ command_parts: inputArgs });
 
     // Should stop after first failure
     expect(gcloud.invoke).toHaveBeenCalledTimes(1);
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('Failed to get help');
-    expect(result.content[0].text).toContain('Help command failed');
+    const output = JSON.parse(result.content[0].text);
+    expect(output.status).toBe('failure');
+    expect(output.reason).toBe('invalid command or group');
+    expect(output.instructions_for_agent.next_step).toBe('RESEARCH');
+    expect(output.error_details).toContain('Help command failed');
   });
 
   test('returns success with warning when global flags command fails', async () => {
@@ -133,11 +138,13 @@ describe('createResearchGcloudCommand', () => {
       return { code: 0, stdout: '', stderr: '' };
     });
 
-    const result = await tool({ args: inputArgs });
+    const result = await tool({ command_parts: inputArgs });
 
     expect(gcloud.invoke).toHaveBeenCalledTimes(2);
     expect(result.isError).toBeUndefined();
-    expect(result.content[0].text).toContain(helpStdout);
+    const output = JSON.parse(result.content[0].text);
+    expect(output.status).toBe('success');
+    expect(output.documentation).toContain(helpStdout);
     // We expect the result to still be successful, just without global flags
   });
 
@@ -148,9 +155,12 @@ describe('createResearchGcloudCommand', () => {
     const mockedInvoke = vi.mocked(gcloud.invoke);
     mockedInvoke.mockRejectedValue(new Error('Unexpected error'));
 
-    const result = await tool({ args: inputArgs });
+    const result = await tool({ command_parts: inputArgs });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toBe('Unexpected error');
+    const output = JSON.parse(result.content[0].text);
+    expect(output.status).toBe('failure');
+    expect(output.reason).toBe('execution error');
+    expect(output.error).toBe('Unexpected error');
   });
 });

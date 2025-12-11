@@ -17,28 +17,152 @@
 import { test, expect, beforeEach, Mock, vi, assert } from 'vitest';
 import * as child_process from 'child_process';
 import { PassThrough } from 'stream';
-import * as gcloud from './gcloud.js';
-import { isWindows } from './gcloud.js';
+import * as path from 'path'; // Import path module
+
+let gcloud: typeof import('./gcloud.js');
+let isWindows: typeof import('./gcloud.js').isWindows;
 
 vi.mock('child_process', () => ({
   spawn: vi.fn(),
 }));
 
 const mockedSpawn = child_process.spawn as unknown as Mock;
+let mockedGetCloudSDKSettings: Mock;
 
-beforeEach(() => {
+interface MockChildProcess extends PassThrough {
+  stdout: PassThrough;
+  stderr: PassThrough;
+  on: Mock;
+}
+
+// Helper function to create a mock child process
+const createMockChildProcess = (exitCode: number) => {
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const child = new PassThrough() as MockChildProcess;
+  child.stdout = stdout;
+  child.stderr = stderr;
+  child.on = vi.fn((event, callback) => {
+    if (event === 'close') {
+      setTimeout(() => callback(exitCode), 0);
+    }
+  });
+  return child;
+};
+
+beforeEach(async () => {
   vi.clearAllMocks();
+  vi.resetModules(); // Clear module cache before each test
+
+  // Explicitly mock windows_gcloud_utils.js here to ensure it's active before gcloud.js is imported.
+  vi.doMock('./windows_gcloud_utils.js', () => ({
+    getCloudSDKSettings: vi.fn(),
+    getCloudSDKSettingsAsync: vi.fn(),
+  }));
+  mockedGetCloudSDKSettings = (await import('./windows_gcloud_utils.js'))
+    .getCloudSDKSettingsAsync as unknown as Mock;
+
+  // Dynamically import gcloud.js after mocks are set up.
+  gcloud = await import('./gcloud.js');
+  isWindows = gcloud.isWindows;
+});
+
+test('getPlatformSpecificGcloudCommand should return gcloud command for non-windows platform', async () => {
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
+  const { command, args } = await gcloud.getPlatformSpecificGcloudCommand([
+    'test',
+    '--project=test-project',
+  ]);
+  expect(command).toBe('gcloud');
+  expect(args).toEqual(['test', '--project=test-project']);
+});
+
+test('getPlatformSpecificGcloudCommand should return python command for windows platform', async () => {
+  const cloudSdkRootDir = 'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK';
+  const cloudSdkPython = path.win32.join(
+    cloudSdkRootDir,
+    'platform',
+    'bundledpython',
+    'python.exe',
+  );
+  const gcloudPyPath = path.win32.join(cloudSdkRootDir, 'lib', 'gcloud.py');
+
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: true,
+    windowsCloudSDKSettings: {
+      cloudSdkRootDir,
+      cloudSdkPython,
+      cloudSdkPythonArgsList: ['-S'],
+    },
+  });
+  const { command, args } = await gcloud.getPlatformSpecificGcloudCommand([
+    'test',
+    '--project=test-project',
+  ]);
+  expect(command).toBe(path.win32.normalize(cloudSdkPython));
+  expect(args).toEqual(['-S', gcloudPyPath, 'test', '--project=test-project']);
+});
+
+test('invoke should call gcloud with the correct arguments on non-windows platform', async () => {
+  const mockChild = createMockChildProcess(0);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
+
+  const resultPromise = gcloud.invoke(['test', '--project=test-project']);
+  mockChild.stdout.end();
+  await resultPromise;
+
+  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['test', '--project=test-project'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+});
+
+test('invoke should call python with the correct arguments on windows platform', async () => {
+  const mockChild = createMockChildProcess(0);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: true,
+    windowsCloudSDKSettings: {
+      cloudSdkRootDir: 'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK',
+      cloudSdkPython:
+        'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe',
+      cloudSdkPythonArgsList: ['-S'],
+    },
+  });
+
+  const resultPromise = gcloud.invoke(['test', '--project=test-project']);
+  mockChild.stdout.end();
+  await resultPromise;
+
+  expect(mockedSpawn).toHaveBeenCalledWith(
+    path.win32.normalize(
+      'C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\platform\\bundledpython\\python.exe',
+    ),
+    [
+      '-S',
+      path.win32.normalize('C:\\Users\\test\\AppData\\Local\\Google\\Cloud SDK\\lib\\gcloud.py'),
+      'test',
+      '--project=test-project',
+    ],
+    {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
 });
 
 test('should return true if which command succeeds', async () => {
-  const mockChildProcess = {
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  const mockChild = createMockChildProcess(0);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
 
   const result = await gcloud.isAvailable();
 
@@ -51,14 +175,8 @@ test('should return true if which command succeeds', async () => {
 });
 
 test('should return false if which command fails with non-zero exit code', async () => {
-  const mockChildProcess = {
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(1), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  const mockChild = createMockChildProcess(1);
+  mockedSpawn.mockReturnValue(mockChild);
 
   const result = await gcloud.isAvailable();
 
@@ -71,14 +189,14 @@ test('should return false if which command fails with non-zero exit code', async
 });
 
 test('should return false if which command fails', async () => {
-  const mockChildProcess = {
+  const mockChild = {
     on: vi.fn((event, callback) => {
       if (event === 'error') {
         setTimeout(() => callback(new Error('Failed to start')), 0);
       }
     }),
   };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  mockedSpawn.mockReturnValue(mockChild);
 
   const result = await gcloud.isAvailable();
 
@@ -91,25 +209,22 @@ test('should return false if which command fails', async () => {
 });
 
 test('should correctly handle stdout and stderr', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  const mockChild = createMockChildProcess(0);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
 
   const resultPromise = gcloud.invoke(['interactive-command']);
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
-  mockChildProcess.stdout.end();
+  process.nextTick(() => {
+    mockChild.stdout.emit('data', 'Standard output');
+    mockChild.stderr.emit('data', 'Stan');
+    mockChild.stdout.emit('data', 'put');
+    mockChild.stderr.emit('data', 'dard error');
+    mockChild.stdout.end();
+  });
 
   const result = await resultPromise;
 
@@ -122,25 +237,22 @@ test('should correctly handle stdout and stderr', async () => {
 });
 
 test('should correctly non-zero exit codes', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(1), 0); // Error code
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  const mockChild = createMockChildProcess(1);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
 
   const resultPromise = gcloud.invoke(['interactive-command']);
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
-  mockChildProcess.stdout.end();
+  process.nextTick(() => {
+    mockChild.stdout.emit('data', 'Standard output');
+    mockChild.stderr.emit('data', 'Stan');
+    mockChild.stdout.emit('data', 'put');
+    mockChild.stderr.emit('data', 'dard error');
+    mockChild.stdout.end();
+  });
 
   const result = await resultPromise;
 
@@ -153,15 +265,19 @@ test('should correctly non-zero exit codes', async () => {
 });
 
 test('should reject when process fails to start', async () => {
-  mockedSpawn.mockReturnValue({
+  const mockChild = {
     stdout: new PassThrough(),
     stderr: new PassThrough(),
-    stdin: new PassThrough(),
     on: vi.fn((event, callback) => {
       if (event === 'error') {
         setTimeout(() => callback(new Error('Failed to start')), 0);
       }
     }),
+  };
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
   });
 
   const resultPromise = gcloud.invoke(['some-command']);
@@ -173,17 +289,12 @@ test('should reject when process fails to start', async () => {
 });
 
 test('should correctly call lint double quotes', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  const mockChild = createMockChildProcess(0);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
 
   const resultPromise = gcloud.lint('compute instances list --project "cloud123"');
 
@@ -195,9 +306,8 @@ test('should correctly call lint double quotes', async () => {
       error_type: null,
     },
   ]);
-  mockChildProcess.stdout.emit('data', json);
-  mockChildProcess.stderr.emit('data', 'Update available');
-  mockChildProcess.stdout.end();
+  mockChild.stdout.write(json);
+  mockChild.stdout.end();
 
   const result = await resultPromise;
 
@@ -219,17 +329,12 @@ test('should correctly call lint double quotes', async () => {
 });
 
 test('should correctly call lint single quotes', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  const mockChild = createMockChildProcess(0);
+  mockedSpawn.mockReturnValue(mockChild);
+  mockedGetCloudSDKSettings.mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
 
   const resultPromise = gcloud.lint("compute instances list --project 'cloud123'");
 
@@ -241,9 +346,8 @@ test('should correctly call lint single quotes', async () => {
       error_type: null,
     },
   ]);
-  mockChildProcess.stdout.emit('data', json);
-  mockChildProcess.stderr.emit('data', 'Update available');
-  mockChildProcess.stdout.end();
+  mockChild.stdout.write(json);
+  mockChild.stdout.end();
 
   const result = await resultPromise;
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.3.0...storage-mcp-v0.3.1) (2025-12-12)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @google-cloud/bigquery to v8 ([#309](https://github.com/googleapis/gcloud-mcp/issues/309)) ([3d4e352](https://github.com/googleapis/gcloud-mcp/commit/3d4e3522e03e3858ccd5fac50fb836c2014aad6e))
+* **deps:** Update dependency googleapis to v167 ([#318](https://github.com/googleapis/gcloud-mcp/issues/318)) ([a679273](https://github.com/googleapis/gcloud-mcp/commit/a679273d60f4719538547a492a1218d9d4dd4fb6))
+
 ## [0.3.0](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.2.0...storage-mcp-v0.3.0) (2025-11-13)
 
 

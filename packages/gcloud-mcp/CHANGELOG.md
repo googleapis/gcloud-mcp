@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.4.0...gcloud-mcp-v0.5.0) (2025-12-15)
+
+
+### Features
+
+* Added prompts to increase filtering accuracy ([#320](https://github.com/googleapis/gcloud-mcp/issues/320)) ([c1348bb](https://github.com/googleapis/gcloud-mcp/commit/c1348bbef4873c353ff5a845fb77f7df6a9eb69a))
+
 ## [0.4.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.3.0...gcloud-mcp-v0.4.0) (2025-10-23)
 
 

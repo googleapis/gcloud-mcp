@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/googleapis/gcloud-mcp/compare/observability-mcp-v0.2.0...observability-mcp-v0.2.1) (2025-12-15)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency googleapis to v167 ([#318](https://github.com/googleapis/gcloud-mcp/issues/318)) ([a679273](https://github.com/googleapis/gcloud-mcp/commit/a679273d60f4719538547a492a1218d9d4dd4fb6))
+* **deps:** Update dependency googleapis to v168 ([#331](https://github.com/googleapis/gcloud-mcp/issues/331)) ([cd5a2d9](https://github.com/googleapis/gcloud-mcp/commit/cd5a2d99b8424b2788a3eb7e3b7a42d164cfd859))
+
 ## [0.2.0](https://github.com/googleapis/gcloud-mcp/compare/observability-mcp-v0.1.2...observability-mcp-v0.2.0) (2025-11-13)
 
 

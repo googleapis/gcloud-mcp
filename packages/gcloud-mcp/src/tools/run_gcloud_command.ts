@@ -53,6 +53,7 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
 - Ensure parameter values match the expected format.
 - Always use '--format=json'. You may also choose to select columns using '--format=json(part.key, part.key2)'.
 - Use --filter to match based on resource (or 'row'), prioritizing ':' for pattern matching and never quoting the right side of the colon in filters.
+- When using the filter flag, treat the entire filter flag as a singular string. Do not quote or escape any character in the filter string.
 - You may access nested data directly with projections like '--format=json(part.key)' and use '.basename()' for URL fields.
 - Retrieve only necessary information for the user intent. Utilize projection capability of '--format' reduce data size.
 - If the exact JSON key path for formatting or filtering is unknown, run 'gcloud ... --limit=1 --format=json' to discover it.

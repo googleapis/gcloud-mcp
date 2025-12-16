@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.5.1...gcloud-mcp-v0.5.2) (2025-12-16)
+
+
+### Bug Fixes
+
+* Drop required format=json instruction ([#336](https://github.com/googleapis/gcloud-mcp/issues/336)) ([8afe889](https://github.com/googleapis/gcloud-mcp/commit/8afe889f4d607fdf8addab170ee2785911c35087))
+
 ## [0.5.1](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.5.0...gcloud-mcp-v0.5.1) (2025-12-16)
 
 

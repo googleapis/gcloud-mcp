@@ -45,7 +45,7 @@ servers hosted outside of this repo are
 To integrate MCP servers with Gemini CLI or Gemini Code Assist, run the setup
 command below from your home directory for MCP server listed in the table. This
 will install the MCP server as a
-[Gemini CLI extension](https://github.com/google-gemini/gemini-cli/blob/main/docs/extensions/index.md).
+[Gemini CLI extension](https://github.com/google-gemini/gemini-cli/blob/main/docs/extensions).
 for the current user, making it available for all your projects.
 
 ```shell

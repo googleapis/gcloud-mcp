@@ -45,6 +45,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
   vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettingsAsync').mockResolvedValue({
+    isWindowsPlatform: false,
+    windowsCloudSDKSettings: null,
+  });
   registerToolSpy.mockClear();
 });
 
@@ -147,6 +151,32 @@ test('should exit if config file is invalid JSON', async () => {
 
   expect(consoleErrorSpy).toHaveBeenCalledWith(
     expect.stringContaining('ERROR: Error reading or parsing config file: invalid.json'),
+  );
+  expect(process.exit).toHaveBeenCalledWith(1);
+});
+
+test('should exit if os is windows and it can not find working python', async () => {
+  process.argv = ['node', 'index.js'];
+  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
+  vi.spyOn(gcloud, 'getMemoizedCloudSDKSettingsAsync').mockResolvedValue({
+    isWindowsPlatform: true,
+    windowsCloudSDKSettings: {
+      cloudSdkRootDir: '',
+      cloudSdkPython: '',
+      cloudSdkPythonArgsList: [],
+      noWorkingPythonFound: true,
+      env: {},
+    },
+  });
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+
+  await import('./index.js');
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining(
+      'Unable to start gcloud mcp server: No working Python installation found for Windows gcloud execution.',
+    ),
   );
   expect(process.exit).toHaveBeenCalledWith(1);
 });

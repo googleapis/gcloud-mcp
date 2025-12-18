@@ -52,14 +52,21 @@ describe('restoreBackup', () => {
     };
 
     const mockPromise = vi.fn().mockResolvedValue(undefined);
+    const expectedOperationResult = {
+      targetResource: {
+        gcpResource: {
+          gcpResourcename:
+            'projects/target-project/zones/us-central1-a/instances/restored-instance',
+          location: 'us-central1-a',
+          type: 'compute.googleapis.com/Instance',
+        },
+      },
+    };
     const mockOperation = {
       name: 'projects/p1/locations/l1/operations/op1',
       metadata: {},
       promise: mockPromise,
-    };
-    const expectedOperationResult = {
-      name: 'projects/p1/locations/l1/operations/op1',
-      metadata: {},
+      result: expectedOperationResult,
     };
 
     mockRestoreBackup.mockResolvedValue([mockOperation]);
@@ -117,15 +124,20 @@ describe('restoreBackup', () => {
     };
 
     const mockPromise = vi.fn().mockResolvedValue(undefined);
+    const expectedOperationResult = {
+      targetResource: {
+        gcpResource: {
+          gcpResourcename: 'projects/target-project/zones/us-central1-a/disks/restored-disk',
+          location: 'us-central1-a',
+          type: 'compute.googleapis.com/Disk',
+        },
+      },
+    };
     const mockOperation = {
       name: 'projects/p1/locations/l1/operations/op2',
       metadata: {},
       promise: mockPromise,
-    };
-
-    const expectedOperationResult = {
-      name: 'projects/p1/locations/l1/operations/op2',
-      metadata: {},
+      result: expectedOperationResult,
     };
 
     mockRestoreBackup.mockResolvedValue([mockOperation]);

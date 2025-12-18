@@ -416,7 +416,7 @@ export async function restoreBackup(params: RestoreBackupParams): Promise<CallTo
       content: [
         {
           type: 'text',
-          text: JSON.stringify(operation, null, 2),
+          text: JSON.stringify(operation.result, null, 2),
         },
       ],
     };

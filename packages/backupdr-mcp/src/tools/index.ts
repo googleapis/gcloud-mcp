@@ -28,6 +28,8 @@ import {
   registerUpdateBackupPlanTool,
 } from './backup_plans/index.js';
 import { registerBackupPlanAssociationsTools } from './backup_plan_associations/index.js';
+import { registerDataSourcesTools } from './datasources/index.js';
+import { registerBackupsTools } from './backups/index.js';
 import { registerListResourceBackupConfigsTool } from './resource_backup_configs/list_resource_backup_config.js';
 
 export const allTools = [
@@ -42,4 +44,6 @@ export const allTools = [
   registerUpdateBackupPlanTool,
   registerBackupPlanAssociationsTools,
   registerListResourceBackupConfigsTool,
+  registerDataSourcesTools,
+  registerBackupsTools,
 ];

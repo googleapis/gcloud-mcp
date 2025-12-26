@@ -90,7 +90,7 @@ export const createRunGcloudCommand = (gcloud: GcloudExecutable, acl: AccessCont
         try {
           const accessControlResult = acl.check(parsedCommand);
           if (!accessControlResult.permitted) {
-            const suggestion = await findSuggestedAlternativeCommand(args, acl);
+            const suggestion = await findSuggestedAlternativeCommand(args, acl, gcloud);
             if (suggestion) {
               return errorTextResult(suggestionErrorMessage(suggestion));
             } else {

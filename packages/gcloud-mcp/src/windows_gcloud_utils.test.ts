@@ -20,7 +20,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
-  execWhereAsync,
+  spawnWhereAsync,
   getPythonVersionAsync,
   findWindowsPythonPathAsync,
   getSDKRootDirectoryAsync,
@@ -49,7 +49,7 @@ describe('windows_gcloud_utils', () => {
         }
         return {} as child_process.ChildProcess;
       });
-      const result = await execWhereAsync('command', {});
+      const result = await spawnWhereAsync('command', {});
       expect(result).toStrictEqual(
         [
           'C:\\Program Files\\Python\\Python39\\python.exe',
@@ -65,7 +65,7 @@ describe('windows_gcloud_utils', () => {
         }
         return {} as child_process.ChildProcess;
       });
-      const result = await execWhereAsync('command', {});
+      const result = await spawnWhereAsync('command', {});
       expect(result).toStrictEqual([]);
     });
   });

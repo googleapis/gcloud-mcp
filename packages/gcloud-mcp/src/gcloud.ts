@@ -15,7 +15,7 @@
  */
 
 import { z } from 'zod';
-import { findExecutable } from './gcloud-executor.js';
+import { findExecutable } from './gcloud_executor.js';
 
 export interface GcloudExecutable {
   invoke: (args: string[]) => Promise<GcloudInvocationResult>;

@@ -17,7 +17,6 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 import { log } from './utility/logger.js';
 
 export interface WindowsCloudSDKSettings {
@@ -34,31 +33,50 @@ export interface CloudSDKSettings {
   windowsCloudSDKSettings: WindowsCloudSDKSettings | null;
 }
 
-export async function execWhereAsync(
+export async function spawnWhereAsync(
   command: string,
   spawnEnv: { [key: string]: string | undefined },
 ): Promise<string[]> {
   return new Promise((resolve) => {
-    child_process.exec(
-      `where ${command}`,
+    const child = child_process.spawn(
+      'where',
+      [command],
       {
-        encoding: 'utf8',
         env: spawnEnv, // Use updated PATH for where command
-      },
-      (error, stdout) => {
-        if (error) {
-          resolve([]);
-          return;
-        }
-        const result = stdout.trim();
-        resolve(
-          result
-            .split(/\r?\n/)
-            .filter((line) => line.length > 0)
-            .map((line) => path.win32.normalize(line)),
-        );
+        shell: true, // Use shell to handle command correctly
       },
     );
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (error) => {
+      log.error(`Failed to start 'where' subprocess: ${error.message}`);
+      resolve([]);
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        log.error(`'where' command failed with code ${code}. Stderr: ${stderr}`);
+        resolve([]);
+        return;
+      }
+      const result = stdout.trim();
+      resolve(
+        result
+          .split(/\r?\n/)
+          .filter((line) => line.length > 0)
+          .map((line) => path.win32.normalize(line)),
+      );
+    });
   });
 }
 
@@ -68,22 +86,40 @@ export async function getPythonVersionAsync(
 ): Promise<string | undefined> {
   return new Promise((resolve) => {
     const escapedPath = pythonPath.includes(' ') ? `"${pythonPath}"` : pythonPath;
-    const cmd = `${escapedPath} -c "import sys; print(sys.version)"`;
-    child_process.exec(
-      cmd,
+    const pythonArgs = ['-c', 'import sys; print(sys.version)'];
+    const child = child_process.spawn(
+      escapedPath,
+      pythonArgs,
       {
-        encoding: 'utf8',
         env: spawnEnv, // Use env without PYTHONHOME
       },
-      (error, stdout) => {
-        if (error) {
-          resolve(undefined);
-          return;
-        }
-        const result = stdout.trim();
-        resolve(result.split(/[\r\n]+/)[0]);
-      },
     );
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (error) => {
+      log.error(`Failed to start subprocess: ${error.message}`);
+      resolve(undefined);
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        log.error(`Python version check failed with code ${code}. Stderr: ${stderr}`);
+        resolve(undefined);
+        return;
+      }
+      const result = stdout.trim();
+      resolve(result.split(/[\n]+/)[0]);
+    });
   });
 }
 
@@ -93,7 +129,7 @@ export async function findWindowsPythonPathAsync(spawnEnv: {
   // Try to find a Python installation on Windows
   // Try Python, python3, python2
 
-  const pythonCandidates = await execWhereAsync('python', spawnEnv);
+  const pythonCandidates = await spawnWhereAsync('python', spawnEnv);
   if (pythonCandidates.length > 0) {
     for (const candidate of pythonCandidates) {
       const version = await getPythonVersionAsync(candidate, spawnEnv);
@@ -103,7 +139,7 @@ export async function findWindowsPythonPathAsync(spawnEnv: {
     }
   }
 
-  const python3Candidates = await execWhereAsync('python3', spawnEnv);
+  const python3Candidates = await spawnWhereAsync('python3', spawnEnv);
   if (python3Candidates.length > 0) {
     for (const candidate of python3Candidates) {
       const version = await getPythonVersionAsync(candidate, spawnEnv);
@@ -132,7 +168,7 @@ export async function getSDKRootDirectoryAsync(env: NodeJS.ProcessEnv): Promise<
   }
 
   // Use 'where gcloud' to find the gcloud executable on Windows
-  const gcloudPathOutput = (await execWhereAsync('gcloud', env))[0];
+  const gcloudPathOutput = (await spawnWhereAsync('gcloud', env))[0];
 
   if (gcloudPathOutput) {
     // Assuming gcloud.cmd is in <SDK_ROOT>/bin/gcloud.cmd
@@ -209,13 +245,5 @@ export async function getWindowsCloudSDKSettingsAsync(
     cloudSdkPythonArgsList,
     noWorkingPythonFound,
     env,
-  };
-}
-
-export async function getCloudSDKSettingsAsync(): Promise<CloudSDKSettings> {
-  const isWindowsPlatform = os.platform() === 'win32';
-  return {
-    isWindowsPlatform,
-    windowsCloudSDKSettings: isWindowsPlatform ? await getWindowsCloudSDKSettingsAsync() : null,
   };
 }

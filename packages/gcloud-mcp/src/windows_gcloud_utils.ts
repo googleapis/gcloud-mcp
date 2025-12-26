@@ -20,7 +20,6 @@ import * as path from 'path';
 import { log } from './utility/logger.js';
 
 export interface WindowsCloudSDKSettings {
-  cloudSdkRootDir: string;
   gcloudPyPath: string;
   cloudSdkPython: string;
   cloudSdkPythonArgsList: string[];
@@ -189,7 +188,7 @@ export async function getWindowsCloudSDKSettingsAsync(
   currentEnv: NodeJS.ProcessEnv = process.env,
 ): Promise<WindowsCloudSDKSettings> {
   const env = { ...currentEnv };
-  const cloudSdkRootDir = await getSDKRootDirectoryAsync(env);
+  const cloudSdkRootDir = (await getSDKRootDirectoryAsync(env)).normalize();
 
   let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
   // Find bundled python if no python is set in the environment.
@@ -233,14 +232,13 @@ export async function getWindowsCloudSDKSettingsAsync(
 
   const cloudSdkPythonArgsList = cloudSdkPythonArgs ? cloudSdkPythonArgs.split(' ') : [];
 
-  const gcloudPyPath = path.join(
+  const gcloudPyPath = path.win32.join(
     cloudSdkRootDir,
     'lib',
     'gcloud.py',
   );
 
   return {
-    cloudSdkRootDir,
     gcloudPyPath,
     cloudSdkPython,
     cloudSdkPythonArgsList,

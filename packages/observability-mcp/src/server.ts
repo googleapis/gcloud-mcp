@@ -29,7 +29,6 @@ const getServer = (): McpServer => {
     name: 'observability-mcp',
     version: pkg.version,
     title: 'Cloud Observability MCP',
-    description: 'MCP Server for GCP environment for interacting with various Observability APIs',
   });
   registerTools(server);
   return server;

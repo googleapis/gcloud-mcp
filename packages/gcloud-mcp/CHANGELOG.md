@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.5.2](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.5.1...gcloud-mcp-v0.5.2) (2025-12-16)
+
+
+### Bug Fixes
+
+* Drop required format=json instruction ([#336](https://github.com/googleapis/gcloud-mcp/issues/336)) ([8afe889](https://github.com/googleapis/gcloud-mcp/commit/8afe889f4d607fdf8addab170ee2785911c35087))
+
+## [0.5.1](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.5.0...gcloud-mcp-v0.5.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* Increase reliability of formatting and filtering instructions ([#332](https://github.com/googleapis/gcloud-mcp/issues/332)) ([b7947a0](https://github.com/googleapis/gcloud-mcp/commit/b7947a03b92ebdeb552bd0b6175bff6ca4d42344))
+* No quotes in filter format ([#334](https://github.com/googleapis/gcloud-mcp/issues/334)) ([e269927](https://github.com/googleapis/gcloud-mcp/commit/e2699277b22fc3b987a4f2a2ba9ba772a044372d))
+
+## [0.5.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.4.0...gcloud-mcp-v0.5.0) (2025-12-15)
+
+
+### Features
+
+* Added prompts to increase filtering accuracy ([#320](https://github.com/googleapis/gcloud-mcp/issues/320)) ([c1348bb](https://github.com/googleapis/gcloud-mcp/commit/c1348bbef4873c353ff5a845fb77f7df6a9eb69a))
+
 ## [0.4.0](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.3.0...gcloud-mcp-v0.4.0) (2025-10-23)
 
 

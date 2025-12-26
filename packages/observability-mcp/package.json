@@ -1,7 +1,7 @@
 {
   "name": "@google-cloud/observability-mcp",
   "displayName": "Cloud Observability MCP",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "MCP Server for GCP environment for interacting with various Observability APIs.",
   "files": [
@@ -39,9 +39,9 @@
   "homepage": "https://github.com/googleapis/gcloud-mcp#readme",
   "author": "Google LLC",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "google-auth-library": "^10.1.0",
-    "googleapis": "^164.1.0",
+    "googleapis": "^168.0.0",
     "@types/yargs": "^17.0.33",
     "yargs": "^18.0.0",
     "zod": "^3.25.76"
@@ -54,7 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "@vitest/coverage-v8": "^3.2.4",
-    "esbuild": "^0.25.10",
+    "esbuild": "^0.27.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",

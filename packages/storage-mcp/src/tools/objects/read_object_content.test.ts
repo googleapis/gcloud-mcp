@@ -15,7 +15,7 @@
  */
 
 /// <reference types="vitest/globals" />
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, Mock } from 'vitest';
 import { readObjectContent, registerReadObjectContentTool } from './read_object_content.js';
 import { apiClientFactory } from '../../utility/index.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -54,8 +54,8 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
-    (chardet.detect as vi.Mock).mockReturnValue('UTF-8');
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as Mock).mockReturnValue('UTF-8');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -103,7 +103,7 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -143,7 +143,7 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -181,7 +181,7 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -223,8 +223,8 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
-    (chardet.detect as vi.Mock).mockReturnValue(null);
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as Mock).mockReturnValue(null);
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -233,7 +233,6 @@ describe('readObjectContent', () => {
 
     expect(result.content).toEqual([
       {
-        message: `Successfully read raw content for object test-object (${mockContent.length} bytes)`,
         type: 'resource',
         resource: {
           uri: 'gcs://test-bucket/test-object',
@@ -267,7 +266,7 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -308,8 +307,8 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
-    (chardet.detect as vi.Mock).mockReturnValue('UTF-8');
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as Mock).mockReturnValue('UTF-8');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -355,8 +354,8 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
-    (chardet.detect as vi.Mock).mockReturnValue('UTF-8');
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
+    (chardet.detect as Mock).mockReturnValue('UTF-8');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',
@@ -402,9 +401,9 @@ describe('readObjectContent', () => {
       bucket: mockBucket,
     };
 
-    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+    (apiClientFactory.getStorageClient as Mock).mockReturnValue(mockStorageClient);
     // chardet often returns 'ISO-8859-1' for latin1-like encodings.
-    (chardet.detect as vi.Mock).mockReturnValue('ISO-8859-1');
+    (chardet.detect as Mock).mockReturnValue('ISO-8859-1');
 
     const result = await readObjectContent({
       bucket_name: 'test-bucket',

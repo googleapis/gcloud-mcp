@@ -21,6 +21,7 @@ import { log } from './utility/logger.js';
 
 export interface WindowsCloudSDKSettings {
   cloudSdkRootDir: string;
+  gcloudPyPath: string;
   cloudSdkPython: string;
   cloudSdkPythonArgsList: string[];
   noWorkingPythonFound: boolean;
@@ -208,13 +209,6 @@ export async function getWindowsCloudSDKSettingsAsync(
     cloudSdkPython = await findWindowsPythonPathAsync(env);
   }
 
-  // Where.exe always exist in a Windows Platform
-  let noWorkingPythonFound = false;
-  // Juggling check to hit null and undefined at the same time
-  if (!(await getPythonVersionAsync(cloudSdkPython, env))) {
-    noWorkingPythonFound = true;
-  }
-
   // Check if the User has site package enabled
   let cloudSdkPythonSitePackages = currentEnv['CLOUDSDK_PYTHON_SITEPACKAGES'];
   if (cloudSdkPythonSitePackages === undefined) {
@@ -239,11 +233,18 @@ export async function getWindowsCloudSDKSettingsAsync(
 
   const cloudSdkPythonArgsList = cloudSdkPythonArgs ? cloudSdkPythonArgs.split(' ') : [];
 
+  const gcloudPyPath = path.join(
+    cloudSdkRootDir,
+    'lib',
+    'gcloud.py',
+  );
+
   return {
     cloudSdkRootDir,
+    gcloudPyPath,
     cloudSdkPython,
     cloudSdkPythonArgsList,
-    noWorkingPythonFound,
+    noWorkingPythonFound: !cloudSdkPython,
     env,
   };
 }

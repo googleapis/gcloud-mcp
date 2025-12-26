@@ -94,12 +94,6 @@ const createWindowsExecutor = async () => {
         throw Error('no working Python installation found for Windows gcloud execution.');
     }
 
-    const windowsPathForGcloudPy = path.join(
-          settings.cloudSdkRootDir,
-          'lib',
-          'gcloud.py',
-        );
-
     const pythonPath = path.normalize(
         settings.cloudSdkPython,
     );
@@ -107,7 +101,7 @@ const createWindowsExecutor = async () => {
     return {
         execute: (args: string[]) => child_process.spawn(pythonPath, [
             ...settings.cloudSdkPythonArgsList,
-            windowsPathForGcloudPy,
+            settings.gcloudPyPath,
             ...args
         ], {
             stdio: ['ignore', 'pipe', 'pipe']

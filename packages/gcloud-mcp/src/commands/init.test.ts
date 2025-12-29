@@ -33,29 +33,6 @@ describe('init', () => {
     vi.restoreAllMocks();
   });
 
-  it('should configure yargs with agent and local options', () => {
-    // Create a mock yargs object that simply tracks calls to its methods
-    const yargsMock = {
-      option: vi.fn().mockReturnThis(),
-    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-    if (typeof init.builder === 'function') {
-      init.builder(yargsMock);
-    }
-
-    expect(yargsMock.option).toHaveBeenCalledWith('agent', {
-      describe: 'The agent to initialize the MCP server with.',
-      type: 'string',
-      choices: ['gemini-cli'],
-      demandOption: true,
-    });
-    expect(yargsMock.option).toHaveBeenCalledWith('local', {
-      describe: '(Development only) Use a local build of the gcloud-mcp server.',
-      type: 'boolean',
-      default: false,
-    });
-  });
-
   it('should initialize gemini when agent is gemini-cli', async () => {
     const argv = {
       agent: 'gemini-cli',

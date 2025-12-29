@@ -16,7 +16,7 @@
 
 import * as child_process from 'child_process';
 import { getWindowsCloudSDKSettingsAsync } from './windows_gcloud_utils.js';
-import * as path from 'path';
+import { log } from './utility/logger.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 
@@ -95,7 +95,7 @@ const createWindowsExecutor = async () => {
     throw Error('no working Python installation found for Windows gcloud execution.');
   }
 
-  const pythonPath = path.normalize(settings.cloudSdkPython);
+  const pythonPath = settings.cloudSdkPython;
 
   return {
     execute: (args: string[]) =>

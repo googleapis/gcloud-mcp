@@ -77,9 +77,8 @@ export async function getPythonVersionAsync(
   spawnEnv: { [key: string]: string | undefined },
 ): Promise<string | undefined> {
   return new Promise((resolve) => {
-    const escapedPath = pythonPath.includes(' ') ? `"${pythonPath}"` : pythonPath;
     const pythonArgs = ['-c', 'import sys; print(sys.version)'];
-    const child = child_process.spawn(escapedPath, pythonArgs, {
+    const child = child_process.spawn(pythonPath, pythonArgs, {
       env: spawnEnv, // Use env without PYTHONHOME
     });
 
@@ -221,6 +220,8 @@ export async function getWindowsCloudSDKSettingsAsync(
   const cloudSdkPythonArgsList = cloudSdkPythonArgs ? cloudSdkPythonArgs.split(' ') : [];
 
   const gcloudPyPath = path.win32.join(cloudSdkRootDir, 'lib', 'gcloud.py');
+
+  cloudSdkPython = path.win32.normalize(cloudSdkPython);
 
   return {
     gcloudPyPath,

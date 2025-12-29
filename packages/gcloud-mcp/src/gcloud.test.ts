@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-import { test, expect, beforeEach, vi, assert } from 'vitest';
+import { test, expect, beforeEach, vi, assert, Mocked } from 'vitest';
 import { GcloudExecutable, GcloudInvocationResult, create } from './gcloud.js';
 import { GcloudExecutor } from './gcloud_executor.js';
 
-vi.mock('./gcloud_executor.js', () => {
-  const GcloudExecutor = vi.fn();
-  const mockedGcloudExecutor = new GcloudExecutor() as vi.Mocked<GcloudExecutor>;
-  GcloudExecutor.prototype.execute = vi.fn();
+let gcloudExecutable: GcloudExecutable;
+
+vi.mock('./gcloud_executor.js', async () => {
+  const actual = await vi.importActual('./gcloud_executor.js');
+  const GcloudExecutorMock = vi.fn();
+  const mockedGcloudExecutor = new GcloudExecutorMock() as Mocked<GcloudExecutor>;
+  GcloudExecutorMock.prototype.execute = vi.fn();
   const findExecutable = vi.fn().mockResolvedValue({
     execute: mockedGcloudExecutor.execute,
   });
-  return { GcloudExecutor, findExecutable, mockedGcloudExecutor };
+  return { ...actual, GcloudExecutor: GcloudExecutorMock, findExecutable, mockedGcloudExecutor };
 });
 
 let mockedGcloudExecutor: Mocked<GcloudExecutor>; // Redeclare for type safety
-
-let gcloudExecutable: GcloudExecutable;
 
 beforeEach(async () => {
   vi.clearAllMocks();
   vi.resetModules();
   const gcloudExecutorModule = await import('./gcloud_executor.js');
-  mockedGcloudExecutor = gcloudExecutorModule.mockedGcloudExecutor;
+  // Access mockedGcloudExecutor directly from the module as it's exported.
+  mockedGcloudExecutor = (gcloudExecutorModule as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .mockedGcloudExecutor as Mocked<GcloudExecutor>;
   gcloudExecutable = await create();
 });
 

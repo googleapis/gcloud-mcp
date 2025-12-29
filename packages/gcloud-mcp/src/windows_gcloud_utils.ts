@@ -29,11 +29,6 @@ export interface WindowsCloudSDKSettings {
   env: { [key: string]: string | undefined };
 }
 
-export interface CloudSDKSettings {
-  isWindowsPlatform: boolean;
-  windowsCloudSDKSettings: WindowsCloudSDKSettings | null;
-}
-
 export async function spawnWhereAsync(
   command: string,
   spawnEnv: { [key: string]: string | undefined },

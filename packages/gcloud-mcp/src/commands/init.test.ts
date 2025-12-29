@@ -19,7 +19,6 @@ import { init } from './init.js';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
 import * as gcloud from '../gcloud_executor.js';
 import { log } from '../utility/logger.js';
-import { Argv } from 'yargs';
 
 vi.mock('../gcloud_executor.js', () => ({
   isAvailable: vi.fn(),
@@ -35,17 +34,22 @@ describe('init', () => {
   });
 
   it('should configure yargs with agent and local options', () => {
-    const yargs = {
+    // Create a mock yargs object that simply tracks calls to its methods
+    const yargsMock = {
       option: vi.fn().mockReturnThis(),
-    };
-    init.builder(yargs as Argv);
-    expect(yargs.option).toHaveBeenCalledWith('agent', {
+    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    if (typeof init.builder === 'function') {
+      init.builder(yargsMock);
+    }
+
+    expect(yargsMock.option).toHaveBeenCalledWith('agent', {
       describe: 'The agent to initialize the MCP server with.',
       type: 'string',
       choices: ['gemini-cli'],
       demandOption: true,
     });
-    expect(yargs.option).toHaveBeenCalledWith('local', {
+    expect(yargsMock.option).toHaveBeenCalledWith('local', {
       describe: '(Development only) Use a local build of the gcloud-mcp server.',
       type: 'boolean',
       default: false,

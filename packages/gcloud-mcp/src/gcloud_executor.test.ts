@@ -14,52 +14,33 @@
  * limitations under the License.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, MockInstance } from 'vitest';
 import * as child_process from 'child_process';
-import { PassThrough } from 'stream';
-import { ChildProcessWithoutNullStreams } from 'child_process';
-import { findExecutable, isAvailable, isWindows } from './gcloud_executor';
-import * as windows_gcloud_utils from './windows_gcloud_utils';
-import { WindowsCloudSDKSettings } from './windows_gcloud_utils';
+import { ChildProcess } from 'child_process';
+import { findExecutable, isAvailable, isWindows } from './gcloud_executor.js';
+import * as windows_gcloud_utils from './windows_gcloud_utils.js';
+import { FakeChildProcess, createMockChildProcess } from './utility/test_utils.js';
 
 vi.mock('child_process');
 vi.mock('./windows_gcloud_utils');
 
 describe('gcloud_executor', () => {
-  let spawn: vi.Mock;
+  // Using 'any' to avoid overload issues with childProcess.spawn mocks
+  type SpawnFn = typeof child_process.spawn;
+  let spawnSpy: MockInstance<SpawnFn>;
 
   beforeEach(() => {
-    spawn = vi.spyOn(child_process, 'spawn').mockReturnValue({
-      stdout: new PassThrough(),
-      stderr: new PassThrough(),
-      on: vi.fn((event, cb) => {
-        if (event === 'close') {
-          cb(0);
-        }
-      }),
-    } as ChildProcessWithoutNullStreams);
+    vi.clearAllMocks();
+    // Cast to 'any' to simplify type checking against overloaded function
+    spawnSpy = vi.spyOn(child_process, 'spawn');
+    // Default mock return value. The cast is on the argument.
+    const defaultFakeProcess = new FakeChildProcess();
+    spawnSpy.mockReturnValue(defaultFakeProcess as unknown as ChildProcess);
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
-
-  const mockSpawn = (stdout: string, stderr = '', exitCode = 0): ChildProcessWithoutNullStreams => {
-    const process = {
-      stdout: new PassThrough(),
-      stderr: new PassThrough(),
-      on: vi.fn((event, cb) => {
-        if (event === 'close') {
-          setTimeout(() => cb(exitCode), 10);
-        }
-      }),
-    };
-    process.stdout.write(stdout);
-    process.stderr.write(stderr);
-    process.stdout.end();
-    process.stderr.end();
-    return process as ChildProcessWithoutNullStreams;
-  };
 
   describe('isWindows', () => {
     it('should return true if platform is win32', () => {
@@ -79,23 +60,22 @@ describe('gcloud_executor', () => {
 
   describe('isAvailable', () => {
     it('should resolve true when "which gcloud" succeeds', async () => {
-      spawn.mockReturnValue(mockSpawn('', '', 0));
+      spawnSpy.mockReturnValue(createMockChildProcess('', '', 0));
       await expect(isAvailable()).resolves.toBe(true);
     });
 
     it('should resolve false when "which gcloud" fails', async () => {
-      spawn.mockReturnValue(mockSpawn('', '', 1));
+      spawnSpy.mockReturnValue(createMockChildProcess('', '', 1));
       await expect(isAvailable()).resolves.toBe(false);
     });
 
     it('should resolve false on spawn error', async () => {
-      spawn.mockReturnValue({
-        on: vi.fn((event, cb) => {
-          if (event === 'error') {
-            cb(new Error('spawn error'));
-          }
-        }),
-      } as ChildProcessWithoutNullStreams);
+      const fakeProcess = new FakeChildProcess();
+      spawnSpy.mockReturnValue(fakeProcess as unknown as ChildProcess);
+      const error = new Error('spawn error');
+      setTimeout(() => {
+        fakeProcess.emit('error', error);
+      }, 0);
       await expect(isAvailable()).resolves.toBe(false);
     });
   });
@@ -105,8 +85,8 @@ describe('gcloud_executor', () => {
       Object.defineProperty(process, 'platform', {
         value: 'linux',
       });
-      spawn.mockReturnValueOnce(mockSpawn('', '', 0)); // for isAvailable
-      spawn.mockReturnValueOnce(mockSpawn('test stdout', '', 0));
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // for isAvailable
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('test stdout', '', 0));
 
       const executor = await findExecutable();
       const result = await executor.execute(['test']);
@@ -116,7 +96,7 @@ describe('gcloud_executor', () => {
         stdout: 'test stdout',
         stderr: '',
       });
-      expect(spawn).toHaveBeenCalledWith('gcloud', ['test'], {
+      expect(spawnSpy).toHaveBeenCalledWith('gcloud', ['test'], {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     });
@@ -133,10 +113,10 @@ describe('gcloud_executor', () => {
         noWorkingPythonFound: false,
         cloudSdkRootDir: 'C:\\gcloud',
         env: {},
-      });
+      } as windows_gcloud_utils.WindowsCloudSDKSettings);
 
-      spawn.mockReturnValueOnce(mockSpawn('', '', 0)); // for isAvailable
-      spawn.mockReturnValueOnce(mockSpawn('windows stdout', '', 0));
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // for isAvailable
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('windows stdout', '', 0));
 
       const executor = await findExecutable();
       const result = await executor.execute(['test']);
@@ -146,7 +126,7 @@ describe('gcloud_executor', () => {
         stdout: 'windows stdout',
         stderr: '',
       });
-      expect(spawn).toHaveBeenCalledWith(
+      expect(spawnSpy).toHaveBeenCalledWith(
         'C:\\Python\\python.exe',
         ['C:\\gcloud\\gcloud.py', 'test'],
         { stdio: ['ignore', 'pipe', 'pipe'] },
@@ -154,7 +134,7 @@ describe('gcloud_executor', () => {
     });
 
     it('should throw an error if gcloud is not available', async () => {
-      spawn.mockReturnValue(mockSpawn('', '', 1));
+      spawnSpy.mockReturnValue(createMockChildProcess('', '', 1));
       await expect(findExecutable()).rejects.toThrow('gcloud executable not found');
     });
 
@@ -164,8 +144,8 @@ describe('gcloud_executor', () => {
       });
       vi.mocked(windows_gcloud_utils.getWindowsCloudSDKSettingsAsync).mockResolvedValue({
         noWorkingPythonFound: true,
-      } as WindowsCloudSDKSettings);
-      spawn.mockReturnValueOnce(mockSpawn('', '', 0)); // For isAvailable
+      } as windows_gcloud_utils.WindowsCloudSDKSettings);
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // For isAvailable
 
       await expect(findExecutable()).rejects.toThrow(
         'no working Python installation found for Windows gcloud execution.',
@@ -176,18 +156,18 @@ describe('gcloud_executor', () => {
       Object.defineProperty(process, 'platform', {
         value: 'linux',
       });
-      spawn.mockReturnValueOnce(mockSpawn('', '', 0)); // isAvailable
-      spawn.mockReturnValueOnce({
-        stdout: new PassThrough(),
-        stderr: new PassThrough(),
-        on: vi.fn((event, cb) => {
-          if (event === 'error') {
-            cb(new Error('Process failed'));
-          }
-        }),
-      } as ChildProcessWithoutNullStreams);
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // isAvailable
+
+      const fakeProcess = new FakeChildProcess();
+      spawnSpy.mockReturnValueOnce(fakeProcess as unknown as ChildProcess);
 
       const executor = await findExecutable();
+      const error = new Error('Process failed');
+
+      setTimeout(() => {
+        fakeProcess.emit('error', error);
+      }, 0);
+
       await expect(executor.execute(['test'])).rejects.toThrow('Process failed');
     });
   });

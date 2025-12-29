@@ -61,7 +61,7 @@ export const findExecutable = async (): Promise<GcloudExecutor> => {
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
-    const which = child_process.spawn(isWindows() ? 'where' : 'which', ['gcloud']);
+    const which = child_process.spawn(isWindows() ? 'where.exe' : 'which', ['gcloud']);
     which.on('close', (code) => {
       resolve(code === 0);
     });

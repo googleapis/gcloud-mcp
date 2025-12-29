@@ -86,17 +86,17 @@ describe('gcloud_executor', () => {
         value: 'linux',
       });
       spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // for isAvailable
-      spawnSpy.mockReturnValueOnce(createMockChildProcess('test stdout', '', 0));
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('instance-1 us-central1-a', '', 0));
 
       const executor = await findExecutable();
-      const result = await executor.execute(['test']);
+      const result = await executor.execute(['compute', 'instances', 'list']);
 
       expect(result).toEqual({
         code: 0,
-        stdout: 'test stdout',
+        stdout: 'instance-1 us-central1-a',
         stderr: '',
       });
-      expect(spawnSpy).toHaveBeenCalledWith('gcloud', ['test'], {
+      expect(spawnSpy).toHaveBeenCalledWith('gcloud', ['compute', 'instances', 'list'], {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     });
@@ -116,19 +116,21 @@ describe('gcloud_executor', () => {
       } as windows_gcloud_utils.WindowsCloudSDKSettings);
 
       spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // for isAvailable
-      spawnSpy.mockReturnValueOnce(createMockChildProcess('windows stdout', '', 0));
+      spawnSpy.mockReturnValueOnce(
+        createMockChildProcess('project-1 project-id-1\nproject-2 project-id-2', '', 0),
+      );
 
       const executor = await findExecutable();
-      const result = await executor.execute(['test']);
+      const result = await executor.execute(['projects', 'list']);
 
       expect(result).toEqual({
         code: 0,
-        stdout: 'windows stdout',
+        stdout: 'project-1 project-id-1\nproject-2 project-id-2',
         stderr: '',
       });
       expect(spawnSpy).toHaveBeenCalledWith(
         'C:\\Python\\python.exe',
-        ['C:\\gcloud\\gcloud.py', 'test'],
+        ['C:\\gcloud\\gcloud.py', 'projects', 'list'],
         { stdio: ['ignore', 'pipe', 'pipe'] },
       );
     });

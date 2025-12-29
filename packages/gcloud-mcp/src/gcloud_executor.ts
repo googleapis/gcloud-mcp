@@ -16,7 +16,6 @@
 
 import * as child_process from 'child_process';
 import { getWindowsCloudSDKSettingsAsync } from './windows_gcloud_utils.js';
-import { log } from './utility/logger.js';
 
 export const isWindows = (): boolean => process.platform === 'win32';
 

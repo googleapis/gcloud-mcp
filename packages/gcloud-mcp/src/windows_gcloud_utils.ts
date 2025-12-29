@@ -39,14 +39,10 @@ export async function spawnWhereAsync(
   spawnEnv: { [key: string]: string | undefined },
 ): Promise<string[]> {
   return new Promise((resolve) => {
-    const child = child_process.spawn(
-      'where',
-      [command],
-      {
-        env: spawnEnv, // Use updated PATH for where command
-        shell: true, // Use shell to handle command correctly
-      },
-    );
+    const child = child_process.spawn('where', [command], {
+      env: spawnEnv, // Use updated PATH for where command
+      shell: true, // Use shell to handle command correctly
+    });
 
     let stdout = '';
     let stderr = '';
@@ -88,13 +84,9 @@ export async function getPythonVersionAsync(
   return new Promise((resolve) => {
     const escapedPath = pythonPath.includes(' ') ? `"${pythonPath}"` : pythonPath;
     const pythonArgs = ['-c', 'import sys; print(sys.version)'];
-    const child = child_process.spawn(
-      escapedPath,
-      pythonArgs,
-      {
-        env: spawnEnv, // Use env without PYTHONHOME
-      },
-    );
+    const child = child_process.spawn(escapedPath, pythonArgs, {
+      env: spawnEnv, // Use env without PYTHONHOME
+    });
 
     let stdout = '';
     let stderr = '';
@@ -189,7 +181,7 @@ export async function getWindowsCloudSDKSettingsAsync(
   currentEnv: NodeJS.ProcessEnv = process.env,
 ): Promise<WindowsCloudSDKSettings> {
   const env = { ...currentEnv };
-  const cloudSdkRootDir = (await getSDKRootDirectoryAsync(env));
+  const cloudSdkRootDir = await getSDKRootDirectoryAsync(env);
 
   let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
   // Find bundled python if no python is set in the environment.
@@ -233,11 +225,7 @@ export async function getWindowsCloudSDKSettingsAsync(
 
   const cloudSdkPythonArgsList = cloudSdkPythonArgs ? cloudSdkPythonArgs.split(' ') : [];
 
-  const gcloudPyPath = path.win32.join(
-    cloudSdkRootDir,
-    'lib',
-    'gcloud.py',
-  );
+  const gcloudPyPath = path.win32.join(cloudSdkRootDir, 'lib', 'gcloud.py');
 
   return {
     gcloudPyPath,

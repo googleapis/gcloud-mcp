@@ -1,9 +1,21 @@
-import { test, expect, beforeEach, vi, assert, Mock } from 'vitest';
-import {
-  GcloudExecutable,
-  GcloudInvocationResult,
-  create,
-} from './gcloud.js';
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { test, expect, beforeEach, vi, assert } from 'vitest';
+import { GcloudExecutable, GcloudInvocationResult, create } from './gcloud.js';
 import { GcloudExecutor } from './gcloud_executor.js';
 
 vi.mock('./gcloud_executor.js', () => {
@@ -38,9 +50,7 @@ test('should correctly handle stdout and stderr', async () => {
 
   const result = await gcloudExecutable.invoke(['interactive-command']);
 
-  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith([
-    'interactive-command',
-  ]);
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith(['interactive-command']);
   expect(result.code).toBe(0);
   expect(result.stdout).toContain('Standard output');
   expect(result.stderr).toContain('Standard error');
@@ -55,9 +65,7 @@ test('should correctly non-zero exit codes', async () => {
   mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
   const result = await gcloudExecutable.invoke(['interactive-command']);
 
-  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith([
-    'interactive-command',
-  ]);
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith(['interactive-command']);
   expect(result.code).toBe(1);
   expect(result.stdout).toContain('Standard output');
   expect(result.stderr).toContain('Standard error');
@@ -65,9 +73,7 @@ test('should correctly non-zero exit codes', async () => {
 
 test('should reject when process fails to start', async () => {
   mockedGcloudExecutor.execute.mockRejectedValue(new Error('Failed to start'));
-  await expect(gcloudExecutable.invoke(['some-command'])).rejects.toThrow(
-    'Failed to start'
-  );
+  await expect(gcloudExecutable.invoke(['some-command'])).rejects.toThrow('Failed to start');
   expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith(['some-command']);
 });
 
@@ -189,6 +195,6 @@ test('should throw error for empty lint result', async () => {
   mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
 
   await expect(gcloudExecutable.lint('some-command')).rejects.toThrow(
-    'gcloud lint result contained no contents'
+    'gcloud lint result contained no contents',
   );
 });

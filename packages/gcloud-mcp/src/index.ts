@@ -114,10 +114,9 @@ const main = async () => {
     createRunGcloudCommand(cli, acl).register(server);
     await server.connect(new StdioServerTransport());
     log.info('🚀 gcloud mcp server started');
-
   } catch (e: unknown) {
     const error = String(e);
-    log.error(`Unable to start gcloud mcp server: ${error}`)
+    log.error(`Unable to start gcloud mcp server: ${error}`);
     process.exit(1);
   }
 

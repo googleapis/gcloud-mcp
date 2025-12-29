@@ -15,7 +15,7 @@
  */
 
 import * as child_process from 'child_process';
-import {getWindowsCloudSDKSettingsAsync } from './windows_gcloud_utils.js';
+import { getWindowsCloudSDKSettingsAsync } from './windows_gcloud_utils.js';
 import * as path from 'path';
 
 export const isWindows = (): boolean => process.platform === 'win32';
@@ -27,37 +27,37 @@ export interface GcloudExecutionResult {
 }
 
 export interface GcloudExecutor {
-  execute: (args: string[]) => Promise<GcloudExecutionResult>
+  execute: (args: string[]) => Promise<GcloudExecutionResult>;
 }
 
 export const findExecutable = async (): Promise<GcloudExecutor> => {
   const executor = await createExecutor();
   return {
     execute: async (args: string[]): Promise<GcloudExecutionResult> =>
-        new Promise(async (resolve, reject) => {
-            let stdout = '';
-            let stderr = '';
+      new Promise(async (resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
 
-            const gcloud = executor.execute(args);
+        const gcloud = executor.execute(args);
 
-            gcloud.stdout.on('data', (data) => {
-            stdout += data.toString();
-            });
-            gcloud.stderr.on('data', (data) => {
-            stderr += data.toString();
-            });
+        gcloud.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+        gcloud.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
 
-            gcloud.on('close', (code) => {
-            // All responses from gcloud, including non-zero codes.
-            resolve({ code, stdout, stderr });
-            });
-            gcloud.on('error', (err) => {
-            // Process failed to start. gcloud isn't able to be invoked.
-            reject(err);
-            });
-        })
-  }
-}
+        gcloud.on('close', (code) => {
+          // All responses from gcloud, including non-zero codes.
+          resolve({ code, stdout, stderr });
+        });
+        gcloud.on('error', (err) => {
+          // Process failed to start. gcloud isn't able to be invoked.
+          reject(err);
+        });
+      }),
+  };
+};
 
 export const isAvailable = (): Promise<boolean> =>
   new Promise((resolve) => {
@@ -71,40 +71,40 @@ export const isAvailable = (): Promise<boolean> =>
   });
 
 const createExecutor = async () => {
-  if(!await isAvailable()) {
+  if (!(await isAvailable())) {
     throw Error('gcloud executable not found');
   }
   if (isWindows()) {
     return await createWindowsExecutor();
   }
   return createDirectExecutor();
-}
+};
 
 /** Creates an executor that directly invokes the gcloud binary on the current PATH. */
 const createDirectExecutor = () => ({
-    execute: (args: string[]) => child_process.spawn('gcloud', args, {
+  execute: (args: string[]) =>
+    child_process.spawn('gcloud', args, {
       stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    }),
 });
 
 const createWindowsExecutor = async () => {
-    const settings = await getWindowsCloudSDKSettingsAsync();
+  const settings = await getWindowsCloudSDKSettingsAsync();
 
-    if (settings == null || settings.noWorkingPythonFound) {
-        throw Error('no working Python installation found for Windows gcloud execution.');
-    }
+  if (settings == null || settings.noWorkingPythonFound) {
+    throw Error('no working Python installation found for Windows gcloud execution.');
+  }
 
-    const pythonPath = path.normalize(
-        settings.cloudSdkPython,
-    );
+  const pythonPath = path.normalize(settings.cloudSdkPython);
 
-    return {
-        execute: (args: string[]) => child_process.spawn(pythonPath, [
-            ...settings.cloudSdkPythonArgsList,
-            settings.gcloudPyPath,
-            ...args
-        ], {
-            stdio: ['ignore', 'pipe', 'pipe']
-        })
-    }
-}
+  return {
+    execute: (args: string[]) =>
+      child_process.spawn(
+        pythonPath,
+        [...settings.cloudSdkPythonArgsList, settings.gcloudPyPath, ...args],
+        {
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      ),
+  };
+};

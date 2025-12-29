@@ -34,7 +34,6 @@ const mockGcloudLint = () => {
   }));
 };
 
-
 let mockedGcloud: gcloud.GcloudExecutable;
 
 describe('suggest', () => {
@@ -65,7 +64,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['components', 'list'],
         acl,
-        mockedGcloud
+        mockedGcloud,
       );
       expect(suggestion).toBeNull();
     });
@@ -75,7 +74,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['beta', 'components', 'list'],
         acl,
-        mockedGcloud
+        mockedGcloud,
       );
       expect(suggestion).toEqual('gcloud components list');
     });
@@ -93,7 +92,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['components', 'list'],
         acl,
-        mockedGcloud
+        mockedGcloud,
       );
       expect(suggestion).toBeNull();
     });
@@ -103,7 +102,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['beta', 'components', 'list'],
         acl,
-        mockedGcloud
+        mockedGcloud,
       );
       expect(suggestion).toBeNull();
     });
@@ -118,7 +117,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['components', 'list'],
         acl,
-        mockedGcloud
+        mockedGcloud,
       );
       expect(suggestion).toEqual('gcloud beta components list');
     });
@@ -133,7 +132,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['beta', '--log-http', 'config', '--verbosity', 'debug', 'list'],
         acl,
-        mockedGcloud
+        mockedGcloud,
       );
       expect(suggestion).toEqual('gcloud --log-http config --verbosity debug list');
     });

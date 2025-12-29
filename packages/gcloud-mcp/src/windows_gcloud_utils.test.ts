@@ -17,9 +17,9 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import { PassThrough } from 'stream';
+import { ChildProcessWithoutNullStreams } from 'child_process';
 import {
   spawnWhereAsync,
   getPythonVersionAsync,
@@ -30,7 +30,6 @@ import {
 
 vi.mock('child_process');
 vi.mock('fs');
-vi.mock('os');
 
 describe('windows_gcloud_utils', () => {
   let spawn: Mock;
@@ -45,10 +44,10 @@ describe('windows_gcloud_utils', () => {
           cb(0);
         }
       }),
-    } as any);
+    } as ChildProcessWithoutNullStreams);
   });
 
-  const mockSpawn = (stdout: string, stderr = '', exitCode = 0) => {
+  const mockSpawn = (stdout: string, stderr = '', exitCode = 0): ChildProcessWithoutNullStreams => {
     const process = {
       stdout: new PassThrough(),
       stderr: new PassThrough(),
@@ -64,22 +63,22 @@ describe('windows_gcloud_utils', () => {
     process.stderr.write(stderr);
     process.stdout.end();
     process.stderr.end();
-    return process as any;
+    return process as ChildProcessWithoutNullStreams;
   };
 
   describe('execWhereAsync', () => {
     it('should return paths when command is found', async () => {
       spawn.mockReturnValue(
         mockSpawn(
-          'C:\\Program Files\\Python\\Python39\\python.exe\r\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe'
-        )
+          'C:\\Program Files\\Python\\Python39\\python.exe\r\nC:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
+        ),
       );
       const result = await spawnWhereAsync('command', {});
       expect(result).toStrictEqual(
         [
           'C:\\Program Files\\Python\\Python39\\python.exe',
           'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
-        ].map((p) => path.win32.normalize(p))
+        ].map((p) => path.win32.normalize(p)),
       );
     });
 
@@ -107,9 +106,7 @@ describe('windows_gcloud_utils', () => {
   describe('findWindowsPythonPathAsync', () => {
     it('should find python3 when multiple python versions are present', async () => {
       spawn
-        .mockReturnValueOnce(
-          mockSpawn('C:\\Python27\\python.exe\r\nC:\\Python39\\python.exe')
-        )
+        .mockReturnValueOnce(mockSpawn('C:\\Python27\\python.exe\r\nC:\\Python39\\python.exe'))
         .mockReturnValueOnce(mockSpawn('2.7.18'))
         .mockReturnValueOnce(mockSpawn('3.9.5'));
 
@@ -144,13 +141,9 @@ describe('windows_gcloud_utils', () => {
     });
 
     it('should get root directory from where gcloud', async () => {
-      spawn.mockReturnValue(
-        mockSpawn('C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd')
-      );
+      spawn.mockReturnValue(mockSpawn('C:\\Program Files\\Google\\Cloud SDK\\bin\\gcloud.cmd'));
       const sdkRoot = await getSDKRootDirectoryAsync({});
-      expect(sdkRoot).toBe(
-        path.win32.normalize('C:\\Program Files\\Google\\Cloud SDK')
-      );
+      expect(sdkRoot).toBe(path.win32.normalize('C:\\Program Files\\Google\\Cloud SDK'));
     });
 
     it('should return empty string if gcloud not found', async () => {
@@ -172,9 +165,7 @@ describe('windows_gcloud_utils', () => {
 
       expect(settings.cloudSdkRootDir).toBe(path.win32.normalize('C:\\CloudSDK'));
       expect(settings.cloudSdkPython).toBe(
-        path.win32.normalize(
-          'C:\\CloudSDK\\platform\\bundledpython\\python.exe'
-        )
+        path.win32.normalize('C:\\CloudSDK\\platform\\bundledpython\\python.exe'),
       );
       expect(settings.cloudSdkPythonArgsList).toStrictEqual(['-S']);
       expect(settings.noWorkingPythonFound).toBe(false);

@@ -19,6 +19,7 @@ import { init } from './init.js';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
 import * as gcloud from '../gcloud_executor.js';
 import { log } from '../utility/logger.js';
+import { Argv } from 'yargs';
 
 vi.mock('../gcloud_executor.js', () => ({
   isAvailable: vi.fn(),
@@ -37,7 +38,7 @@ describe('init', () => {
     const yargs = {
       option: vi.fn().mockReturnThis(),
     };
-    init.builder(yargs as any);
+    init.builder(yargs as Argv);
     expect(yargs.option).toHaveBeenCalledWith('agent', {
       describe: 'The agent to initialize the MCP server with.',
       type: 'string',

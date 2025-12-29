@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 	http://www.apache.org/licenses/LICENSE-2.0
+ *	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as child_process from 'child_process';
 import { PassThrough } from 'stream';
+import { ChildProcessWithoutNullStreams } from 'child_process';
 import { findExecutable, isAvailable, isWindows } from './gcloud_executor';
 import * as windows_gcloud_utils from './windows_gcloud_utils';
+import { WindowsCloudSDKSettings } from './windows_gcloud_utils';
 
 vi.mock('child_process');
 vi.mock('./windows_gcloud_utils');
@@ -34,14 +37,14 @@ describe('gcloud_executor', () => {
           cb(0);
         }
       }),
-    } as any);
+    } as ChildProcessWithoutNullStreams);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  const mockSpawn = (stdout: string, stderr = '', exitCode = 0) => {
+  const mockSpawn = (stdout: string, stderr = '', exitCode = 0): ChildProcessWithoutNullStreams => {
     const process = {
       stdout: new PassThrough(),
       stderr: new PassThrough(),
@@ -55,7 +58,7 @@ describe('gcloud_executor', () => {
     process.stderr.write(stderr);
     process.stdout.end();
     process.stderr.end();
-    return process as any;
+    return process as ChildProcessWithoutNullStreams;
   };
 
   describe('isWindows', () => {
@@ -92,7 +95,7 @@ describe('gcloud_executor', () => {
             cb(new Error('spawn error'));
           }
         }),
-      } as any);
+      } as ChildProcessWithoutNullStreams);
       await expect(isAvailable()).resolves.toBe(false);
     });
   });
@@ -146,7 +149,7 @@ describe('gcloud_executor', () => {
       expect(spawn).toHaveBeenCalledWith(
         'C:\\Python\\python.exe',
         ['C:\\gcloud\\gcloud.py', 'test'],
-        { stdio: ['ignore', 'pipe', 'pipe'] }
+        { stdio: ['ignore', 'pipe', 'pipe'] },
       );
     });
 
@@ -161,10 +164,12 @@ describe('gcloud_executor', () => {
       });
       vi.mocked(windows_gcloud_utils.getWindowsCloudSDKSettingsAsync).mockResolvedValue({
         noWorkingPythonFound: true,
-      } as any);
+      } as WindowsCloudSDKSettings);
       spawn.mockReturnValueOnce(mockSpawn('', '', 0)); // For isAvailable
 
-      await expect(findExecutable()).rejects.toThrow('no working Python installation found for Windows gcloud execution.');
+      await expect(findExecutable()).rejects.toThrow(
+        'no working Python installation found for Windows gcloud execution.',
+      );
     });
 
     it('should reject when the gcloud process fails to start', async () => {
@@ -180,7 +185,7 @@ describe('gcloud_executor', () => {
             cb(new Error('Process failed'));
           }
         }),
-      } as any);
+      } as ChildProcessWithoutNullStreams);
 
       const executor = await findExecutable();
       await expect(executor.execute(['test'])).rejects.toThrow('Process failed');

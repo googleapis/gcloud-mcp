@@ -170,7 +170,9 @@ test('should exit if config file is invalid JSON', async () => {
 
 test('should exit if os is windows and it can not find working python', async () => {
   process.argv = ['node', 'index.js'];
-  vi.mocked(gcloud.create).mockRejectedValue('No working Python installation found for Windows gcloud execution.');
+  vi.mocked(gcloud.create).mockRejectedValue(
+    'No working Python installation found for Windows gcloud execution.',
+  );
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
@@ -189,7 +191,9 @@ test('should handle uncaught exception', async () => {
   const on = vi.fn();
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
   await import('./index.js');
-  const uncaughtExceptionHandler = on.mock.calls.find(call => call[0] === 'uncaughtException')?.[1];
+  const uncaughtExceptionHandler = on.mock.calls.find(
+    (call) => call[0] === 'uncaughtException',
+  )?.[1];
   uncaughtExceptionHandler(new Error('test error'));
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance.close).toHaveBeenCalled();
@@ -200,7 +204,9 @@ test('should handle unhandled rejection', async () => {
   const on = vi.fn();
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
   await import('./index.js');
-  const unhandledRejectionHandler = on.mock.calls.find(call => call[0] === 'unhandledRejection')?.[1];
+  const unhandledRejectionHandler = on.mock.calls.find(
+    (call) => call[0] === 'unhandledRejection',
+  )?.[1];
   unhandledRejectionHandler(new Error('test error'), Promise.resolve());
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance.close).toHaveBeenCalled();
@@ -211,7 +217,7 @@ test('should handle SIGINT', async () => {
   const on = vi.fn();
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
   await import('./index.js');
-  const sigintHandler = on.mock.calls.find(call => call[0] === 'SIGINT')?.[1];
+  const sigintHandler = on.mock.calls.find((call) => call[0] === 'SIGINT')?.[1];
   sigintHandler();
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance.close).toHaveBeenCalled();
@@ -222,7 +228,7 @@ test('should handle SIGTERM', async () => {
   const on = vi.fn();
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
   await import('./index.js');
-  const sigtermHandler = on.mock.calls.find(call => call[0] === 'SIGTERM')?.[1];
+  const sigtermHandler = on.mock.calls.find((call) => call[0] === 'SIGTERM')?.[1];
   sigtermHandler();
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
   expect(serverInstance.close).toHaveBeenCalled();

@@ -62,9 +62,9 @@ export const create = async (): Promise<GcloudExecutable> => {
         // Remove gcloud prefix since we added it in during the invocation, above.
         parsedCommand: lintCommand.command_string_no_args.slice('gcloud '.length),
       };
-    }
-  }
-}
+    },
+  };
+};
 
 export interface GcloudInvocationResult {
   code: number | null;
@@ -92,4 +92,3 @@ export type ParsedGcloudLintResult =
       success: false;
       error: string;
     };
-

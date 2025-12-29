@@ -17,10 +17,10 @@
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import { init } from './init.js';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
-import * as gcloud from '../gcloud.js';
+import * as gcloud from '../gcloud_executor.js';
 import { log } from '../utility/logger.js';
 
-vi.mock('../gcloud.js', () => ({
+vi.mock('../gcloud_executor.js', () => ({
   isAvailable: vi.fn(),
 }));
 
@@ -31,6 +31,24 @@ vi.mock('./init-gemini-cli.js', () => ({
 describe('init', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('should configure yargs with agent and local options', () => {
+    const yargs = {
+      option: vi.fn().mockReturnThis(),
+    };
+    init.builder(yargs as any);
+    expect(yargs.option).toHaveBeenCalledWith('agent', {
+      describe: 'The agent to initialize the MCP server with.',
+      type: 'string',
+      choices: ['gemini-cli'],
+      demandOption: true,
+    });
+    expect(yargs.option).toHaveBeenCalledWith('local', {
+      describe: '(Development only) Use a local build of the gcloud-mcp server.',
+      type: 'boolean',
+      default: false,
+    });
   });
 
   it('should initialize gemini when agent is gemini-cli', async () => {

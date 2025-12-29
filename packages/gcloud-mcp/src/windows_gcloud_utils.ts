@@ -24,6 +24,7 @@ export interface WindowsCloudSDKSettings {
   cloudSdkPython: string;
   cloudSdkPythonArgsList: string[];
   noWorkingPythonFound: boolean;
+  cloudSdkRootDir: string;
   /** Environment variables to use when spawning gcloud.py */
   env: { [key: string]: string | undefined };
 }
@@ -188,7 +189,7 @@ export async function getWindowsCloudSDKSettingsAsync(
   currentEnv: NodeJS.ProcessEnv = process.env,
 ): Promise<WindowsCloudSDKSettings> {
   const env = { ...currentEnv };
-  const cloudSdkRootDir = (await getSDKRootDirectoryAsync(env)).normalize();
+  const cloudSdkRootDir = (await getSDKRootDirectoryAsync(env));
 
   let cloudSdkPython = env['CLOUDSDK_PYTHON'] || '';
   // Find bundled python if no python is set in the environment.
@@ -242,7 +243,8 @@ export async function getWindowsCloudSDKSettingsAsync(
     gcloudPyPath,
     cloudSdkPython,
     cloudSdkPythonArgsList,
-    noWorkingPythonFound: !cloudSdkPython,
+    noWorkingPythonFound: !(await getPythonVersionAsync(cloudSdkPython, env)),
+    cloudSdkRootDir,
     env,
   };
 }

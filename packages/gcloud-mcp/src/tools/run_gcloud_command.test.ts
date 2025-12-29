@@ -31,6 +31,8 @@ const mockServer = {
   registerTool: vi.fn(),
 } as unknown as McpServer;
 
+let mockedGcloud: gcloud.GcloudExecutable;
+
 const getToolImplementation = () => {
   expect(mockServer.registerTool).toHaveBeenCalledOnce();
   return (mockServer.registerTool as Mock).mock.calls[0]![2];
@@ -38,12 +40,12 @@ const getToolImplementation = () => {
 
 const createTool = (config: McpConfig = {}) => {
   const acl = createAccessControlList(config.allow, [...(config.deny ?? []), 'interactive']);
-  createRunGcloudCommand(acl).register(mockServer);
+  createRunGcloudCommand(mockedGcloud, acl).register(mockServer);
   return getToolImplementation();
 };
 
 const mockGcloudLint = () => {
-  const mockedLint = vi.mocked(gcloud.lint);
+  const mockedLint = vi.mocked(mockedGcloud.lint);
   mockedLint.mockImplementation(async (cmd: string) => ({
     success: true,
     parsedCommand: cmd
@@ -55,7 +57,7 @@ const mockGcloudLint = () => {
 };
 
 const mockGcloudInvoke = (stdout: string, stderr: string = '') => {
-  const mockedInvoke = vi.mocked(gcloud.invoke);
+  const mockedInvoke = vi.mocked(mockedGcloud.invoke);
   mockedInvoke.mockResolvedValue({
     code: 0,
     stdout,
@@ -66,6 +68,10 @@ const mockGcloudInvoke = (stdout: string, stderr: string = '') => {
 describe('createRunGcloudCommand', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedGcloud = {
+      lint: vi.fn(),
+      invoke: vi.fn(),
+    };
     mockGcloudLint();
   });
 
@@ -76,8 +82,8 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.lint).not.toHaveBeenCalled();
-      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).not.toHaveBeenCalled();
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
 
       expect(result.content[0].text).toContain('Denylisted');
       expect(result.content[0].text).toContain('- compute list');
@@ -89,8 +95,8 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.lint).not.toHaveBeenCalled();
-      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).not.toHaveBeenCalled();
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
 
       expect(result.content[0].text).toContain('Allowlisted');
       expect(result.content[0].text).toContain('- compute list');
@@ -105,7 +111,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
       expect(result.content[0].text).toContain('Execution denied:');
       expect(result.content[0].text).toContain('["gcloud-mcp", "debug", "config"]');
       expect(result.isError).toBe(true);
@@ -118,7 +124,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
       expect(result).toEqual({
         content: [
           {
@@ -138,7 +144,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
       expect(result).toEqual({
         content: [
           {
@@ -155,7 +161,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
       expect(result.content[0].text).toContain('Execution denied:');
       expect(result.content[0].text).toContain('["gcloud-mcp", "debug", "config"]');
       expect(result.isError).toBe(true);
@@ -169,7 +175,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
       expect(result.content[0].text).toContain('Execution denied:');
       expect(result.content[0].text).toContain('["gcloud-mcp", "debug", "config"]');
       expect(result.isError).toBe(true);
@@ -184,7 +190,7 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
       expect(result).toEqual({
         content: [
           {
@@ -199,12 +205,12 @@ describe('createRunGcloudCommand', () => {
       const tool = createTool();
       const inputArgs = ['a', 'c'];
 
-      const mockedInvoke = vi.mocked(gcloud.invoke);
+      const mockedInvoke = vi.mocked(mockedGcloud.invoke);
       mockedInvoke.mockRejectedValue(new Error('gcloud error'));
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
       expect(result).toEqual({
         content: [{ type: 'text', text: 'gcloud error' }],
         isError: true,
@@ -215,12 +221,12 @@ describe('createRunGcloudCommand', () => {
       const tool = createTool();
       const inputArgs = ['a', 'c'];
 
-      const mockedInvoke = vi.mocked(gcloud.invoke);
+      const mockedInvoke = vi.mocked(mockedGcloud.invoke);
       mockedInvoke.mockRejectedValue('error not of Error type');
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
       expect(result).toEqual({
         content: [{ type: 'text', text: 'An unknown error occurred.' }],
         isError: true,
@@ -235,9 +241,9 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(3);
-      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(3);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith('compute instances list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud compute instances list');
@@ -251,9 +257,9 @@ describe('createRunGcloudCommand', () => {
       const inputArgs = ['alpha', 'compute', 'instances', 'list'];
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(3);
-      expect(gcloud.lint).toHaveBeenCalledWith('compute instances list');
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(3);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith('compute instances list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud compute instances list');
@@ -274,9 +280,9 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(3);
-      expect(gcloud.lint).toHaveBeenCalledWith(
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(3);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith(
         'compute instances describe my-instance --zone us-central1-a',
       );
       expect(result.content[0].text).toContain('Execution denied');
@@ -293,9 +299,9 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(3);
-      expect(gcloud.lint).toHaveBeenCalledWith('--log-http config --verbosity debug list');
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(3);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith('--log-http config --verbosity debug list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud --log-http config --verbosity debug list');
@@ -310,9 +316,9 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(3);
-      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(3);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith('beta compute instances list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud compute instances list');
@@ -325,9 +331,9 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(4);
-      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(4);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith('beta compute instances list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud beta compute instances list');
@@ -339,9 +345,9 @@ describe('createRunGcloudCommand', () => {
 
       const result = await tool({ args: inputArgs });
 
-      expect(gcloud.invoke).not.toHaveBeenCalled();
-      expect(gcloud.lint).toHaveBeenCalledTimes(3);
-      expect(gcloud.lint).toHaveBeenCalledWith('beta compute instances list');
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(mockedGcloud.lint).toHaveBeenCalledTimes(3);
+      expect(mockedGcloud.lint).toHaveBeenCalledWith('beta compute instances list');
       expect(result.content[0].text).toContain('Execution denied');
       expect(result.content[0].text).toContain('invoke this tool again');
       expect(result.content[0].text).toContain('gcloud beta compute instances list');

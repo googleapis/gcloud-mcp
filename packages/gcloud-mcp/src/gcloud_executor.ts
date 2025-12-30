@@ -40,10 +40,10 @@ export const findExecutable = async (): Promise<GcloudExecutor> => {
         const gcloud = executor.execute(args);
 
         gcloud.stdout.on('data', (data) => {
-          stdout += data.toString();
+          stdout += data.toString().replace(/\r/g, '');
         });
         gcloud.stderr.on('data', (data) => {
-          stderr += data.toString();
+          stderr += data.toString().replace(/\r/g, '');
         });
 
         gcloud.on('close', (code) => {

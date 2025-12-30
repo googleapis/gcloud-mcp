@@ -154,23 +154,31 @@ describe('gcloud_executor', () => {
       );
     });
 
-    it('should reject when the gcloud process fails to start', async () => {
+    it('should strip carriage returns from stdout on Windows', async () => {
       Object.defineProperty(process, 'platform', {
-        value: 'linux',
+        value: 'win32',
       });
-      spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // isAvailable
 
-      const fakeProcess = new FakeChildProcess();
-      spawnSpy.mockReturnValueOnce(fakeProcess as unknown as ChildProcess);
+      vi.mocked(windows_gcloud_utils.getWindowsCloudSDKSettingsAsync).mockResolvedValue({
+        gcloudPyPath: 'C:\\gcloud\\gcloud.py',
+        cloudSdkPython: 'C:\\Python\\python.exe',
+        cloudSdkPythonArgsList: [],
+        noWorkingPythonFound: false,
+        cloudSdkRootDir: 'C:\\gcloud',
+        env: {},
+      } as windows_gcloud_utils.WindowsCloudSDKSettings);
+
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('', '', 0)); // for isAvailable
+      spawnSpy.mockReturnValueOnce(createMockChildProcess('line1\r\nline2\r\nline3\r\n', '', 0));
 
       const executor = await findExecutable();
-      const error = new Error('Process failed');
+      const result = await executor.execute(['test', 'command']);
 
-      setTimeout(() => {
-        fakeProcess.emit('error', error);
-      }, 0);
-
-      await expect(executor.execute(['test'])).rejects.toThrow('Process failed');
+      expect(result).toEqual({
+        code: 0,
+        stdout: 'line1\nline2\nline3\n',
+        stderr: '',
+      });
     });
   });
 });

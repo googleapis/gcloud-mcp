@@ -34,9 +34,9 @@ export async function spawnWhereAsync(
   spawnEnv: { [key: string]: string | undefined },
 ): Promise<string[]> {
   return new Promise((resolve) => {
-    const child = child_process.spawn('where', [command], {
+    const child = child_process.spawn('where.exe', [command], {
       env: spawnEnv, // Use updated PATH for where command
-      shell: true, // Use shell to handle command correctly
+      shell: false, // Use shell to handle command correctly
     });
 
     let stdout = '';

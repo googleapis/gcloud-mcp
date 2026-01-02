@@ -18,6 +18,7 @@ import { test, expect, vi, beforeEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as gcloud from './gcloud.js';
+import * as gcloud_executor from './gcloud_executor.js';
 import { init } from './commands/init.js';
 import fs from 'fs';
 import path from 'path';
@@ -37,6 +38,7 @@ vi.mock('./tools/run_gcloud_command.js', () => ({
   })),
 }));
 vi.mock('./gcloud.js');
+vi.mock('./gcloud_executor.js');
 vi.mock('fs');
 vi.mock('path');
 vi.mock('./commands/init.js');
@@ -45,6 +47,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
   vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+  vi.spyOn(gcloud_executor, 'isAvailable').mockResolvedValue(true);
+  vi.mocked(gcloud.create).mockResolvedValue({
+    lint: vi.fn(),
+    invoke: vi.fn(),
+  } as unknown as gcloud.GcloudExecutable);
   registerToolSpy.mockClear();
 });
 
@@ -60,15 +67,15 @@ test('should initialize Gemini CLI when gcloud-mcp init --agent=gemini-cli is ca
 
 test('should exit if gcloud is not available', async () => {
   process.argv = ['node', 'index.js'];
-  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(false);
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+  vi.mocked(gcloud.create).mockRejectedValue('gcloud executable not found');
 
   await import('./index.js');
 
-  expect(gcloud.isAvailable).toHaveBeenCalled();
+  expect(gcloud.create).toHaveBeenCalled();
   expect(consoleErrorSpy).toHaveBeenCalledWith(
-    '[2025-01-01T00:00:00.000Z] ERROR: Unable to start gcloud mcp server: gcloud executable not found.',
+    '[2025-01-01T00:00:00.000Z] ERROR: Unable to start gcloud mcp server: gcloud executable not found',
   );
   expect(process.exit).toHaveBeenCalledWith(1);
 
@@ -78,12 +85,11 @@ test('should exit if gcloud is not available', async () => {
 
 test('should start the McpServer if gcloud is available', async () => {
   process.argv = ['node', 'index.js'];
-  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
 
   await import('./index.js');
 
-  expect(gcloud.isAvailable).toHaveBeenCalled();
+  expect(gcloud.create).toHaveBeenCalled();
   expect(McpServer).toHaveBeenCalledWith(
     {
       name: 'gcloud-mcp-server',
@@ -93,12 +99,11 @@ test('should start the McpServer if gcloud is available', async () => {
   );
   expect(registerToolSpy).toHaveBeenCalledWith(vi.mocked(McpServer).mock.instances[0]);
   const serverInstance = vi.mocked(McpServer).mock.instances[0];
-  expect(serverInstance!.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));
+  expect(serverInstance?.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));
 });
 
 test('should exit if load deny and allow from config file', async () => {
   process.argv = ['node', 'index.js', '--config', 'test-config.json'];
-  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
   const config = {
@@ -120,7 +125,6 @@ test('should exit if load deny and allow from config file', async () => {
 
 test('should exit if config file is not found', async () => {
   process.argv = ['node', 'index.js', '--config', 'not-found.json'];
-  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
     throw new Error('File not found');
   });
@@ -135,9 +139,22 @@ test('should exit if config file is not found', async () => {
   expect(process.exit).toHaveBeenCalledWith(1);
 });
 
+test('should exit if config file path is not absolute', async () => {
+  process.argv = ['node', 'index.js', '--config', 'relative-path.json'];
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+  vi.spyOn(path, 'isAbsolute').mockReturnValue(false);
+
+  await import('./index.js');
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining('Config file path must be absolute: relative-path.json'),
+  );
+  expect(process.exit).toHaveBeenCalledWith(1);
+});
+
 test('should exit if config file is invalid JSON', async () => {
   process.argv = ['node', 'index.js', '--config', 'invalid.json'];
-  vi.spyOn(gcloud, 'isAvailable').mockResolvedValue(true);
   vi.spyOn(fs, 'readFileSync').mockReturnValue('invalid json');
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
@@ -149,4 +166,70 @@ test('should exit if config file is invalid JSON', async () => {
     expect.stringContaining('ERROR: Error reading or parsing config file: invalid.json'),
   );
   expect(process.exit).toHaveBeenCalledWith(1);
+});
+
+test('should exit if os is windows and it can not find working python', async () => {
+  process.argv = ['node', 'index.js'];
+  vi.mocked(gcloud.create).mockRejectedValue(
+    'No working Python installation found for Windows gcloud execution.',
+  );
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+
+  await import('./index.js');
+
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect.stringContaining(
+      'Unable to start gcloud mcp server: No working Python installation found for Windows gcloud execution.',
+    ),
+  );
+  expect(process.exit).toHaveBeenCalledWith(1);
+});
+
+test('should handle uncaught exception', async () => {
+  process.argv = ['node', 'index.js'];
+  const on = vi.fn();
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
+  await import('./index.js');
+  const uncaughtExceptionHandler = on.mock.calls.find(
+    (call) => call[0] === 'uncaughtException',
+  )?.[1];
+  const serverInstance = vi.mocked(McpServer).mock.instances[0];
+  uncaughtExceptionHandler(new Error('test error'));
+  expect(serverInstance?.close).toHaveBeenCalled();
+});
+
+test('should handle unhandled rejection', async () => {
+  process.argv = ['node', 'index.js'];
+  const on = vi.fn();
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
+  await import('./index.js');
+  const unhandledRejectionHandler = on.mock.calls.find(
+    (call) => call[0] === 'unhandledRejection',
+  )?.[1];
+  const serverInstance = vi.mocked(McpServer).mock.instances[0];
+  unhandledRejectionHandler(new Error('test error'), Promise.resolve());
+  expect(serverInstance?.close).toHaveBeenCalled();
+});
+
+test('should handle SIGINT', async () => {
+  process.argv = ['node', 'index.js'];
+  const on = vi.fn();
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
+  await import('./index.js');
+  const sigintHandler = on.mock.calls.find((call) => call[0] === 'SIGINT')?.[1];
+  const serverInstance = vi.mocked(McpServer).mock.instances[0];
+  sigintHandler();
+  expect(serverInstance?.close).toHaveBeenCalled();
+});
+
+test('should handle SIGTERM', async () => {
+  process.argv = ['node', 'index.js'];
+  const on = vi.fn();
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on });
+  await import('./index.js');
+  const sigtermHandler = on.mock.calls.find((call) => call[0] === 'SIGTERM')?.[1];
+  const serverInstance = vi.mocked(McpServer).mock.instances[0];
+  sigtermHandler();
+  expect(serverInstance?.close).toHaveBeenCalled();
 });

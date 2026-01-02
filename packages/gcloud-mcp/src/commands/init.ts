@@ -16,7 +16,7 @@
 
 import { Argv, ArgumentsCamelCase, CommandModule } from 'yargs';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
-import * as gcloud from '../gcloud.js';
+import * as gcloud from '../gcloud_executor.js';
 import { log } from '../utility/logger.js';
 
 interface InstallArgs {

@@ -14,179 +14,78 @@
  * limitations under the License.
  */
 
-import { test, expect, beforeEach, Mock, vi, assert } from 'vitest';
-import * as child_process from 'child_process';
-import { PassThrough } from 'stream';
-import * as gcloud from './gcloud.js';
-import { isWindows } from './gcloud.js';
+import { test, expect, beforeEach, vi, assert, Mocked } from 'vitest';
+import { GcloudExecutable, GcloudInvocationResult, create } from './gcloud.js';
+import { GcloudExecutor } from './gcloud_executor.js';
 
-vi.mock('child_process', () => ({
-  spawn: vi.fn(),
-}));
+let gcloudExecutable: GcloudExecutable;
 
-const mockedSpawn = child_process.spawn as unknown as Mock;
+vi.mock('./gcloud_executor.js', async () => {
+  const actual = await vi.importActual('./gcloud_executor.js');
+  const GcloudExecutorMock = vi.fn();
+  const mockedGcloudExecutor = new GcloudExecutorMock() as Mocked<GcloudExecutor>;
+  GcloudExecutorMock.prototype.execute = vi.fn();
+  const findExecutable = vi.fn().mockResolvedValue({
+    execute: mockedGcloudExecutor.execute,
+  });
+  return { ...actual, GcloudExecutor: GcloudExecutorMock, findExecutable, mockedGcloudExecutor };
+});
 
-beforeEach(() => {
+let mockedGcloudExecutor: Mocked<GcloudExecutor>; // Redeclare for type safety
+
+beforeEach(async () => {
   vi.clearAllMocks();
-});
-
-test('should return true if which command succeeds', async () => {
-  const mockChildProcess = {
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
-
-  const result = await gcloud.isAvailable();
-
-  expect(result).toBe(true);
-  if (isWindows()) {
-    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
-  } else {
-    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
-  }
-});
-
-test('should return false if which command fails with non-zero exit code', async () => {
-  const mockChildProcess = {
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(1), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
-
-  const result = await gcloud.isAvailable();
-
-  expect(result).toBe(false);
-  if (isWindows()) {
-    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
-  } else {
-    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
-  }
-});
-
-test('should return false if which command fails', async () => {
-  const mockChildProcess = {
-    on: vi.fn((event, callback) => {
-      if (event === 'error') {
-        setTimeout(() => callback(new Error('Failed to start')), 0);
-      }
-    }),
-  };
-  mockedSpawn.mockReturnValue(mockChildProcess);
-
-  const result = await gcloud.isAvailable();
-
-  expect(result).toBe(false);
-  if (isWindows()) {
-    expect(mockedSpawn).toHaveBeenCalledWith('where', ['gcloud']);
-  } else {
-    expect(mockedSpawn).toHaveBeenCalledWith('which', ['gcloud']);
-  }
+  vi.resetModules();
+  const gcloudExecutorModule = await import('./gcloud_executor.js');
+  // Access mockedGcloudExecutor directly from the module as it's exported.
+  mockedGcloudExecutor = (gcloudExecutorModule as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .mockedGcloudExecutor as Mocked<GcloudExecutor>;
+  gcloudExecutable = await create();
 });
 
 test('should correctly handle stdout and stderr', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
+  const expectedResult: GcloudInvocationResult = {
+    code: 0,
+    stdout: 'Standard output',
+    stderr: 'Standard error',
   };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
 
-  const resultPromise = gcloud.invoke(['interactive-command']);
+  const result = await gcloudExecutable.invoke(['interactive-command']);
 
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
-  mockChildProcess.stdout.end();
-
-  const result = await resultPromise;
-
-  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith(['interactive-command']);
   expect(result.code).toBe(0);
   expect(result.stdout).toContain('Standard output');
   expect(result.stderr).toContain('Standard error');
 });
 
 test('should correctly non-zero exit codes', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(1), 0); // Error code
-      }
-    }),
+  const expectedResult: GcloudInvocationResult = {
+    code: 1,
+    stdout: 'Standard output',
+    stderr: 'Standard error',
   };
-  mockedSpawn.mockReturnValue(mockChildProcess);
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
+  const result = await gcloudExecutable.invoke(['interactive-command']);
 
-  const resultPromise = gcloud.invoke(['interactive-command']);
-
-  mockChildProcess.stdout.emit('data', 'Standard out');
-  mockChildProcess.stderr.emit('data', 'Stan');
-  mockChildProcess.stdout.emit('data', 'put');
-  mockChildProcess.stderr.emit('data', 'dard error');
-  mockChildProcess.stdout.end();
-
-  const result = await resultPromise;
-
-  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['interactive-command'], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith(['interactive-command']);
   expect(result.code).toBe(1);
   expect(result.stdout).toContain('Standard output');
   expect(result.stderr).toContain('Standard error');
 });
 
 test('should reject when process fails to start', async () => {
-  mockedSpawn.mockReturnValue({
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'error') {
-        setTimeout(() => callback(new Error('Failed to start')), 0);
-      }
-    }),
-  });
-
-  const resultPromise = gcloud.invoke(['some-command']);
-
-  await expect(resultPromise).rejects.toThrow('Failed to start');
-  expect(mockedSpawn).toHaveBeenCalledWith('gcloud', ['some-command'], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  mockedGcloudExecutor.execute.mockRejectedValue(new Error('Failed to start'));
+  await expect(gcloudExecutable.invoke(['some-command'])).rejects.toThrow('Failed to start');
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith(['some-command']);
 });
 
 test('should correctly call lint double quotes', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
+  const expectedResult: GcloudInvocationResult = {
+    code: 0,
+    stdout: '',
+    stderr: '',
   };
-  mockedSpawn.mockReturnValue(mockChildProcess);
-
-  const resultPromise = gcloud.lint('compute instances list --project "cloud123"');
-
   const json = JSON.stringify([
     {
       command_string_no_args: 'gcloud compute instances list',
@@ -195,44 +94,30 @@ test('should correctly call lint double quotes', async () => {
       error_type: null,
     },
   ]);
-  mockChildProcess.stdout.emit('data', json);
-  mockChildProcess.stderr.emit('data', 'Update available');
-  mockChildProcess.stdout.end();
+  expectedResult.stdout = json;
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
 
-  const result = await resultPromise;
+  const result = await gcloudExecutable.lint('compute instances list --project "cloud123"');
 
-  expect(mockedSpawn).toHaveBeenCalledWith(
-    'gcloud',
-    [
-      'meta',
-      'lint-gcloud-commands',
-      '--command-string',
-      'gcloud compute instances list --project "cloud123"',
-    ],
-    { stdio: ['ignore', 'pipe', 'pipe'] },
-  );
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith([
+    'meta',
+    'lint-gcloud-commands',
+    '--command-string',
+    'gcloud compute instances list --project "cloud123"',
+  ]);
 
   if (!result.success) {
-    assert.fail(`Expected successful response.`);
+    assert.fail('Expected successful response.');
   }
   expect(result.parsedCommand).toBe('compute instances list');
 });
 
 test('should correctly call lint single quotes', async () => {
-  const mockChildProcess = {
-    stdout: new PassThrough(),
-    stderr: new PassThrough(),
-    stdin: new PassThrough(),
-    on: vi.fn((event, callback) => {
-      if (event === 'close') {
-        setTimeout(() => callback(0), 0);
-      }
-    }),
+  const expectedResult: GcloudInvocationResult = {
+    code: 0,
+    stdout: '',
+    stderr: '',
   };
-  mockedSpawn.mockReturnValue(mockChildProcess);
-
-  const resultPromise = gcloud.lint("compute instances list --project 'cloud123'");
-
   const json = JSON.stringify([
     {
       command_string_no_args: 'gcloud compute instances list',
@@ -241,24 +126,78 @@ test('should correctly call lint single quotes', async () => {
       error_type: null,
     },
   ]);
-  mockChildProcess.stdout.emit('data', json);
-  mockChildProcess.stderr.emit('data', 'Update available');
-  mockChildProcess.stdout.end();
+  expectedResult.stdout = json;
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
 
-  const result = await resultPromise;
+  const result = await gcloudExecutable.lint("compute instances list --project 'cloud123'");
 
-  expect(mockedSpawn).toHaveBeenCalledWith(
-    'gcloud',
-    [
-      'meta',
-      'lint-gcloud-commands',
-      '--command-string',
-      "gcloud compute instances list --project 'cloud123'",
-    ],
-    { stdio: ['ignore', 'pipe', 'pipe'] },
-  );
+  expect(mockedGcloudExecutor.execute).toHaveBeenCalledWith([
+    'meta',
+    'lint-gcloud-commands',
+    '--command-string',
+    "gcloud compute instances list --project 'cloud123'",
+  ]);
   if (!result.success) {
-    assert.fail(`Expected successful response.`);
+    assert.fail('Expected successful response.');
   }
   expect(result.parsedCommand).toBe('compute instances list');
+});
+
+test('should handle non-zero exit code from lint', async () => {
+  const expectedResult: GcloudInvocationResult = {
+    code: 1,
+    stdout: JSON.stringify([
+      {
+        command_string_no_args: 'gcloud invalid-command',
+        success: false,
+        error_message: 'lint error',
+        error_type: 'Error',
+      },
+    ]),
+    stderr: 'lint error',
+  };
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
+
+  const result = await gcloudExecutable.lint('invalid-command');
+
+  expect(result.success).toBe(false);
+  if (!result.success) {
+    expect(result.error).toBe('lint error');
+  }
+});
+
+test('should handle unsuccessful lint command', async () => {
+  const expectedResult: GcloudInvocationResult = {
+    code: 0,
+    stdout: JSON.stringify([
+      {
+        command_string_no_args: 'gcloud invalid-command',
+        success: false,
+        error_message: 'Invalid command',
+        error_type: 'TestError',
+      },
+    ]),
+    stderr: '',
+  };
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
+
+  const result = await gcloudExecutable.lint('invalid-command');
+
+  expect(result.success).toBe(false);
+  if (!result.success) {
+    expect(result.error).toBe('TestError: Invalid command');
+  }
+});
+
+test('should throw error for empty lint result', async () => {
+  const expectedResult: GcloudInvocationResult = {
+    code: 0,
+    stdout: '[]',
+    stderr: '',
+  };
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
+
+  await expect(gcloudExecutable.lint('some-command')).rejects.toThrow(
+    'gcloud lint result contained no contents',
+  );
 });

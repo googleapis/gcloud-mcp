@@ -29,6 +29,7 @@ export const parseReleaseTrack = (cmd: string): string => {
 export async function findSuggestedAlternativeCommand(
   originalArgs: string[],
   acl: AccessControlList,
+  gcloud: gcloud.GcloudExecutable,
 ): Promise<string | null> {
   const lintResult = await gcloud.lint(originalArgs.join(' '));
   if (!lintResult.success) {

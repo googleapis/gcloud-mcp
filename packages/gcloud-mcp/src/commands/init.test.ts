@@ -17,10 +17,10 @@
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import { init } from './init.js';
 import { initializeGeminiCLI } from './init-gemini-cli.js';
-import * as gcloud from '../gcloud.js';
+import * as gcloud from '../gcloud_executor.js';
 import { log } from '../utility/logger.js';
 
-vi.mock('../gcloud.js', () => ({
+vi.mock('../gcloud_executor.js', () => ({
   isAvailable: vi.fn(),
 }));
 

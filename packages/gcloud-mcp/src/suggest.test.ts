@@ -19,22 +19,30 @@ import { parseReleaseTrack, findSuggestedAlternativeCommand } from './suggest.js
 import * as gcloud from './gcloud.js';
 import { createAccessControlList, AccessControlList } from './denylist.js';
 
-vi.mock('./gcloud.js');
+vi.mock('./gcloud.js', () => {
+  const lint = vi.fn();
+  const create = vi.fn().mockResolvedValue({ lint });
+  return { create, lint };
+});
+
+let mockedGcloudLint: ReturnType<typeof vi.fn>;
 
 const mockGcloudLint = () => {
-  const mockedLint = vi.mocked(gcloud.lint);
-  mockedLint.mockImplementation(async (cmd: string) => ({
+  mockedGcloudLint.mockImplementation(async (cmd: string) => ({
     success: true,
     parsedCommand: cmd,
   }));
 };
 
+let mockedGcloud: gcloud.GcloudExecutable;
+
 describe('suggest', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    mockedGcloud = await gcloud.create();
+    mockedGcloudLint = vi.mocked(mockedGcloud.lint);
     mockGcloudLint();
   });
-
   describe('parseReleaseTrack', () => {
     it('should return an empty string for GA commands', () => {
       expect(parseReleaseTrack('components install')).toEqual('');
@@ -48,58 +56,74 @@ describe('suggest', () => {
 
   describe('findSuggestedAlternativeCommand', () => {
     it('should return null if the original command is invalid', async () => {
-      const mockedLint = vi.mocked(gcloud.lint);
-      mockedLint.mockImplementation(async () => ({
+      mockedGcloudLint.mockImplementation(async () => ({
         success: false,
         error: 'invalid command',
       }));
       const acl: AccessControlList = createAccessControlList([], []);
-      const suggestion = await findSuggestedAlternativeCommand(['components', 'list'], acl);
+      const suggestion = await findSuggestedAlternativeCommand(
+        ['components', 'list'],
+        acl,
+        mockedGcloud,
+      );
       expect(suggestion).toBeNull();
     });
 
     it('should suggest a command in a different release track', async () => {
       const acl: AccessControlList = createAccessControlList([], []);
-      const suggestion = await findSuggestedAlternativeCommand(['beta', 'components', 'list'], acl);
+      const suggestion = await findSuggestedAlternativeCommand(
+        ['beta', 'components', 'list'],
+        acl,
+        mockedGcloud,
+      );
       expect(suggestion).toEqual('gcloud components list');
     });
 
     it('should return null if no alternative is found', async () => {
-      const mockedLint = vi.mocked(gcloud.lint);
-      mockedLint.mockImplementation(async () => ({
+      mockedGcloudLint.mockImplementation(async () => ({
         success: false,
         error: 'invalid command',
       }));
-      mockedLint.mockImplementationOnce(async (cmd: string) => ({
+      mockedGcloudLint.mockImplementationOnce(async (cmd: string) => ({
         success: true,
         parsedCommand: cmd,
       }));
       const acl: AccessControlList = createAccessControlList([], []);
-      const suggestion = await findSuggestedAlternativeCommand(['components', 'list'], acl);
+      const suggestion = await findSuggestedAlternativeCommand(
+        ['components', 'list'],
+        acl,
+        mockedGcloud,
+      );
       expect(suggestion).toBeNull();
     });
 
     it('should respect the denylist', async () => {
       const acl: AccessControlList = createAccessControlList([], ['components list']);
-      const suggestion = await findSuggestedAlternativeCommand(['beta', 'components', 'list'], acl);
+      const suggestion = await findSuggestedAlternativeCommand(
+        ['beta', 'components', 'list'],
+        acl,
+        mockedGcloud,
+      );
       expect(suggestion).toBeNull();
     });
 
     it('should suggest a beta command when the GA original is not allowed', async () => {
-      const mockedLint = vi.mocked(gcloud.lint);
-      mockedLint.mockImplementation(async (cmd: string) => ({
+      mockedGcloudLint.mockImplementation(async (cmd: string) => ({
         success: true,
         parsedCommand: cmd,
       }));
 
       const acl: AccessControlList = createAccessControlList(['beta components'], []);
-      const suggestion = await findSuggestedAlternativeCommand(['components', 'list'], acl);
+      const suggestion = await findSuggestedAlternativeCommand(
+        ['components', 'list'],
+        acl,
+        mockedGcloud,
+      );
       expect(suggestion).toEqual('gcloud beta components list');
     });
 
     it('should suggest a GA command when the beta original has flags', async () => {
-      const mockedLint = vi.mocked(gcloud.lint);
-      mockedLint.mockImplementation(async (cmd: string) => ({
+      mockedGcloudLint.mockImplementation(async (cmd: string) => ({
         success: true,
         parsedCommand: cmd,
       }));
@@ -108,6 +132,7 @@ describe('suggest', () => {
       const suggestion = await findSuggestedAlternativeCommand(
         ['beta', '--log-http', 'config', '--verbosity', 'debug', 'list'],
         acl,
+        mockedGcloud,
       );
       expect(suggestion).toEqual('gcloud --log-http config --verbosity debug list');
     });

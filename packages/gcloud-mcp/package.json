@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc --noemit && node build.js",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.config.integration.ts",
     "start": "node dist/bundle.js",
     "lint": "prettier --check . && eslint . --max-warnings 0",
     "fix": "prettier --write . && eslint . --fix",

@@ -15,7 +15,7 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import * as gcloud from '../gcloud.js';
+import { GcloudExecutable } from '../gcloud.js';
 import { AccessControlList } from '../denylist.js';
 import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
@@ -31,7 +31,7 @@ const aclErrorMessage = (aclMessage: string) =>
   '\n\n' +
   'To get the access control list details, invoke this tool again with the args ["gcloud-mcp", "debug", "config"]';
 
-export const createRunGcloudCommand = (acl: AccessControlList) => ({
+export const createRunGcloudCommand = (gcloud: GcloudExecutable, acl: AccessControlList) => ({
   register: (server: McpServer) => {
     server.registerTool(
       'run_gcloud_command',
@@ -90,7 +90,7 @@ export const createRunGcloudCommand = (acl: AccessControlList) => ({
         try {
           const accessControlResult = acl.check(parsedCommand);
           if (!accessControlResult.permitted) {
-            const suggestion = await findSuggestedAlternativeCommand(args, acl);
+            const suggestion = await findSuggestedAlternativeCommand(args, acl, gcloud);
             if (suggestion) {
               return errorTextResult(suggestionErrorMessage(suggestion));
             } else {

@@ -15,50 +15,62 @@
  */
 
 import { z } from 'zod';
-import * as child_process from 'child_process';
+import { findExecutable } from './gcloud_executor.js';
 
-export const isWindows = (): boolean => process.platform === 'win32';
+export interface GcloudExecutable {
+  invoke: (args: string[]) => Promise<GcloudInvocationResult>;
+  lint: (command: string) => Promise<ParsedGcloudLintResult>;
+}
 
-export const isAvailable = (): Promise<boolean> =>
-  new Promise((resolve) => {
-    const which = child_process.spawn(isWindows() ? 'where' : 'which', ['gcloud']);
-    which.on('close', (code) => {
-      resolve(code === 0);
-    });
-    which.on('error', () => {
-      resolve(false);
-    });
-  });
+export const create = async (): Promise<GcloudExecutable> => {
+  const gcloud = await findExecutable();
+
+  return {
+    invoke: gcloud.execute,
+    lint: async (command: string): Promise<ParsedGcloudLintResult> => {
+      const { code, stdout, stderr } = await gcloud.execute([
+        'meta',
+        'lint-gcloud-commands',
+        '--command-string',
+        `gcloud ${command}`,
+      ]);
+
+      const json = JSON.parse(stdout);
+      const lintCommands: LintCommandsOutput = LintCommandsSchema.parse(json);
+      const lintCommand = lintCommands[0];
+      if (!lintCommand) {
+        throw new Error('gcloud lint result contained no contents');
+      }
+
+      // gcloud returned a non-zero response
+      if (code !== 0) {
+        return { success: false, error: stderr };
+      }
+
+      // Command has bad syntax
+      if (!lintCommand.success) {
+        let error = `${lintCommand.error_message}`;
+        if (lintCommand.error_type) {
+          error = `${lintCommand.error_type}: ${error}`;
+        }
+        return { success: false, error };
+      }
+
+      // Else, success.
+      return {
+        success: true,
+        // Remove gcloud prefix since we added it in during the invocation, above.
+        parsedCommand: lintCommand.command_string_no_args.slice('gcloud '.length),
+      };
+    },
+  };
+};
 
 export interface GcloudInvocationResult {
   code: number | null;
   stdout: string;
   stderr: string;
 }
-
-export const invoke = (args: string[]): Promise<GcloudInvocationResult> =>
-  new Promise((resolve, reject) => {
-    let stdout = '';
-    let stderr = '';
-
-    const gcloud = child_process.spawn('gcloud', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-
-    gcloud.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    gcloud.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    gcloud.on('close', (code) => {
-      // All responses from gcloud, including non-zero codes.
-      resolve({ code, stdout, stderr });
-    });
-    gcloud.on('error', (err) => {
-      // Process failed to start. gcloud isn't able to be invoked.
-      reject(err);
-    });
-  });
 
 // There are more fields in this object, but we're only parsing the ones currently in use.
 const LintCommandSchema = z.object({
@@ -80,40 +92,3 @@ export type ParsedGcloudLintResult =
       success: false;
       error: string;
     };
-
-export const lint = async (command: string): Promise<ParsedGcloudLintResult> => {
-  const { code, stdout, stderr } = await invoke([
-    'meta',
-    'lint-gcloud-commands',
-    '--command-string',
-    `gcloud ${command}`,
-  ]);
-
-  const json = JSON.parse(stdout);
-  const lintCommands: LintCommandsOutput = LintCommandsSchema.parse(json);
-  const lintCommand = lintCommands[0];
-  if (!lintCommand) {
-    throw new Error('gcloud lint result contained no contents');
-  }
-
-  // gcloud returned a non-zero response
-  if (code !== 0) {
-    return { success: false, error: stderr };
-  }
-
-  // Command has bad syntax
-  if (!lintCommand.success) {
-    let error = `${lintCommand.error_message}`;
-    if (lintCommand.error_type) {
-      error = `${lintCommand.error_type}: ${error}`;
-    }
-    return { success: false, error };
-  }
-
-  // Else, success.
-  return {
-    success: true,
-    // Remove gcloud prefix since we added it in during the invocation, above.
-    parsedCommand: lintCommand.command_string_no_args.slice('gcloud '.length),
-  };
-};

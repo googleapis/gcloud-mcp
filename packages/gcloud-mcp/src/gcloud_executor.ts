@@ -33,11 +33,17 @@ export const findExecutable = async (): Promise<GcloudExecutor> => {
   const executor = await createExecutor();
   return {
     execute: async (args: string[]): Promise<GcloudExecutionResult> =>
-      new Promise(async (resolve, reject) => {
+      new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
 
-        const gcloud = executor.execute(args);
+        let gcloud;
+        try {
+          gcloud = executor.execute(args);
+        } catch (err) {
+          reject(err);
+          return;
+        }
 
         gcloud.stdout.on('data', (data) => {
           stdout += data.toString().replace(/\r/g, '');

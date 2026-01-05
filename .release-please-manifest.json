@@ -1,5 +1,5 @@
 {
   "packages/gcloud-mcp": "0.5.2",
-  "packages/observability-mcp": "0.2.1",
+  "packages/observability-mcp": "0.2.2",
   "packages/storage-mcp": "0.3.1"
 }

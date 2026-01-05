@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.3.1...storage-mcp-v0.3.2) (2026-01-05)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency googleapis to v169 ([#340](https://github.com/googleapis/gcloud-mcp/issues/340)) ([b06ab2d](https://github.com/googleapis/gcloud-mcp/commit/b06ab2d3b0c1a50a322440abba38a4258afc65ab))
+
 ## [0.3.1](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.3.0...storage-mcp-v0.3.1) (2025-12-15)
 
 

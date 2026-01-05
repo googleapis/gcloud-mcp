@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.5.2...gcloud-mcp-v0.5.3) (2026-01-05)
+
+
+### Features
+
+* Windows Compatibility refactor gcloud MCP ([#342](https://github.com/googleapis/gcloud-mcp/issues/342)) ([a012b3d](https://github.com/googleapis/gcloud-mcp/commit/a012b3d777d41392c23b149542a35e4c8348eaf6))
+
 ## [0.5.2](https://github.com/googleapis/gcloud-mcp/compare/gcloud-mcp-v0.5.1...gcloud-mcp-v0.5.2) (2025-12-16)
 
 

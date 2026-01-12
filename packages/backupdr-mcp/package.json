@@ -38,8 +38,6 @@
   "homepage": "https://github.com/googleapis/gcloud-mcp#readme",
   "description": "Model Context Protocol (MCP) Server for interacting with Google Cloud Backup and Disaster Recovery",
   "devDependencies": {
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.39.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
@@ -51,17 +49,22 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-license-header": "^0.8.0",
     "eslint-plugin-prettier": "^5.5.4",
-    "prettier": "^3.6.2",
-    "turbo": "latest",
-    "vitest": "^3.2.4",
     "memfs": "^4.36.0",
-    "ts-node": "^10.9.2"
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "turbo": "latest",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@google-cloud/backupdr": "^0.5.0",
+    "@google-cloud/compute": "^4.6.0",
+    "@google-cloud/sql": "^0.23.0",
     "@modelcontextprotocol/sdk": "^1.17.1",
     "@types/yargs": "^17.0.33",
+    "process": "^0.11.10",
     "yargs": "^18.0.0",
-    "zod": "^3.25.76",
-    "@google-cloud/backupdr": "^0.5.0"
+    "zod": "^3.25.76"
   }
 }

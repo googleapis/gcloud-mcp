@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Copyright 2025 Google LLC
  *
@@ -16,21 +14,4 @@
  * limitations under the License.
  */
 
-import { build } from 'esbuild';
-
-build({
-  entryPoints: ['src/index.ts'],
-  bundle: true,
-  outfile: 'dist/bundle.js',
-  platform: 'node',
-  format: 'esm',
-  external: [
-    'google-auth-library',
-    'googleapis',
-    '@google-cloud/backupdr',
-    '@google-cloud/compute',
-    '@google-cloud/sql',
-    'iconv-lite',
-    'chardet',
-  ],
-}).catch(() => process.exit(1));
+export * from './find_protectable_resources.js';

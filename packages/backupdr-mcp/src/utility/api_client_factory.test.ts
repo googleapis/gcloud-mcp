@@ -16,8 +16,10 @@
 
 import { test, expect, vi, describe, beforeEach, afterEach } from 'vitest';
 import { BackupDRClient } from '@google-cloud/backupdr';
+import { SqlInstancesServiceClient } from '@google-cloud/sql';
 
 vi.mock('@google-cloud/backupdr');
+vi.mock('@google-cloud/sql');
 
 describe('ApiClientFactory', () => {
   beforeEach(() => {
@@ -48,5 +50,19 @@ describe('ApiClientFactory', () => {
     const client2 = apiClientFactory.getBackupDRClient();
     expect(client1).toBe(client2);
     expect(BackupDRClient).toHaveBeenCalledTimes(1);
+  });
+
+  test('getCloudSQLClient should return a SqlInstancesServiceClient instance', async () => {
+    const { apiClientFactory } = await import('./api_client_factory.js');
+    const client = apiClientFactory.getCloudSQLClient();
+    expect(client).toBeInstanceOf(SqlInstancesServiceClient);
+  });
+
+  test('getCloudSQLClient should return a singleton client instance', async () => {
+    const { apiClientFactory } = await import('./api_client_factory.js');
+    const client1 = apiClientFactory.getCloudSQLClient();
+    const client2 = apiClientFactory.getCloudSQLClient();
+    expect(client1).toBe(client2);
+    expect(SqlInstancesServiceClient).toHaveBeenCalledTimes(1);
   });
 });

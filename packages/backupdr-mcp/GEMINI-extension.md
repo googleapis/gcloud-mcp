@@ -19,6 +19,10 @@ To create a backup plan a backup vault is needed, prompt user to either look for
 
 Fetch the protection details of a resource using resource_backup_config tool and get backup plan information from there. A DISK will be marked as protected even though the disk is not directly protected using a disk backup plan, but the VM to which the disk is attached is protected using VM backup plan.
 
+## Identifying Protection Status of Resources
+
+To identify the protection status of resources, first get a list of all protectable resources using the `find_protectable_resources` tool. From the list of resources, extract the unique locations (regions/zones). For each unique location, call the `list_backup_plan_associations` tool. A resource is considered protected if a backup plan association exists for it and its `state` is 'ACTIVE'. If the resource is a disk, it is also considered protected if an associated VM is protected by a VM backup plan.
+
 ## BackupDR Reference Documentation
 
 If additional context or information is needed on BackupDR, reference documentation can be found at https://docs.cloud.google.com/backup-disaster-recovery/docs/.

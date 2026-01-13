@@ -20,7 +20,11 @@ import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 import os from 'os';
 
-export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile, writeFile }) => {
+export const initializeGeminiCLI = async (
+  local = false,
+  accessLevel: 'READ_ONLY' | 'UPSERT' | 'ALL' | undefined,
+  fs = { mkdir, readFile, writeFile },
+) => {
   try {
     // Read the content of GEMINI-extension.md
     const geminiMdContent = await fs.readFile(
@@ -31,6 +35,11 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile,
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'backupdr-mcp');
     await fs.mkdir(extensionDir, { recursive: true });
+
+    const args = local ? ['-y', 'backupdr-mcp'] : ['-y', '@google-cloud/backupdr-mcp'];
+    if (accessLevel) {
+      args.push('--access-level', accessLevel);
+    }
 
     // Create gemini-extension.json
     const extensionFile = join(extensionDir, 'gemini-extension.json');
@@ -43,7 +52,7 @@ export const initializeGeminiCLI = async (local = false, fs = { mkdir, readFile,
       mcpServers: {
         backupdr: {
           command: 'npx',
-          args: local ? ['-y', 'backupdr-mcp'] : ['-y', '@google-cloud/backupdr-mcp'],
+          args,
         },
       },
     };

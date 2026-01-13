@@ -20,6 +20,7 @@ import { initializeGeminiCLI } from './init-gemini-cli.js';
 interface InstallArgs {
   agent: string;
   local: boolean;
+  accessLevel?: 'READ_ONLY' | 'UPSERT' | 'ALL';
 }
 
 export const init: CommandModule<object, InstallArgs> = {
@@ -37,10 +38,16 @@ export const init: CommandModule<object, InstallArgs> = {
         describe: '(Development only) Use a local build of the backupdr-mcp server.',
         type: 'boolean',
         default: false,
+      })
+      .option('access-level', {
+        describe: 'The access level to run the agent in.',
+        type: 'string',
+        choices: ['READ_ONLY', 'UPSERT', 'ALL'] as const,
+        default: 'READ_ONLY',
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(argv['local']);
+      await initializeGeminiCLI(argv.local, argv.accessLevel);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

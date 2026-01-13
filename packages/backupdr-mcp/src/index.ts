@@ -25,6 +25,31 @@ import { init } from './commands/init.js';
 import { log } from './utility/logger.js';
 import { allTools } from './tools/index.js';
 
+enum AccessLevel {
+  READ_ONLY = 'READ_ONLY',
+  UPSERT = 'UPSERT',
+  ALL = 'ALL',
+}
+
+const shouldAllowTool = (toolName: string, accessLevel: AccessLevel): boolean => {
+  const lowerCaseToolName = toolName.toLowerCase();
+  switch (accessLevel) {
+    case AccessLevel.READ_ONLY:
+      return (
+        lowerCaseToolName.includes('get') ||
+        lowerCaseToolName.includes('list') ||
+        lowerCaseToolName.includes('fetch') ||
+        lowerCaseToolName.includes('find')
+      );
+    case AccessLevel.UPSERT:
+      return !lowerCaseToolName.includes('delete');
+    case AccessLevel.ALL:
+      return true;
+    default:
+      return false;
+  }
+};
+
 const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({
   ...cmd,
   handler: async (argv: ArgumentsCamelCase<U>) => {
@@ -34,12 +59,20 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 });
 
 const main = async () => {
-  await yargs(hideBin(process.argv))
+  const argv = await yargs(hideBin(process.argv))
+    .option('access-level', {
+      describe: 'The access level for the server.',
+      type: 'string',
+      choices: Object.values(AccessLevel),
+      default: AccessLevel.READ_ONLY,
+    })
     .command('$0', 'Run the backupdr mcp server', () => {})
     .command(exitProcessAfter(init))
     .version(pkg.version)
     .help()
     .parse();
+
+  const accessLevel = (argv['access-level'] as AccessLevel) || AccessLevel.READ_ONLY;
 
   const server = new McpServer(
     {
@@ -49,10 +82,31 @@ const main = async () => {
     { capabilities: { tools: {} } },
   );
 
+  const originalRegisterTool = server.registerTool;
+
+  server.registerTool = (name, definition, implementation) => {
+    if (shouldAllowTool(name, accessLevel)) {
+      return originalRegisterTool.call(server, name, definition, implementation);
+    }
+    return {
+      unregister: () => {},
+      callback: implementation,
+      definition,
+      enabled: true,
+      enable: () => {},
+      disable: () => {},
+      update: () => {},
+      remove: () => {},
+    };
+  };
+
   allTools.forEach((tool) => tool(server));
 
+  server.registerTool = originalRegisterTool;
+
+  log.info(`🚀 backupdr mcp server started in ${accessLevel} mode`);
+
   await server.connect(new StdioServerTransport());
-  log.info('🚀 backupdr mcp server started');
 
   process.on('uncaughtException', async (err: unknown) => {
     await server.close();

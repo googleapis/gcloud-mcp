@@ -17,14 +17,14 @@
 /// <reference types="vitest/globals" />
 
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { BackupDRHTTPClient } from './backupdr_http_client.js';
+import { GoogleCloudHTTPClient } from './gcp_http_client.js';
 import { GoogleAuth } from 'google-auth-library';
 
 // Mock GoogleAuth
 vi.mock('google-auth-library');
 
-describe('BackupDRClient', () => {
-  let client: BackupDRHTTPClient;
+describe('GoogleCloudHTTPClient', () => {
+  let client: GoogleCloudHTTPClient;
   const mockRequest = vi.fn();
 
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('BackupDRClient', () => {
     }));
 
     // Create a fresh instance for testing (instead of using the exported singleton)
-    client = new BackupDRHTTPClient();
+    client = new GoogleCloudHTTPClient();
   });
 
   it('should initialize GoogleAuth with correct scopes', () => {
@@ -47,7 +47,7 @@ describe('BackupDRClient', () => {
     });
   });
 
-  it('should make a GET request to the correct URL', async () => {
+  it('should make a GET request for listResourceBackupConfigs', async () => {
     // Setup Mock Response
     mockRequest.mockResolvedValue({ data: { items: [] } });
 
@@ -67,6 +67,20 @@ describe('BackupDRClient', () => {
         pageToken: undefined,
         filter: undefined,
         orderBy: undefined,
+      },
+    });
+  });
+
+  it('should make a POST request for csqlRestore', async () => {
+    mockRequest.mockResolvedValue({ data: { name: 'operation-123' } });
+
+    await client.csqlRestore('my-proj', 'my-instance', 'my-backup');
+
+    expect(mockRequest).toHaveBeenCalledWith({
+      url: 'https://sqladmin.googleapis.com/sql/v1beta4/projects/my-proj/instances/my-instance/restoreBackup?alt=json',
+      method: 'POST',
+      data: {
+        backupdrBackup: 'my-backup',
       },
     });
   });

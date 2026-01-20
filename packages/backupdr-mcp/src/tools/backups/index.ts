@@ -19,10 +19,12 @@ import { registerListBackupsTool } from './list_backups.js';
 import { registerGetBackupTool } from './get_backup.js';
 import { registerDeleteBackupTool } from './delete_backup.js';
 import { registerRestoreBackupTool } from './restore_backup.js';
+import { registerCsqlRestoreTool } from './csql_restore.js';
 
 export const registerBackupsTools = (server: McpServer) => {
   registerListBackupsTool(server);
   registerGetBackupTool(server);
   registerDeleteBackupTool(server);
   registerRestoreBackupTool(server);
+  registerCsqlRestoreTool(server);
 };

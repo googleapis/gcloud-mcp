@@ -16,10 +16,10 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { listResourceBackupConfigs } from './list_resource_backup_config.js';
-import { backupDrHttpClient } from '../../utility/backupdr_http_client.js';
+import { googleCloudHttpClient } from '../../utility/gcp_http_client.js';
 
-vi.mock('../../utility/backupdr_http_client', () => ({
-  backupDrHttpClient: {
+vi.mock('../../utility/gcp_http_client', () => ({
+  googleCloudHttpClient: {
     listResourceBackupConfigs: vi.fn(),
   },
 }));
@@ -31,11 +31,11 @@ describe('listResourceBackupConfigs', () => {
       location: 'us-central1',
     };
     const expectedConfigs = [{ name: 'config1' }, { name: 'config2' }];
-    vi.mocked(backupDrHttpClient.listResourceBackupConfigs).mockResolvedValue(expectedConfigs);
+    vi.mocked(googleCloudHttpClient.listResourceBackupConfigs).mockResolvedValue(expectedConfigs);
 
     const result = await listResourceBackupConfigs(params);
 
-    expect(backupDrHttpClient.listResourceBackupConfigs).toHaveBeenCalledWith({
+    expect(googleCloudHttpClient.listResourceBackupConfigs).toHaveBeenCalledWith({
       projectId: 'test-project',
       location: 'us-central1',
     });
@@ -54,11 +54,11 @@ describe('listResourceBackupConfigs', () => {
       order_by: 'order',
     };
     const expectedConfigs = [{ name: 'config1' }, { name: 'config2' }];
-    vi.mocked(backupDrHttpClient.listResourceBackupConfigs).mockResolvedValue(expectedConfigs);
+    vi.mocked(googleCloudHttpClient.listResourceBackupConfigs).mockResolvedValue(expectedConfigs);
 
     const result = await listResourceBackupConfigs(params);
 
-    expect(backupDrHttpClient.listResourceBackupConfigs).toHaveBeenCalledWith({
+    expect(googleCloudHttpClient.listResourceBackupConfigs).toHaveBeenCalledWith({
       projectId: 'test-project',
       location: 'us-central1',
       pageSize: 10,
@@ -77,7 +77,7 @@ describe('listResourceBackupConfigs', () => {
       location: 'us-central1',
     };
     const error = new Error('API error');
-    vi.mocked(backupDrHttpClient.listResourceBackupConfigs).mockRejectedValue(error);
+    vi.mocked(googleCloudHttpClient.listResourceBackupConfigs).mockRejectedValue(error);
 
     const result = await listResourceBackupConfigs(params);
 

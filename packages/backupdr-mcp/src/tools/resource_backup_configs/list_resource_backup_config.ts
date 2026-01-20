@@ -18,9 +18,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import {
-  backupDrHttpClient,
-  type ListResourceBackupConfigsParams,
-} from '../../utility/backupdr_http_client.js';
+  googleCloudHttpClient,
+  ListResourceBackupConfigsParams,
+} from '../../utility/gcp_http_client.js';
 import { log } from '../../utility/logger.js';
 
 const inputSchema = {
@@ -61,7 +61,7 @@ export async function listResourceBackupConfigs(
     if (params.page_size) {
       request.pageSize = params.page_size;
     }
-    const configs = (await backupDrHttpClient.listResourceBackupConfigs(request)) as {
+    const configs = (await googleCloudHttpClient.listResourceBackupConfigs(request)) as {
       length: number;
     };
 

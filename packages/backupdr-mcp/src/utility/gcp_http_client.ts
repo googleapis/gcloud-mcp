@@ -26,7 +26,7 @@ export interface ListResourceBackupConfigsParams {
   orderBy?: string;
 }
 
-export class BackupDRHTTPClient {
+export class GoogleCloudHTTPClient {
   private auth: GoogleAuth;
   private client: AuthClient | null = null;
 
@@ -70,7 +70,25 @@ export class BackupDRHTTPClient {
 
     return response.data;
   }
+
+  /**
+   * Restores a Cloud SQL backup to a Cloud SQL instance.
+   */
+  async csqlRestore(project: string, restoreInstanceName: string, backupdrBackupName: string) {
+    const client = await this.getAuthClient();
+    const url = `https://sqladmin.googleapis.com/sql/v1beta4/projects/${project}/instances/${restoreInstanceName}/restoreBackup?alt=json`;
+
+    const response = await client.request({
+      url,
+      method: 'POST',
+      data: {
+        backupdrBackup: backupdrBackupName,
+      },
+    });
+
+    return response.data;
+  }
 }
 
 // Export a singleton instance to be used across the application
-export const backupDrHttpClient = new BackupDRHTTPClient();
+export const googleCloudHttpClient = new GoogleCloudHTTPClient();

@@ -38,7 +38,7 @@ describe('restoreBackup', () => {
     name: 'projects/p1/locations/l1/backupVaults/bv1/dataSources/ds1/backups/b1',
   };
 
-  it('should successfully initiate and complete a restore operation for a Compute Instance', async () => {
+  it('should successfully initiate a restore operation for a Compute Instance and return operation details', async () => {
     const args = {
       ...baseValidArgs,
       computeInstanceTargetEnvironment: {
@@ -51,22 +51,14 @@ describe('restoreBackup', () => {
       },
     };
 
-    const mockPromise = vi.fn().mockResolvedValue(undefined);
-    const expectedOperationResult = {
-      targetResource: {
-        gcpResource: {
-          gcpResourcename:
-            'projects/target-project/zones/us-central1-a/instances/restored-instance',
-          location: 'us-central1-a',
-          type: 'compute.googleapis.com/Instance',
-        },
-      },
+    const mockLatestResponse = {
+      name: 'projects/p1/locations/l1/operations/op1',
+      metadata: {},
+      done: false,
     };
     const mockOperation = {
       name: 'projects/p1/locations/l1/operations/op1',
-      metadata: {},
-      promise: mockPromise,
-      result: expectedOperationResult,
+      latestResponse: mockLatestResponse,
     };
 
     mockRestoreBackup.mockResolvedValue([mockOperation]);
@@ -103,14 +95,17 @@ describe('restoreBackup', () => {
       },
       diskRestoreProperties: null,
     });
-    expect(mockPromise).toHaveBeenCalled();
+
+    const expectedResponse = { ...mockLatestResponse };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (expectedResponse as any).metadata;
 
     expect(result.content).toEqual([
-      { type: 'text', text: JSON.stringify(expectedOperationResult, null, 2) },
+      { type: 'text', text: JSON.stringify(expectedResponse, null, 2) },
     ]);
   });
 
-  it('should successfully initiate and complete a restore operation for a Disk', async () => {
+  it('should successfully initiate a restore operation for a Disk and return operation details', async () => {
     const args = {
       ...baseValidArgs,
       diskTargetEnvironment: {
@@ -123,21 +118,14 @@ describe('restoreBackup', () => {
       },
     };
 
-    const mockPromise = vi.fn().mockResolvedValue(undefined);
-    const expectedOperationResult = {
-      targetResource: {
-        gcpResource: {
-          gcpResourcename: 'projects/target-project/zones/us-central1-a/disks/restored-disk',
-          location: 'us-central1-a',
-          type: 'compute.googleapis.com/Disk',
-        },
-      },
+    const mockLatestResponse = {
+      name: 'projects/p1/locations/l1/operations/op2',
+      metadata: {},
+      done: false,
     };
     const mockOperation = {
       name: 'projects/p1/locations/l1/operations/op2',
-      metadata: {},
-      promise: mockPromise,
-      result: expectedOperationResult,
+      latestResponse: mockLatestResponse,
     };
 
     mockRestoreBackup.mockResolvedValue([mockOperation]);
@@ -165,9 +153,12 @@ describe('restoreBackup', () => {
       },
     });
 
-    expect(mockPromise).toHaveBeenCalled();
+    const expectedResponse = { ...mockLatestResponse };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (expectedResponse as any).metadata;
+
     expect(result.content).toEqual([
-      { type: 'text', text: JSON.stringify(expectedOperationResult, null, 2) },
+      { type: 'text', text: JSON.stringify(expectedResponse, null, 2) },
     ]);
   });
 

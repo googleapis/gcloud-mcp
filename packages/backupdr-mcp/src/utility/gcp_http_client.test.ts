@@ -19,13 +19,21 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { GoogleCloudHTTPClient } from './gcp_http_client.js';
 import { GoogleAuth } from 'google-auth-library';
+import { apiClientFactory } from './api_client_factory.js';
 
 // Mock GoogleAuth
 vi.mock('google-auth-library');
+// Mock apiClientFactory
+vi.mock('./api_client_factory.js', () => ({
+  apiClientFactory: {
+    getSqlOperationsClient: vi.fn(),
+  },
+}));
 
 describe('GoogleCloudHTTPClient', () => {
   let client: GoogleCloudHTTPClient;
   const mockRequest = vi.fn();
+  const mockGetOperation = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,6 +44,11 @@ describe('GoogleCloudHTTPClient', () => {
         request: mockRequest,
       }),
     }));
+
+    // Mock SqlOperationsServiceClient
+    (apiClientFactory.getSqlOperationsClient as Mock).mockReturnValue({
+      get: mockGetOperation,
+    });
 
     // Create a fresh instance for testing (instead of using the exported singleton)
     client = new GoogleCloudHTTPClient();
@@ -83,6 +96,46 @@ describe('GoogleCloudHTTPClient', () => {
         backupdrBackup: 'my-backup',
       },
     });
+  });
+
+  it('should use SqlOperationsServiceClient for getCsqlOperation', async () => {
+    mockGetOperation.mockResolvedValue([{ name: 'op-123', status: 'RUNNING' }]);
+
+    await client.getCsqlOperation('my-proj', 'op-123');
+
+    expect(mockGetOperation).toHaveBeenCalledWith({
+      project: 'my-proj',
+      operation: 'op-123',
+    });
+  });
+
+  it('should poll until DONE in waitForCsqlOperation', async () => {
+    vi.useFakeTimers();
+    mockGetOperation
+      .mockResolvedValueOnce([{ name: 'op-123', status: 'RUNNING' }])
+      .mockResolvedValueOnce([{ name: 'op-123', status: 'DONE' }]);
+
+    const waitPromise = client.waitForCsqlOperation('my-proj', 'op-123');
+
+    // First poll
+    await vi.advanceTimersByTimeAsync(0);
+    // Second poll after 10s
+    await vi.advanceTimersByTimeAsync(10000);
+
+    const result = await waitPromise;
+    expect(result.status).toBe('DONE');
+    expect(mockGetOperation).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
+  it('should throw if operation has error in waitForCsqlOperation', async () => {
+    mockGetOperation.mockResolvedValue([
+      { name: 'op-123', status: 'DONE', error: { errors: [{ message: 'Failed' }] } },
+    ]);
+
+    await expect(client.waitForCsqlOperation('my-proj', 'op-123')).rejects.toThrow(
+      'Operation failed: {"errors":[{"message":"Failed"}]}',
+    );
   });
 
   it('should propagate errors from the HTTP client', async () => {

@@ -15,59 +15,53 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { csqlRestore } from './csql_restore.js';
+import { getCsqlOperation } from './get_csql_operation.js';
 import { googleCloudHttpClient } from '../../utility/gcp_http_client.js';
 
 vi.mock('../../utility/gcp_http_client', () => ({
   googleCloudHttpClient: {
-    csqlRestore: vi.fn(),
+    getCsqlOperation: vi.fn(),
   },
 }));
 
-describe('csqlRestore', () => {
-  it('should call googleCloudHttpClient.csqlRestore and return operation details', async () => {
+describe('getCsqlOperation', () => {
+  it('should call googleCloudHttpClient.getCsqlOperation and return result', async () => {
     const params = {
       project: 'test-project',
-      restore_instance_name: 'test-instance',
-      backupdr_backup_name: 'test-backup',
+      operation_name: 'op-123',
     };
-    const mockOperation = { name: 'operation-123' };
-    vi.mocked(googleCloudHttpClient.csqlRestore).mockResolvedValue(mockOperation);
+    const expectedResult = { name: 'op-123', status: 'DONE' as const };
+    vi.mocked(googleCloudHttpClient.getCsqlOperation).mockResolvedValue(expectedResult);
 
-    const result = await csqlRestore(params);
+    const result = await getCsqlOperation(params);
 
-    expect(googleCloudHttpClient.csqlRestore).toHaveBeenCalledWith(
-      'test-project',
-      'test-instance',
-      'test-backup',
-    );
+    expect(googleCloudHttpClient.getCsqlOperation).toHaveBeenCalledWith('test-project', 'op-123');
     expect(result).toEqual({
       content: [
         {
           type: 'text',
-          text: JSON.stringify(mockOperation, null, 2),
+          text: JSON.stringify(expectedResult, null, 2),
         },
       ],
     });
   });
 
-  it('should return error if googleCloudHttpClient.csqlRestore fails', async () => {
+  it('should return error if googleCloudHttpClient.getCsqlOperation fails', async () => {
     const params = {
       project: 'test-project',
-      restore_instance_name: 'test-instance',
-      backupdr_backup_name: 'test-backup',
+      operation_name: 'op-123',
     };
-    const error = new Error('Restore failed');
-    vi.mocked(googleCloudHttpClient.csqlRestore).mockRejectedValue(error);
+    const error = new Error('Failed to get operation');
+    vi.mocked(googleCloudHttpClient.getCsqlOperation).mockRejectedValue(error);
 
-    const result = await csqlRestore(params);
+    const result = await getCsqlOperation(params);
 
     expect(result).toEqual({
       content: [
         {
           type: 'text',
           text: JSON.stringify({
-            error: 'Restore failed',
+            error: 'Failed to get operation',
           }),
         },
       ],

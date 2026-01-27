@@ -409,14 +409,17 @@ export async function restoreBackup(params: RestoreBackupParams): Promise<CallTo
 
     const [operation] = await client.restoreBackup(request);
     toolLogger.info('Restore operation started successfully.');
-    await operation.promise();
-    toolLogger.info('Restore operation finished.');
+
+    const result = { ...operation.latestResponse };
+    if ('metadata' in result) {
+      delete result.metadata;
+    }
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(operation.result, null, 2),
+          text: JSON.stringify(result, null, 2),
         },
       ],
     };

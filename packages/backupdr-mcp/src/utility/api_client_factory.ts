@@ -16,12 +16,13 @@
 
 import { BackupDRClient } from '@google-cloud/backupdr';
 import { DisksClient, InstancesClient } from '@google-cloud/compute';
-import { SqlInstancesServiceClient } from '@google-cloud/sql';
+import { SqlInstancesServiceClient, SqlOperationsServiceClient } from '@google-cloud/sql';
 
 export class ApiClientFactory {
   private static instance: ApiClientFactory;
   private backupDRClient?: BackupDRClient;
   private csqlClient?: SqlInstancesServiceClient;
+  private sqlOperationsClient?: SqlOperationsServiceClient;
   private computeClient?: InstancesClient;
   private disksClient?: DisksClient;
 
@@ -47,6 +48,14 @@ export class ApiClientFactory {
       });
     }
     return this.csqlClient;
+  }
+  getSqlOperationsClient(): SqlOperationsServiceClient {
+    if (!this.sqlOperationsClient) {
+      this.sqlOperationsClient = new SqlOperationsServiceClient({
+        fallback: 'rest',
+      });
+    }
+    return this.sqlOperationsClient;
   }
   getComputeClient(): InstancesClient {
     if (!this.computeClient) {

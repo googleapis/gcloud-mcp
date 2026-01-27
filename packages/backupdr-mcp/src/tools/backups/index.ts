@@ -20,6 +20,8 @@ import { registerGetBackupTool } from './get_backup.js';
 import { registerDeleteBackupTool } from './delete_backup.js';
 import { registerRestoreBackupTool } from './restore_backup.js';
 import { registerCsqlRestoreTool } from './csql_restore.js';
+import { registerGetCsqlOperationTool } from './get_csql_operation.js';
+import { registerGetOperationTool } from './get_operation.js';
 
 export const registerBackupsTools = (server: McpServer) => {
   registerListBackupsTool(server);
@@ -27,4 +29,6 @@ export const registerBackupsTools = (server: McpServer) => {
   registerDeleteBackupTool(server);
   registerRestoreBackupTool(server);
   registerCsqlRestoreTool(server);
+  registerGetCsqlOperationTool(server);
+  registerGetOperationTool(server);
 };

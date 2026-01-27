@@ -15,6 +15,7 @@
  */
 
 import { GoogleAuth, type AuthClient } from 'google-auth-library';
+import { apiClientFactory } from './api_client_factory.js';
 
 // Interface for the API parameters
 export interface ListResourceBackupConfigsParams {
@@ -24,6 +25,14 @@ export interface ListResourceBackupConfigsParams {
   pageToken?: string;
   filter?: string;
   orderBy?: string;
+}
+
+export interface CsqlOperation {
+  name: string;
+  status: string;
+  error?: {
+    errors?: Array<{ message: string }>;
+  };
 }
 
 export class GoogleCloudHTTPClient {
@@ -87,6 +96,39 @@ export class GoogleCloudHTTPClient {
     });
 
     return response.data;
+  }
+
+  /**
+   * Gets the status of a Cloud SQL operation.
+   */
+  async getCsqlOperation(project: string, operationName: string) {
+    const operationsClient = apiClientFactory.getSqlOperationsClient();
+    const [response] = await operationsClient.get({
+      project,
+      operation: operationName,
+    });
+    return response;
+  }
+
+  /**
+   * Waits for a Cloud SQL operation to complete by polling.
+   */
+  async waitForCsqlOperation(project: string, operationName: string) {
+    let operation: CsqlOperation;
+    while (true) {
+      operation = (await this.getCsqlOperation(project, operationName)) as CsqlOperation;
+      if (operation && operation.status === 'DONE') {
+        break;
+      }
+      // Wait for 10 seconds before polling again
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
+
+    if (operation && operation.error) {
+      throw new Error(`Operation failed: ${JSON.stringify(operation.error)}`);
+    }
+
+    return operation;
   }
 }
 

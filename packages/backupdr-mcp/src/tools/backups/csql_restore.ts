@@ -17,7 +17,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { googleCloudHttpClient } from '../../utility/gcp_http_client.js';
+import { googleCloudHttpClient, type CsqlOperation } from '../../utility/gcp_http_client.js';
 import { log } from '../../utility/logger.js';
 
 const inputSchema = {
@@ -35,19 +35,23 @@ type CsqlRestoreParams = z.infer<z.ZodObject<typeof inputSchema>>;
 export async function csqlRestore(params: CsqlRestoreParams): Promise<CallToolResult> {
   const toolLogger = log.mcp('csqlRestore', params);
   try {
-    const result = await googleCloudHttpClient.csqlRestore(
+    const operation = (await googleCloudHttpClient.csqlRestore(
       params.project,
       params.restore_instance_name,
       params.backupdr_backup_name,
-    );
+    )) as CsqlOperation & { metadata?: unknown };
 
-    toolLogger.info('Cloud SQL restore operation started successfully.');
+    if (operation && 'metadata' in operation) {
+      delete operation.metadata;
+    }
+
+    toolLogger.info(`Cloud SQL restore operation started successfully: ${operation.name}`);
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result, null, 2),
+          text: JSON.stringify(operation, null, 2),
         },
       ],
     };

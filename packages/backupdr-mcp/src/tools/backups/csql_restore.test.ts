@@ -14,51 +14,61 @@
  * limitations under the License.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { csqlRestore } from './csql_restore.js';
-import { googleCloudHttpClient } from '../../utility/gcp_http_client.js';
+import { apiClientFactory } from '../../utility/api_client_factory.js';
 
-vi.mock('../../utility/gcp_http_client', () => ({
-  googleCloudHttpClient: {
-    csqlRestore: vi.fn(),
-  },
-}));
+vi.mock('../../utility/api_client_factory.js');
 
 describe('csqlRestore', () => {
-  it('should call googleCloudHttpClient.csqlRestore and return operation details', async () => {
+  const mockCsqlClient = {
+    restoreBackup: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (apiClientFactory.getCloudSQLClient as Mock).mockReturnValue(mockCsqlClient);
+  });
+
+  it('should call apiClientFactory.getCloudSQLClient and return operation details', async () => {
     const params = {
       project: 'test-project',
       restore_instance_name: 'test-instance',
       backupdr_backup_name: 'test-backup',
     };
-    const mockOperation = { name: 'operation-123' };
-    vi.mocked(googleCloudHttpClient.csqlRestore).mockResolvedValue(mockOperation);
+    const mockOperation = { name: 'operation-123', metadata: { some: 'data' } };
+    mockCsqlClient.restoreBackup.mockResolvedValue([mockOperation]);
 
     const result = await csqlRestore(params);
 
-    expect(googleCloudHttpClient.csqlRestore).toHaveBeenCalledWith(
-      'test-project',
-      'test-instance',
-      'test-backup',
-    );
+    expect(apiClientFactory.getCloudSQLClient).toHaveBeenCalledTimes(1);
+    expect(mockCsqlClient.restoreBackup).toHaveBeenCalledWith({
+      project: 'test-project',
+      instance: 'test-instance',
+      body: {
+        backupdrBackup: 'test-backup',
+      },
+    });
+
+    const expectedOutput = { name: 'operation-123', metadata: {} };
     expect(result).toEqual({
       content: [
         {
           type: 'text',
-          text: JSON.stringify(mockOperation, null, 2),
+          text: JSON.stringify(expectedOutput, null, 2),
         },
       ],
     });
   });
 
-  it('should return error if googleCloudHttpClient.csqlRestore fails', async () => {
+  it('should return error if restoreBackup fails', async () => {
     const params = {
       project: 'test-project',
       restore_instance_name: 'test-instance',
       backupdr_backup_name: 'test-backup',
     };
     const error = new Error('Restore failed');
-    vi.mocked(googleCloudHttpClient.csqlRestore).mockRejectedValue(error);
+    mockCsqlClient.restoreBackup.mockRejectedValue(error);
 
     const result = await csqlRestore(params);
 

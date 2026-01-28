@@ -25,22 +25,25 @@ vi.mock('../../utility/gcp_http_client', () => ({
 }));
 
 describe('getCsqlOperation', () => {
-  it('should call googleCloudHttpClient.getCsqlOperation and return result', async () => {
+  it('should call googleCloudHttpClient.getCsqlOperation and return result with empty metadata', async () => {
     const params = {
       project: 'test-project',
       operation_name: 'op-123',
     };
-    const expectedResult = { name: 'op-123', status: 'DONE' as const };
-    vi.mocked(googleCloudHttpClient.getCsqlOperation).mockResolvedValue(expectedResult);
+    const mockResponse = { name: 'op-123', status: 'DONE', metadata: { some: 'metadata' } };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(googleCloudHttpClient.getCsqlOperation).mockResolvedValue(mockResponse as any);
 
     const result = await getCsqlOperation(params);
 
     expect(googleCloudHttpClient.getCsqlOperation).toHaveBeenCalledWith('test-project', 'op-123');
+
+    const expectedOutput = { name: 'op-123', status: 'DONE', metadata: {} };
     expect(result).toEqual({
       content: [
         {
           type: 'text',
-          text: JSON.stringify(expectedResult, null, 2),
+          text: JSON.stringify(expectedOutput, null, 2),
         },
       ],
     });

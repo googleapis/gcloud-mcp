@@ -60,7 +60,7 @@
   "dependencies": {
     "@google-cloud/backupdr": "^0.5.0",
     "@google-cloud/compute": "^4.6.0",
-    "@google-cloud/sql": "^0.23.0",
+    "@google-cloud/sql": "^0.24.0",
     "@modelcontextprotocol/sdk": "^1.17.1",
     "@types/yargs": "^17.0.33",
     "process": "^0.11.10",

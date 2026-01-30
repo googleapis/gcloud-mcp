@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDN News - لائیو پورٹل</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; }
+        .main-card { max-width: 800px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
+        .header { background: #cc0000; color: white; padding: 20px; text-align: center; border-bottom: 4px solid #ffcc00; }
+        .media-box { width: 100%; margin-bottom: 20px; border-radius: 10px; overflow: hidden; background: #000; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        #chart-container { width: 100%; height: 400px; }
+        .footer { background: #1a1a1a; color: white; padding: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="main-card">
+    <div class="header"><h1>SDN NEWS - لائیو ویڈیو اور ڈیٹا رپورٹ</h1><p>رپورٹ: جمیل احمد کلیال</p></div>
+    <div style="padding:15px;">
+        <div class="media-box"><div class="video-container">
+            <iframe src="https://www.youtube.com/embed/live_stream_id" allowfullscreen></iframe>
+        </div></div>
+        <div id="chart-container"></div>
+    </div>
+    <div class="footer"><p>SDN News: باخبر، ہر لمحہ | رابطہ: +92 346 0008235</p></div>
+</div>
+<script>
+    Highcharts.chart('chart-container', {
+        chart: { type: 'column' },
+        title: { text: 'علاقائی ترقیاتی سروے 2026' },
+        xAxis: { categories: ['سرائے عالمگیر', 'کھاریاں', 'گجرات', 'جہلم', 'لالہ موسیٰ'] },
+        series: [{ name: 'پیشرفت', color: '#cc0000', data: [85, 72, 90, 65, 78] }]
+    });
+</script>
+</body>
+</html>

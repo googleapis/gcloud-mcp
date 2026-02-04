@@ -2,6 +2,8 @@ substitutions:
   _GEMINI_CLI_RELEASE_VERSION: 'latest'
 steps:
   - name: 'node:20'
+    env:
+      - 'GOOGLE_GENAI_USE_VERTEXAI=true'
     entrypoint: 'bash'
     args:
       - '-c'

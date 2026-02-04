@@ -63,7 +63,7 @@
     "@google-cloud/service-usage": "^4.2.0",
     "@google-cloud/storage": "^7.17.1",
     "@google-cloud/storageinsights": "^2.2.0",
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/yargs": "^17.0.33",
     "chardet": "^2.1.0",
     "google-auth-library": "^9.11.0",

@@ -69,7 +69,7 @@ To use the BackupDR MCP server with other clients, add the following snippet to 
 respective JSON configuration files:
 
 ```json
-"gcs": {
+"backupdr": {
   "command": "npx",
   "args": ["-y", "@google-cloud/backupdr-mcp"]
 }
@@ -93,7 +93,7 @@ for a single project or your global user settings file for all projects:
 
 ```json
 "servers": {
-  "gcs": {
+  "backupdr": {
     "command": "npx",
     "args": ["-y", "@google-cloud/backupdr-mcp"]
   }

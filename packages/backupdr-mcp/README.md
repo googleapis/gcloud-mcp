@@ -55,13 +55,13 @@ tools that can create or update or delete, use the
 npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=UPSERT
 ```
 
-When access level is UPSERT : create and update tools are made avaible to agent in addition to the read tools.
+When access level is UPSERT : create and update tools are made available to agent in addition to the read tools.
 
 ```shell
 npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=ALL
 ```
 
-When access level is ALL : all tools (including delete) are made avaible to agent.
+When access level is ALL : all tools (including delete) are made available to agent.
 
 ### For other AI clients
 

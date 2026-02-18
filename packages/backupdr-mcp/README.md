@@ -117,10 +117,29 @@ npm run test
 
 Integration tests run against real Google Cloud resources. Ensure you have the [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and authenticated.
 
-```shell
-export GOOGLE_CLOUD_PROJECT=your-project-id
-npm run test:integration
-```
+##### Prerequisites
+
+1.  **Enable APIs**:
+    ```shell
+    gcloud services enable \
+      backupdr.googleapis.com \
+      compute.googleapis.com \
+      sqladmin.googleapis.com \
+      iam.googleapis.com
+    ```
+
+2.  **Required Roles**:
+    The user or service account running the tests needs the following IAM roles:
+    - `roles/backupdr.admin`: To manage BackupDR resources.
+    - `roles/compute.admin`: To create and manage test VMs and disks.
+    - `roles/cloudsql.admin`: To create and manage test Cloud SQL instances.
+    - `roles/resourcemanager.projectIamAdmin`: To grant necessary permissions to the BackupDR vault service account.
+
+3.  **Run Tests**:
+    ```shell
+    export GOOGLE_CLOUD_PROJECT=your-project-id
+    npm run test:integration
+    ```
 
 ## 🧰 Available MCP Tools
 

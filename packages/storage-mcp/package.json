@@ -61,7 +61,7 @@
   "dependencies": {
     "@google-cloud/bigquery": "^8.0.0",
     "@google-cloud/service-usage": "^4.2.0",
-    "@google-cloud/storage": "^7.17.1",
+    "@google-cloud/storage": "^7.19.0",
     "@google-cloud/storageinsights": "^2.2.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/yargs": "^17.0.33",

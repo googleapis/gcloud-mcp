@@ -40,6 +40,6 @@
   },
   "packageManager": "npm@11.8.0",
   "dependencies": {
-    "@google-cloud/storage": "^7.17.2"
+    "@google-cloud/storage": "^7.19.0"
   }
 }

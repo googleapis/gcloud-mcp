@@ -17,8 +17,11 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
-import { execSync } from 'node:child_process';
+import { exec, execSync } from 'node:child_process';
+import { promisify } from 'node:util';
 import { expectSuccess, triggerBackupForAssociation } from './helpers.js';
+
+const execAsync = promisify(exec);
 import { createBackupVault } from '../../src/tools/backup_vaults/create_backup_vault.js';
 import { getBackupVault } from '../../src/tools/backup_vaults/get_backup_vault.js';
 import { createBackupPlan } from '../../src/tools/backup_plans/create_backup_plan.js';
@@ -29,6 +32,8 @@ import { listDataSources } from '../../src/tools/datasources/list_datasources.js
 import { listBackups } from '../../src/tools/backups/list_backups.js';
 import { restoreBackup } from '../../src/tools/backups/restore_backup.js';
 import { getOperation } from '../../src/tools/backups/get_operation.js';
+import { csqlRestore } from '../../src/tools/backups/csql_restore.js';
+import { getCsqlOperation } from '../../src/tools/backups/get_csql_operation.js';
 
 const projectId = process.env['GOOGLE_CLOUD_PROJECT'] || process.env['GCP_PROJECT_ID'];
 const location = 'us-central1';
@@ -56,6 +61,26 @@ async function waitForOperation(name: string) {
   throw new Error(`Operation ${name} timed out`);
 }
 
+/**
+ * Helper to wait for a Cloud SQL operation to complete.
+ */
+async function waitForCsqlOperation(project: string, operationName: string) {
+  console.log(`Waiting for Cloud SQL operation: ${operationName}`);
+  for (let i = 0; i < 60; i++) {
+    const op = (await expectSuccess(
+      getCsqlOperation({ project, operation_name: operationName }),
+    )) as any;
+    if (op.status === 'DONE') {
+      if (op.error) {
+        throw new Error(`Cloud SQL operation failed: ${JSON.stringify(op.error)}`);
+      }
+      return op;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20000));
+  }
+  throw new Error(`Cloud SQL operation ${operationName} timed out`);
+}
+
 const timestamp = Date.now();
 const vaultName = `wf-vault-${timestamp}`;
 const fullVaultName = `projects/${projectId}/locations/${location}/backupVaults/${vaultName}`;
@@ -77,22 +102,38 @@ const resourceType = 'compute.googleapis.com/Instance';
 const targetDiskResource = `projects/${projectId}/zones/${zone}/disks/${diskName}`;
 const diskResourceType = 'compute.googleapis.com/Disk';
 
+const csqlName = `wf-csql-${timestamp}`;
+const restoreCsqlName = `rest-csql-${timestamp}`;
+const targetCsqlResource = `projects/${projectId}/instances/${csqlName}`;
+const csqlResourceType = 'sqladmin.googleapis.com/Instance';
+
 const ruleId = 'rule-1';
 
 describe('BackupDR Full Workflow Integration Test', () => {
   beforeAll(async () => {
-    // 1. Create a VM and Disk for testing
-    console.log(`Creating VM: ${vmName} and Disk: ${diskName}`);
+    // 1. Create a VM, Disk and Cloud SQL instances for testing
+    console.log(
+      `Creating VM: ${vmName}, Disk: ${diskName} and CSQL: ${csqlName}, ${restoreCsqlName}`,
+    );
     execSync(
       `gcloud compute instances create ${vmName} --project=${projectId} --zone=${zone} --machine-type=e2-micro --image-family=debian-12 --image-project=debian-cloud --quiet`,
     );
     execSync(
       `gcloud compute disks create ${diskName} --project=${projectId} --zone=${zone} --size=10GB --quiet`,
     );
+    // Cloud SQL creation can be slow, so we run them in parallel.
+    await Promise.all([
+      execAsync(
+        `gcloud sql instances create ${csqlName} --project=${projectId} --region=${location} --database-version=POSTGRES_15 --tier=db-f1-micro --root-password=password123 --quiet`,
+      ),
+      execAsync(
+        `gcloud sql instances create ${restoreCsqlName} --project=${projectId} --region=${location} --database-version=POSTGRES_15 --tier=db-f1-micro --root-password=password123 --quiet`,
+      ),
+    ]);
 
     // 2. Cleanup any potential leftovers (though unlikely with timestamped names)
-    const cleanupIds = [assocId, `disk-${assocId}`];
-    const cleanupPlans = [planName, `disk-${planName}`];
+    const cleanupIds = [assocId, `disk-${assocId}`, `csql-${assocId}`];
+    const cleanupPlans = [planName, `disk-${planName}`, `csql-${planName}`];
 
     for (const id of cleanupIds) {
       try {
@@ -140,7 +181,7 @@ describe('BackupDR Full Workflow Integration Test', () => {
     const member = `serviceAccount:${vaultServiceAccount}`;
 
     console.log(
-      `Granting roles/backupdr.restoreUser and roles/backupdr.computeEngineOperator to ${member} on project ${projectId}`,
+      `Granting roles/backupdr.restoreUser, roles/backupdr.computeEngineOperator and roles/cloudsql.admin to ${member} on project ${projectId}`,
     );
     execSync(
       `gcloud projects add-iam-policy-binding ${projectId} --member="${member}" --role="roles/backupdr.restoreUser" --quiet`,
@@ -148,12 +189,15 @@ describe('BackupDR Full Workflow Integration Test', () => {
     execSync(
       `gcloud projects add-iam-policy-binding ${projectId} --member="${member}" --role="roles/backupdr.computeEngineOperator" --quiet`,
     );
-  }, 900000);
+    execSync(
+      `gcloud projects add-iam-policy-binding ${projectId} --member="${member}" --role="roles/cloudsql.admin" --quiet`,
+    );
+  }, 2400000);
 
   afterAll(async () => {
     // 1. Cleanup BackupDR resources
-    const cleanupIds = [assocId, `disk-${assocId}`];
-    const cleanupPlans = [planName, `disk-${planName}`];
+    const cleanupIds = [assocId, `disk-${assocId}`, `csql-${assocId}`];
+    const cleanupPlans = [planName, `disk-${planName}`, `csql-${planName}`];
 
     for (const id of cleanupIds) {
       try {
@@ -170,29 +214,32 @@ describe('BackupDR Full Workflow Integration Test', () => {
       } catch (_e) {}
     }
 
-    // 2. Cleanup VMs and Disks
-    console.log(`Deleting VM: ${vmName} and Disk: ${diskName}`);
-    try {
-      execSync(
+    // 2. Cleanup VMs, Disks and Cloud SQL
+    console.log(
+      `Deleting VM: ${vmName}, Disk: ${diskName} and CSQL: ${csqlName}, ${restoreCsqlName}`,
+    );
+    const cleanupTasks = [
+      execAsync(
         `gcloud compute instances delete ${vmName} --project=${projectId} --zone=${zone} --quiet`,
-      );
-    } catch (_e) {}
-    try {
-      execSync(
+      ).catch(() => {}),
+      execAsync(
         `gcloud compute instances delete ${restoreInstanceName} --project=${projectId} --zone=${zone} --quiet`,
-      );
-    } catch (_e) {}
-    try {
-      execSync(
+      ).catch(() => {}),
+      execAsync(
         `gcloud compute disks delete ${diskName} --project=${projectId} --zone=${zone} --quiet`,
-      );
-    } catch (_e) {}
-    try {
-      execSync(
+      ).catch(() => {}),
+      execAsync(
         `gcloud compute disks delete ${restoreDiskName} --project=${projectId} --zone=${zone} --quiet`,
-      );
-    } catch (_e) {}
-  }, 600000);
+      ).catch(() => {}),
+      execAsync(`gcloud sql instances delete ${csqlName} --project=${projectId} --quiet`).catch(
+        () => {},
+      ),
+      execAsync(
+        `gcloud sql instances delete ${restoreCsqlName} --project=${projectId} --quiet`,
+      ).catch(() => {}),
+    ];
+    await Promise.all(cleanupTasks);
+  }, 2400000);
 
   it.concurrent(
     'should execute the full backup and restore workflow for a VM',
@@ -428,5 +475,124 @@ describe('BackupDR Full Workflow Integration Test', () => {
       expect(restoreResult.name).toBeDefined();
     },
     1200000,
+  );
+
+  it.concurrent(
+    'should execute the full backup and restore workflow for a Cloud SQL instance',
+    async () => {
+      const csqlPlanName = `csql-${planName}`;
+      const fullCsqlPlanName = `projects/${projectId}/locations/${location}/backupPlans/${csqlPlanName}`;
+      const csqlAssocId = `csql-${assocId}`;
+
+      // 1. Create Backup Plan
+      await expectSuccess(
+        createBackupPlan({
+          project_id: projectId,
+          location,
+          backup_plan_name: csqlPlanName,
+          backup_vault: fullVaultName,
+          resource_type: csqlResourceType,
+          backup_rules: [
+            {
+              rule_id: ruleId,
+              retention_days: 1,
+              backup_schedule: {
+                standard_schedule: {
+                  recurrence_type: 'DAILY',
+                  time_zone: 'UTC',
+                  backup_window: { start_hour_of_day: 0, end_hour_of_day: 6 },
+                },
+              },
+            },
+          ],
+        }),
+      );
+
+      // 2. Create Backup Plan Association
+      await expectSuccess(
+        createBackupPlanAssociation({
+          project_id: projectId,
+          location,
+          backup_plan_association_id: csqlAssocId,
+          resource: targetCsqlResource,
+          backup_plan: fullCsqlPlanName,
+          resource_type: csqlResourceType,
+        }),
+      );
+
+      // 3. Trigger Backup
+      const triggerResult = (await triggerBackupForAssociation(
+        projectId,
+        location,
+        csqlAssocId,
+        ruleId,
+      )) as any;
+      expect(triggerResult.name).toBeDefined();
+
+      // Wait for the trigger backup operation to complete
+      await waitForOperation(triggerResult.name);
+
+      // 4. Check Data Sources
+      let dataSources: any[] = [];
+      let dataSourceId = '';
+      for (let i = 0; i < 20; i++) {
+        dataSources = (await expectSuccess(
+          listDataSources({
+            project_id: projectId,
+            location,
+            backup_vault_name: vaultName,
+          }),
+        )) as any[];
+
+        const ds = dataSources.find((d) => {
+          const resName = d.dataSourceGcpResource?.gcpResourcename;
+          const propsName = d.dataSourceGcpResource?.cloudSqlInstanceDatasourceProperties?.name;
+          // Cloud SQL might have different property name or just use gcpResourcename
+          return resName === targetCsqlResource || propsName === targetCsqlResource;
+        });
+
+        if (ds) {
+          dataSourceId = ds.name.split('/').pop();
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 20000));
+      }
+      expect(
+        dataSourceId,
+        `Data source for ${targetCsqlResource} was not found after polling`,
+      ).not.toBe('');
+
+      // 5. Check Backup
+      let backups: any[] = [];
+      for (let i = 0; i < 20; i++) {
+        backups = (await expectSuccess(
+          listBackups({
+            project_id: projectId,
+            location,
+            backup_vault_name: vaultName,
+            datasource_name: dataSourceId,
+          }),
+        )) as any[];
+        if (backups.length > 0) break;
+        await new Promise((resolve) => setTimeout(resolve, 30000));
+      }
+      expect(backups.length).toBeGreaterThan(0);
+      const backup = backups[0];
+
+      // 6. Restore Backup
+      console.log(`Restoring CSQL backup to: ${restoreCsqlName}`);
+      const restoreResult = (await expectSuccess(
+        csqlRestore({
+          project: projectId,
+          restore_instance_name: restoreCsqlName,
+          backupdr_backup_name: backup.name,
+        }),
+      )) as any;
+      expect(restoreResult.name).toBeDefined();
+
+      // Wait for Cloud SQL restore operation to complete
+      await waitForCsqlOperation(projectId, restoreResult.name);
+    },
+    2400000,
   );
 });

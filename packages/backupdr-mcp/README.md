@@ -35,7 +35,7 @@ setup command below. This will install the MCP server as a
 for the current user, making it available for all your projects.
 
 ```shell
-npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=READ_ONLY
+npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=READ_ONLY --overwrite-context-file=true
 ```
 
 After the initialization process, you can verify that the backupdr-mcp server is
@@ -52,16 +52,18 @@ tools that can create or update or delete, use the
 `--access-level` flag:
 
 ```shell
-npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=UPSERT
+npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=UPSERT --overwrite-context-file=true
 ```
 
 When access level is UPSERT : create and update tools are made available to agent in addition to the read tools.
 
 ```shell
-npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=ALL
+npx @google-cloud/backupdr-mcp init --agent=gemini-cli --access-level=ALL --overwrite-context-file=true
 ```
 
 When access level is ALL : all tools (including delete) are made available to agent.
+
+By default, the `init` command will NOT overwrite the `GEMINI.md` file in your Gemini CLI extension directory if it already exists (the default value of `--overwrite-context-file` is `false`). This preserves any manual modifications you may have made. To force an overwrite and use the latest version from the package, use the `--overwrite-context-file=true` flag as shown in the examples above.
 
 ### For other AI clients
 
@@ -120,6 +122,7 @@ Integration tests run against real Google Cloud resources. Ensure you have the [
 ##### Prerequisites
 
 1.  **Enable APIs**:
+
     ```shell
     gcloud services enable \
       backupdr.googleapis.com \

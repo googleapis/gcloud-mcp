@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile, access } from 'fs/promises';
 import { join } from 'path';
 import pkg from '../../package.json' with { type: 'json' };
 import { log } from '../utility/logger.js';
 import os from 'os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const initializeGeminiCLI = async (
   local = false,
   accessLevel: 'READ_ONLY' | 'UPSERT' | 'ALL' | undefined,
-  fs = { mkdir, readFile, writeFile },
+  overwriteContextFile = true,
+  fs = { mkdir, readFile, writeFile, access },
 ) => {
   try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+
+    const markdownPath = path.resolve(__dirname, '../GEMINI-extension.md');
+
     // Read the content of GEMINI-extension.md
-    const geminiMdContent = await fs.readFile(
-      join(process.cwd(), 'packages', 'backupdr-mcp', 'GEMINI-extension.md'),
-      'utf8',
-    );
+    const geminiMdContent = await fs.readFile(markdownPath, 'utf8');
 
     // Create directory
     const extensionDir = join(os.homedir(), '.gemini', 'extensions', 'backupdr-mcp');
@@ -63,10 +68,25 @@ export const initializeGeminiCLI = async (
 
     // Create GEMINI.md
     const geminiMdDestPath = join(extensionDir, 'GEMINI.md');
-    await fs.writeFile(geminiMdDestPath, geminiMdContent);
-    // Intentional output to stdin. Not part of the MCP server.
-    // eslint-disable-next-line no-console
-    console.log(`Created: ${geminiMdDestPath}`);
+    let shouldWrite = true;
+    if (!overwriteContextFile) {
+      try {
+        await fs.access(geminiMdDestPath);
+        shouldWrite = false;
+        // Intentional output to stdin. Not part of the MCP server.
+        // eslint-disable-next-line no-console
+        console.log(`Skipped: ${geminiMdDestPath} (already exists)`);
+      } catch {
+        // File doesn't exist, proceed to write
+      }
+    }
+
+    if (shouldWrite) {
+      await fs.writeFile(geminiMdDestPath, geminiMdContent);
+      // Intentional output to stdin. Not part of the MCP server.
+      // eslint-disable-next-line no-console
+      console.log(`Created: ${geminiMdDestPath}`);
+    }
     // Intentional output to stdin. Not part of the MCP server.
     // eslint-disable-next-line no-console
     console.log(`🌱 backupdr-mcp Gemini CLI extension initialized.`);

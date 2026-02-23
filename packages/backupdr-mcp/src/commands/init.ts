@@ -21,6 +21,7 @@ interface InstallArgs {
   agent: string;
   local: boolean;
   accessLevel?: 'READ_ONLY' | 'UPSERT' | 'ALL';
+  overwriteContextFile?: boolean;
 }
 
 export const init: CommandModule<object, InstallArgs> = {
@@ -44,10 +45,15 @@ export const init: CommandModule<object, InstallArgs> = {
         type: 'string',
         choices: ['READ_ONLY', 'UPSERT', 'ALL'] as const,
         default: 'READ_ONLY',
+      })
+      .option('overwrite-context-file', {
+        describe: 'Whether to overwrite the existing context file, e.g: GEMINI.md file.',
+        type: 'boolean',
+        default: false,
       }),
   handler: async (argv: ArgumentsCamelCase<InstallArgs>) => {
     if (argv.agent === 'gemini-cli') {
-      await initializeGeminiCLI(argv.local, argv.accessLevel);
+      await initializeGeminiCLI(argv.local, argv.accessLevel, argv.overwriteContextFile);
     } else {
       throw new Error(`Unknown agent: ${argv.agent}`);
     }

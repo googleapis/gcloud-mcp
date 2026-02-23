@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "files": [
-    "dist/"
+    "dist/",
+    "GEMINI-extension.md"
   ],
   "bin": {
     "backupdr-mcp": "./dist/bundle.js"

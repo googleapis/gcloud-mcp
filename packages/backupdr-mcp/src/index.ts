@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import pkg from '../package.json' with { type: 'json' };
 import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
@@ -89,15 +89,14 @@ const main = async () => {
       return originalRegisterTool.call(server, name, definition, implementation);
     }
     return {
-      unregister: () => {},
-      callback: implementation,
-      definition,
-      enabled: true,
+      ...definition,
+      handler: implementation,
+      enabled: false,
       enable: () => {},
       disable: () => {},
       update: () => {},
       remove: () => {},
-    };
+    } as RegisteredTool;
   };
 
   allTools.forEach((tool) => tool(server));

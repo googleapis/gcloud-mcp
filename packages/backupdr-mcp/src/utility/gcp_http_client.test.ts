@@ -16,7 +16,7 @@
 
 /// <reference types="vitest/globals" />
 
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GoogleCloudHTTPClient } from './gcp_http_client.js';
 import { GoogleAuth } from 'google-auth-library';
 import { apiClientFactory } from './api_client_factory.js';
@@ -39,16 +39,19 @@ describe('GoogleCloudHTTPClient', () => {
     vi.clearAllMocks();
 
     // Mock the GoogleAuth implementation
-    (GoogleAuth as Mock).mockImplementation(() => ({
-      getClient: vi.fn().mockResolvedValue({
-        request: mockRequest,
-      }),
-    }));
+    vi.mocked(GoogleAuth).mockImplementation(
+      () =>
+        ({
+          getClient: vi.fn().mockResolvedValue({
+            request: mockRequest,
+          }),
+        }) as unknown as GoogleAuth,
+    );
 
     // Mock SqlOperationsServiceClient
-    (apiClientFactory.getSqlOperationsClient as Mock).mockReturnValue({
+    vi.mocked(apiClientFactory.getSqlOperationsClient).mockReturnValue({
       get: mockGetOperation,
-    });
+    } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Create a fresh instance for testing (instead of using the exported singleton)
     client = new GoogleCloudHTTPClient();

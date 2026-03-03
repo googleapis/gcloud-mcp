@@ -109,27 +109,6 @@ export class GoogleCloudHTTPClient {
     });
     return response;
   }
-
-  /**
-   * Waits for a Cloud SQL operation to complete by polling.
-   */
-  async waitForCsqlOperation(project: string, operationName: string) {
-    let operation: CsqlOperation;
-    while (true) {
-      operation = (await this.getCsqlOperation(project, operationName)) as CsqlOperation;
-      if (operation && operation.status === 'DONE') {
-        break;
-      }
-      // Wait for 10 seconds before polling again
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-    }
-
-    if (operation && operation.error) {
-      throw new Error(`Operation failed: ${JSON.stringify(operation.error)}`);
-    }
-
-    return operation;
-  }
 }
 
 // Export a singleton instance to be used across the application

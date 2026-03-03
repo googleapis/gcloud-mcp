@@ -39,10 +39,9 @@ export async function csqlRestore(params: CsqlRestoreParams): Promise<CallToolRe
     const response = await csqlClient.restoreBackup({
       project: params.project,
       instance: params.restore_instance_name,
-
       body: {
         backupdrBackup: params.backupdr_backup_name,
-      } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      } as unknown as { backupdrBackup: string },
     });
 
     const operation = Array.isArray(response) ? response[0] : response;

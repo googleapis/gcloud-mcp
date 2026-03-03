@@ -112,35 +112,6 @@ describe('GoogleCloudHTTPClient', () => {
     });
   });
 
-  it('should poll until DONE in waitForCsqlOperation', async () => {
-    vi.useFakeTimers();
-    mockGetOperation
-      .mockResolvedValueOnce([{ name: 'op-123', status: 'RUNNING' }])
-      .mockResolvedValueOnce([{ name: 'op-123', status: 'DONE' }]);
-
-    const waitPromise = client.waitForCsqlOperation('my-proj', 'op-123');
-
-    // First poll
-    await vi.advanceTimersByTimeAsync(0);
-    // Second poll after 10s
-    await vi.advanceTimersByTimeAsync(10000);
-
-    const result = await waitPromise;
-    expect(result.status).toBe('DONE');
-    expect(mockGetOperation).toHaveBeenCalledTimes(2);
-    vi.useRealTimers();
-  });
-
-  it('should throw if operation has error in waitForCsqlOperation', async () => {
-    mockGetOperation.mockResolvedValue([
-      { name: 'op-123', status: 'DONE', error: { errors: [{ message: 'Failed' }] } },
-    ]);
-
-    await expect(client.waitForCsqlOperation('my-proj', 'op-123')).rejects.toThrow(
-      'Operation failed: {"errors":[{"message":"Failed"}]}',
-    );
-  });
-
   it('should propagate errors from the HTTP client', async () => {
     mockRequest.mockRejectedValue(new Error('Network Error'));
 

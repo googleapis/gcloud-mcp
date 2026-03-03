@@ -50,7 +50,7 @@
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-license-header": "^0.8.0",
+    "eslint-plugin-license-header": "^0.9.0",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "turbo": "latest",

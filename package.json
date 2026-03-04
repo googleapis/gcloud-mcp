@@ -34,7 +34,7 @@
     "eslint-plugin-license-header": "^0.9.0",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
-    "turbo": "^2.5.6",
+    "turbo": "^2.8.13",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },

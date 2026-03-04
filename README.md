@@ -29,6 +29,7 @@ servers hosted outside of this repo are
 | gcloud          | Interact with Google Cloud via the gcloud CLI using natural language prompts. | `gcloud-mcp`        | [![Version](https://img.shields.io/npm/v/@google-cloud/gcloud-mcp)](https://www.npmjs.com/package/@google-cloud/gcloud-mcp)               |
 | observability   | Access Google Cloud Observability APIs to query logs, metrics, and traces.    | `observability-mcp` | [![Version](https://img.shields.io/npm/v/@google-cloud/observability-mcp)](https://www.npmjs.com/package/@google-cloud/observability-mcp) |
 | storage         | Interact with Google Cloud Storage for bucket and object management.          | `storage-mcp`       | [![Version](https://img.shields.io/npm/v/@google-cloud/storage-mcp)](https://www.npmjs.com/package/@google-cloud/storage-mcp)             |
+| backupdr        | Interact with Google Cloud Backup and Disaster Recovery.                      | `backupdr-mcp`      | [![Version](https://img.shields.io/npm/v/@google-cloud/backupdr-mcp)](https://www.npmjs.com/package/@google-cloud/backupdr-mcp)           |
 
 ## 🚀 Getting Started
 
@@ -134,42 +135,65 @@ For more information regarding installing the repository locally, please see
 
 ## 🧰 Available MCP Tools
 
-| MCP Server    | Tool                        | Description                                                                                                                                               |
-| :------------ | :-------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| gcloud        | `run_gcloud_command`        | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [MCP Permissions](#-mcp-permissions) for more information. |
-| observability | `list_log_entries`          | Lists log entries from a project.                                                                                                                         |
-|               | `list_log_names`            | Lists log names from a project.                                                                                                                           |
-|               | `list_buckets`              | Lists log buckets from a project.                                                                                                                         |
-|               | `list_views`                | Lists log views from a project.                                                                                                                           |
-|               | `list_sinks`                | Lists log sinks from a project.                                                                                                                           |
-|               | `list_log_scopes`           | Lists log scopes from a project.                                                                                                                          |
-|               | `list_metric_descriptors`   | Lists metric descriptors for a project.                                                                                                                   |
-|               | `list_time_series`          | Lists time series data for a given metric.                                                                                                                |
-|               | `list_alert_policies`       | Lists the alert policies in a project.                                                                                                                    |
-|               | `list_traces`               | Searches for traces in a project.                                                                                                                         |
-|               | `get_trace`                 | Gets a specific trace by id in a project.                                                                                                                 |
-|               | `list_group_stats`          | Lists the error groups for a project.                                                                                                                     |
-| storage       | `list_objects`              | Lists objects in a GCS bucket.                                                                                                                            |
-|               | `read_object_metadata`      | Reads comprehensive metadata for a specific object.                                                                                                       |
-|               | `read_object_content`       | Reads the content of a specific object.                                                                                                                   |
-|               | `delete_object`             | Deletes a specific object from a bucket.                                                                                                                  |
-|               | `write_object`              | Writes a new object to a bucket.                                                                                                                          |
-|               | `update_object_metadata`    | Updates the custom metadata of an existing object.                                                                                                        |
-|               | `copy_object`               | Copies an object from one bucket to another.                                                                                                              |
-|               | `move_object`               | Moves an object from one bucket to another.                                                                                                               |
-|               | `upload_object`             | Uploads a file to a GCS bucket.                                                                                                                           |
-|               | `download_object`           | Downloads an object from GCS to a local file.                                                                                                             |
-|               | `list_buckets`              | Lists all buckets in a project.                                                                                                                           |
-|               | `create_bucket`             | Creates a new bucket.                                                                                                                                     |
-|               | `delete_bucket`             | Deletes a bucket.                                                                                                                                         |
-|               | `get_bucket_metadata`       | Gets comprehensive metadata for a specific bucket.                                                                                                        |
-|               | `update_bucket_labels`      | Updates labels for a bucket.                                                                                                                              |
-|               | `get_bucket_location`       | Gets the location of a bucket.                                                                                                                            |
-|               | `view_iam_policy`           | Views the IAM policy for a bucket.                                                                                                                        |
-|               | `check_iam_permissions`     | Tests IAM permissions for a bucket.                                                                                                                       |
-|               | `get_metadata_table_schema` | Checks if GCS insights service is enabled and returns the BigQuery table schema for a given insights dataset configuration.                               |
-|               | `execute_insights_query`    | Executes a BigQuery SQL query against an insights dataset and returns the result.                                                                         |
-|               | `list_insights_configs`     | Lists the names of all Storage Insights dataset configurations for a given project.                                                                       |
+| MCP Server    | Tool                             | Description                                                                                                                                               |
+| :------------ | :------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| gcloud        | `run_gcloud_command`             | Executes a gcloud command. Some commands have been restricted from execution by the agent. See [MCP Permissions](#-mcp-permissions) for more information. |
+| observability | `list_log_entries`               | Lists log entries from a project.                                                                                                                         |
+|               | `list_log_names`                 | Lists log names from a project.                                                                                                                           |
+|               | `list_buckets`                   | Lists log buckets from a project.                                                                                                                         |
+|               | `list_views`                     | Lists log views from a project.                                                                                                                           |
+|               | `list_sinks`                     | Lists log sinks from a project.                                                                                                                           |
+|               | `list_log_scopes`                | Lists log scopes from a project.                                                                                                                          |
+|               | `list_metric_descriptors`        | Lists metric descriptors for a project.                                                                                                                   |
+|               | `list_time_series`               | Lists time series data for a given metric.                                                                                                                |
+|               | `list_alert_policies`            | Lists the alert policies in a project.                                                                                                                    |
+|               | `list_traces`                    | Searches for traces in a project.                                                                                                                         |
+|               | `get_trace`                      | Gets a specific trace by id in a project.                                                                                                                 |
+|               | `list_group_stats`               | Lists the error groups for a project.                                                                                                                     |
+| storage       | `list_objects`                   | Lists objects in a GCS bucket.                                                                                                                            |
+|               | `read_object_metadata`           | Reads comprehensive metadata for a specific object.                                                                                                       |
+|               | `read_object_content`            | Reads the content of a specific object.                                                                                                                   |
+|               | `delete_object`                  | Deletes a specific object from a bucket.                                                                                                                  |
+|               | `write_object`                   | Writes a new object to a bucket.                                                                                                                          |
+|               | `update_object_metadata`         | Updates the custom metadata of an existing object.                                                                                                        |
+|               | `copy_object`                    | Copies an object from one bucket to another.                                                                                                              |
+|               | `move_object`                    | Moves an object from one bucket to another.                                                                                                               |
+|               | `upload_object`                  | Uploads a file to a GCS bucket.                                                                                                                           |
+|               | `download_object`                | Downloads an object from GCS to a local file.                                                                                                             |
+|               | `list_buckets`                   | Lists all buckets in a project.                                                                                                                           |
+|               | `create_bucket`                  | Creates a new bucket.                                                                                                                                     |
+|               | `delete_bucket`                  | Deletes a bucket.                                                                                                                                         |
+|               | `get_bucket_metadata`            | Gets comprehensive metadata for a specific bucket.                                                                                                        |
+|               | `update_bucket_labels`           | Updates labels for a bucket.                                                                                                                              |
+|               | `get_bucket_location`            | Gets the location of a bucket.                                                                                                                            |
+|               | `view_iam_policy`                | Views the IAM policy for a bucket.                                                                                                                        |
+|               | `check_iam_permissions`          | Tests IAM permissions for a bucket.                                                                                                                       |
+|               | `get_metadata_table_schema`      | Checks if GCS insights service is enabled and returns the BigQuery table schema for a given insights dataset configuration.                               |
+|               | `execute_insights_query`         | Executes a BigQuery SQL query against an insights dataset and returns the result.                                                                         |
+|               | `list_insights_configs`          | Lists the names of all Storage Insights dataset configurations for a given project.                                                                       |
+| backupdr      | `list_backup_vaults`             | Lists all backup vaults in a given project and location.                                                                                                  |
+|               | `get_backup_vault`               | Gets details of a specific backup vault.                                                                                                                  |
+|               | `list_backup_plans`              | Lists all backup plans in a given project and location.                                                                                                   |
+|               | `get_backup_plan`                | Gets details of a specific backup plan.                                                                                                                   |
+|               | `list_backup_plan_associations`  | Lists all associations between backup plans and resources.                                                                                                |
+|               | `get_backup_plan_association`    | Gets details of a specific backup plan association.                                                                                                       |
+|               | `list_datasources`               | Lists all data sources within a backup vault.                                                                                                             |
+|               | `get_datasource`                 | Gets details of a specific data source.                                                                                                                   |
+|               | `list_backups`                   | Lists all backups for a given data source.                                                                                                                |
+|               | `get_backup`                     | Gets details of a specific backup.                                                                                                                        |
+|               | `find_protectable_resources`     | Discovers resources (VMs, Disks, SQL) that can be protected.                                                                                              |
+|               | `get_backupdr_operation`         | Retrieves the status of a long-running BackupDR operation.                                                                                                |
+|               | `get_csql_operation`             | Retrieves the status of a long-running Cloud SQL operation.                                                                                               |
+|               | `create_backup_vault`            | Creates a new backup vault in a specified location.                                                                                                       |
+|               | `create_backup_plan`             | Creates a new backup plan with defined rules and retention.                                                                                               |
+|               | `update_backup_plan`             | Modifies an existing backup plan.                                                                                                                         |
+|               | `create_backup_plan_association` | Associates a resource with a backup plan to start protection.                                                                                             |
+|               | `restore_backup`                 | Restores a backup to a target Compute Engine instance or disk.                                                                                            |
+|               | `csql_restore`                   | Restores a Cloud SQL backup to a target instance.                                                                                                         |
+|               | `delete_backup_vault`            | **Deletes** a backup vault.                                                                                                                               |
+|               | `delete_backup_plan`             | **Deletes** a backup plan.                                                                                                                                |
+|               | `delete_backup_plan_association` | **Removes** protection from a resource by deleting its association.                                                                                       |
+|               | `delete_backup`                  | **Deletes** a specific backup from a vault.                                                                                                               |
 
 ## 🔑 MCP Permissions
 

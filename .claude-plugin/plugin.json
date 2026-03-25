@@ -1,0 +1,23 @@
+{
+  "name": "gcloud-mcp",
+  "version": "1.0.0",
+  "description": "MCP servers for Google Cloud Platform",
+  "mcpServers": {
+    "gcloud": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/gcloud-mcp"]
+    },
+    "gcloud-observability": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/observability-mcp"]
+    },
+    "gcloud-storage": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/storage-mcp"]
+    },
+    "gcloud-backupdr": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/backupdr-mcp"]
+    }
+  }
+}

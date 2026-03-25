@@ -68,6 +68,28 @@ gemini mcp list
 > ✓ gcloud: npx -y @google-cloud/gcloud-mcp (stdio) - Connected
 ```
 
+### Claude Code
+
+To integrate all gcloud MCP servers with Claude Code, install the plugin
+directly from this repository:
+
+```sh
+/plugin install googleapis/gcloud-mcp
+```
+
+This installs the Claude Code plugin manifest included in this repository,
+which registers all four MCP servers (gcloud, observability, storage, backupdr)
+automatically.
+
+To add individual MCP servers manually instead:
+
+```sh
+claude mcp add gcloud -- npx -y @google-cloud/gcloud-mcp
+claude mcp add gcloud-observability -- npx -y @google-cloud/observability-mcp
+claude mcp add gcloud-storage -- npx -y @google-cloud/storage-mcp
+claude mcp add gcloud-backupdr -- npx -y @google-cloud/backupdr-mcp
+```
+
 ### For other AI clients
 
 To use MCP servers in this repo with other clients, add the following snippet

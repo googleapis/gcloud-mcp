@@ -3,10 +3,10 @@
 # is the same as .gitignore.
 
 # Default owners: The owners for all files in the repo.
-* @googleapis/gcloud-mcp-team
+* @googleapis/cloud-sdk-gcloud-mcp-team
 
 # Folder specific owners. Order is important; the last matching pattern takes
-# the most precedence. All entries should grant permission to @googleapis/gcloud-mcp-team.
-/packages/observability-mcp/ @googleapis/cloud-observability-team @googleapis/gcloud-mcp-team
-/packages/storage-mcp/ @googleapis/gcs-mcp-team @googleapis/gcloud-mcp-team
-/packages/backupdr-mcp/ @googleapis/backupdr-mcp-team @googleapis/gcloud-mcp-team
+# the most precedence. All entries should grant permission to @googleapis/cloud-sdk-gcloud-mcp-team.
+/packages/observability-mcp/ @googleapis/cloud-observability-team @googleapis/cloud-sdk-gcloud-mcp-team
+/packages/storage-mcp/ @googleapis/gcs-mcp-team @googleapis/cloud-sdk-gcloud-mcp-team
+/packages/backupdr-mcp/ @googleapis/backupdr-mcp-team @googleapis/cloud-sdk-gcloud-mcp-team

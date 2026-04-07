@@ -18,6 +18,7 @@ export * from './copy_object.js';
 export * from './copy_object_safe.js';
 export * from './delete_object.js';
 export * from './download_object.js';
+export * from './download_object_safe.js';
 export * from './list_objects.js';
 export * from './move_object.js';
 export * from './read_object_content.js';

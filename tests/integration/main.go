@@ -14,7 +14,6 @@ func testGeminiMcpList() error {
 	fmt.Println("🚀 Starting gcloud-mcp integration test...")
 
 	cmd := exec.Command("gemini", "--debug", "mcp", "list")
-	//cmd.Env = append(os.Environ(), "FORCE_COLOR=1", "CLICOLOR_FORCE=1", "GEMINI_CLI_INTEGRATION_TEST=true")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error executing command: %v\nOutput:\n%s", err, string(output))

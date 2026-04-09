@@ -20,6 +20,7 @@ import { AccessControlList } from '../denylist.js';
 import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
 import { log } from '../utility/logger.js';
+import { shellJoinArgs } from '../shell_join.js';
 
 const suggestionErrorMessage = (suggestedCommand: string) =>
   `Execution denied: This command not permitted. However, a similar command is permitted.
@@ -77,7 +78,7 @@ export const createRunGcloudCommand = (gcloud: GcloudExecutable, acl: AccessCont
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          const parsedLintResult = await gcloud.lint(args.join(' '));
+          const parsedLintResult = await gcloud.lint(shellJoinArgs(args));
           if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }

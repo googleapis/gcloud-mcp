@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.3.3...storage-mcp-v0.4.0) (2026-04-09)
+
+
+### Features
+
+* **storage-mcp:** Add safe download object tool and mark original as destructive ([#403](https://github.com/googleapis/gcloud-mcp/issues/403)) ([9dadeae](https://github.com/googleapis/gcloud-mcp/commit/9dadeae8717d05699e868d3c10bc048f6f415dd0))
+
 ## [0.3.3](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.3.2...storage-mcp-v0.3.3) (2026-02-05)
 
 

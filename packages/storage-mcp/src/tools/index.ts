@@ -29,6 +29,7 @@ import {
   registerCopyObjectSafeTool,
   registerDeleteObjectTool,
   registerDownloadObjectTool,
+  registerDownloadObjectSafeTool,
   registerListObjectsTool,
   registerMoveObjectTool,
   registerReadObjectContentTool,
@@ -55,7 +56,7 @@ export const commonSafeTools = [
   registerListObjectsTool,
   registerReadObjectContentTool,
   registerReadObjectMetadataTool,
-  registerDownloadObjectTool,
+  registerDownloadObjectSafeTool,
   registerDeleteObjectTool,
   registerGetMetadataTableSchemaTool,
   registerExecuteInsightsQueryTool,
@@ -79,4 +80,5 @@ export const otherDestructiveTools = [
   registerUpdateBucketLabelsTool,
   registerMoveObjectTool,
   registerUpdateObjectMetadataTool,
+  registerDownloadObjectTool,
 ];

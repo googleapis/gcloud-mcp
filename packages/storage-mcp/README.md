@@ -149,7 +149,7 @@ ones. They will never modify or delete existing data in GCS.
 | `list_objects`              | Lists objects in a GCS bucket.                                                                                              |
 | `read_object_metadata`      | Reads comprehensive metadata for a specific object.                                                                         |
 | `read_object_content`       | Reads the content of a specific object.                                                                                     |
-| `download_object`           | Downloads an object from GCS to a local file.                                                                               |
+| `download_object_safe`      | Downloads an object from GCS to a local file. Fails if the destination file already exists.                                 |
 | `write_object_new`          | Writes a new object. Fails if the object already exists.                                                                    |
 | `upload_object_new`         | Uploads a file to a new object. Fails if the object already exists.                                                         |
 | `copy_object_new`           | Copies an object to a new destination. Fails if the destination already exists.                                             |
@@ -173,6 +173,7 @@ counterparts (e.g., `write_object` is registered instead of `write_object_new`).
 | `update_bucket_labels`   | **Modifies** labels for a bucket.                          |
 | `delete_object`          | **Deletes** a specific object from a bucket.               |
 | `update_object_metadata` | **Modifies** the custom metadata of an existing object.    |
+| `download_object`        | Downloads an object, **overwriting** the destination file. |
 | `move_object`            | **Moves** an object (copies then deletes the original).    |
 | `write_object`           | Writes an object, **overwriting** it if it already exists. |
 | `upload_object`          | Uploads a file, **overwriting** the destination object.    |

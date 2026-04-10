@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.4.0...storage-mcp-v0.5.0) (2026-04-10)
+
+
+### Features
+
+* **storage-mcp:** Set custom user-agent on Storage client ([#407](https://github.com/googleapis/gcloud-mcp/issues/407)) ([f3342ec](https://github.com/googleapis/gcloud-mcp/commit/f3342ec38c01f53a4d4256c67ac45eba0648f7d8))
+
+
+### Bug Fixes
+
+* **storage-mcp:** Use project instead of userProject in list_buckets ([#408](https://github.com/googleapis/gcloud-mcp/issues/408)) ([4c12d99](https://github.com/googleapis/gcloud-mcp/commit/4c12d9912bae1dbe5dca0036c904025d8df94993))
+
 ## [0.4.0](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.3.3...storage-mcp-v0.4.0) (2026-04-09)
 
 

@@ -45,7 +45,10 @@ describe('createBucket', () => {
       location: 'US',
     });
 
-    expect(Storage).toHaveBeenCalledWith({ projectId: 'test-project' });
+    expect(Storage).toHaveBeenCalledWith({
+      projectId: 'test-project',
+      userAgent: expect.stringMatching(/^gcloud-storage-mcp\//),
+    });
     expect(mockCreateBucket).toHaveBeenCalledWith('test-bucket', {
       location: 'US',
       requesterPays: false,
@@ -83,7 +86,10 @@ describe('createBucket', () => {
       labels: { test: 'label' },
     });
 
-    expect(Storage).toHaveBeenCalledWith({ projectId: 'test-project' });
+    expect(Storage).toHaveBeenCalledWith({
+      projectId: 'test-project',
+      userAgent: expect.stringMatching(/^gcloud-storage-mcp\//),
+    });
     expect(mockCreateBucket).toHaveBeenCalledWith('test-bucket', {
       location: 'US',
       requesterPays: false,

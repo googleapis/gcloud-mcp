@@ -19,6 +19,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { logger } from '../../utility/logger.js';
+import { USER_AGENT } from '../../utility/user_agent.js';
 
 const inputSchema = {
   project_id: z.string().describe('The ID of the GCP project.'),
@@ -47,7 +48,7 @@ type CreateBucketParams = z.infer<z.ZodObject<typeof inputSchema>>;
 export async function createBucket(params: CreateBucketParams): Promise<CallToolResult> {
   try {
     logger.info(`Creating bucket: ${params.bucket_name} in project: ${params.project_id}`);
-    const storage = new Storage({ projectId: params.project_id });
+    const storage = new Storage({ projectId: params.project_id, userAgent: USER_AGENT });
     const options: CreateBucketRequest = {
       location: params.location,
       storageClass: params.storage_class || 'STANDARD',

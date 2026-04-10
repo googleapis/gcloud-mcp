@@ -18,6 +18,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { Storage } from '@google-cloud/storage';
 import { ServiceUsageClient } from '@google-cloud/service-usage';
 import { StorageInsightsClient } from '@google-cloud/storageinsights';
+import { USER_AGENT } from './user_agent.js';
 
 export class ApiClientFactory {
   private static instance: ApiClientFactory;
@@ -37,7 +38,7 @@ export class ApiClientFactory {
 
   getStorageClient(): Storage {
     if (!this.storageClient) {
-      this.storageClient = new Storage();
+      this.storageClient = new Storage({ userAgent: USER_AGENT });
     }
     return this.storageClient;
   }

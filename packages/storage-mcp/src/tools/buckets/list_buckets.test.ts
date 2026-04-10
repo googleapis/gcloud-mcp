@@ -37,7 +37,7 @@ describe('listBuckets', () => {
 
     expect(apiClientFactory.getStorageClient).toHaveBeenCalled();
     expect(mockGetBuckets).toHaveBeenCalledWith({
-      userProject: 'test-project',
+      project: 'test-project',
     });
     expect(result.content).toEqual([{ type: 'text', text: 'bucket-1\nbucket-2' }]);
   });

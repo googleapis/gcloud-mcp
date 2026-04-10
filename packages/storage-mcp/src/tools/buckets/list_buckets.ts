@@ -33,7 +33,7 @@ export async function listBuckets(params: ListBucketsParams): Promise<CallToolRe
       'Project ID not specified. Please specify via the project_id parameter or GOOGLE_CLOUD_PROJECT environment variable.',
     );
   }
-  const [buckets] = await storage.getBuckets({ userProject: projectId });
+  const [buckets] = await storage.getBuckets({ project: projectId });
 
   if (!buckets || buckets.length === 0) {
     return { content: [{ type: 'text', text: 'No buckets found.' }] };

@@ -57,7 +57,6 @@ export const commonSafeTools = [
   registerReadObjectContentTool,
   registerReadObjectMetadataTool,
   registerDownloadObjectSafeTool,
-  registerDeleteObjectTool,
   registerGetMetadataTableSchemaTool,
   registerExecuteInsightsQueryTool,
   registerListInsightsConfigsTool,
@@ -78,6 +77,7 @@ export const destructiveWriteTools = [
 export const otherDestructiveTools = [
   registerDeleteBucketTool,
   registerUpdateBucketLabelsTool,
+  registerDeleteObjectTool,
   registerMoveObjectTool,
   registerUpdateObjectMetadataTool,
   registerDownloadObjectTool,

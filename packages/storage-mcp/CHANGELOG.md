@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.5.0...storage-mcp-v0.5.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **storage-mcp:** Move delete_object from safe to destructive tools ([#412](https://github.com/googleapis/gcloud-mcp/issues/412)) ([91535b6](https://github.com/googleapis/gcloud-mcp/commit/91535b64f153eda52ea7a0442d827f139981e499))
+
 ## [0.5.0](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.4.0...storage-mcp-v0.5.0) (2026-04-10)
 
 

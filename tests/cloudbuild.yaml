@@ -42,6 +42,8 @@ steps:
         npx observability-mcp init --agent=gemini-cli --local
         npx storage-mcp init --agent=gemini-cli --local
         cat /builder/home/.gemini/extensions/storage-mcp/gemini-extension.json
+        cat /builder/home/.gemini/extensions/observability-mcp/gemini-extension.json
+        cat /builder/home/.gemini/extensions/gcloud-mcp/gemini-extension.json
 
         echo "--- Installing Go ---"
         GO_VERSION="1.23.0"

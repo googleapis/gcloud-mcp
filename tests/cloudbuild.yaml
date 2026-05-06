@@ -44,6 +44,9 @@ steps:
         cat /builder/home/.gemini/extensions/storage-mcp/gemini-extension.json
         cat /builder/home/.gemini/extensions/observability-mcp/gemini-extension.json
         cat /builder/home/.gemini/extensions/gcloud-mcp/gemini-extension.json
+        npx -y gcloud-mcp
+        npx -y storage-mcp
+        npx -y observability-mcp
 
         echo "--- Installing Go ---"
         GO_VERSION="1.23.0"

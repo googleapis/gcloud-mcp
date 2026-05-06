@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.5.1...storage-mcp-v0.6.0) (2026-05-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* **storage-mcp:** remove download_object_safe tool ([#420](https://github.com/googleapis/gcloud-mcp/issues/420))
+
+### Features
+
+* **storage-mcp:** Remove download_object_safe tool ([#420](https://github.com/googleapis/gcloud-mcp/issues/420)) ([d5196be](https://github.com/googleapis/gcloud-mcp/commit/d5196bec1ea71d9393ae8cf587fd794e99c29773))
+
 ## [0.5.1](https://github.com/googleapis/gcloud-mcp/compare/storage-mcp-v0.5.0...storage-mcp-v0.5.1) (2026-04-17)
 
 

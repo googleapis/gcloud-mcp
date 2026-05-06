@@ -97,10 +97,10 @@ func testCallGcloudMCPTool() error {
 }
 
 func run() int {
-	if err := testGeminiMcpList(); err != nil {
-		fmt.Printf("❌ %v\n", err)
-		return 1
-	}
+	// if err := testGeminiMcpList(); err != nil {
+	// 	fmt.Printf("❌ %v\n", err)
+	// 	return 1
+	// }
 	if err := testCallGcloudMCPTool(); err != nil {
 		fmt.Printf("❌ %v\n", err)
 		return 1

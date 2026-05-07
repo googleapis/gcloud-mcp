@@ -1,11 +1,12 @@
 substitutions:
-  _GEMINI_CLI_RELEASE_VERSION: '0.38.2'
+  _GEMINI_CLI_RELEASE_VERSION: 'latest'
 steps:
   - name: 'node:20'
     env:
       - 'GOOGLE_GENAI_USE_VERTEXAI=true'
       - 'GOOGLE_CLOUD_PROJECT=gcloud-mcp-testing'
       - 'GOOGLE_CLOUD_LOCATION=us-central1'
+      - 'GEMINI_CLI_TRUST_WORKSPACE=true'
     entrypoint: 'bash'
     args:
       - '-c'

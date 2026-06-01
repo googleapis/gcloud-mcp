@@ -62,7 +62,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "turbo": "latest",
-    "vitest": "^3.2.4",
+    "vitest": "^4.1.0",
     "memfs": "^4.36.0",
     "ts-node": "^10.9.2"
   }

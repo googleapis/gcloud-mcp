@@ -56,7 +56,7 @@
     "turbo": "latest",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.0",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.0"
   },
   "dependencies": {
     "@google-cloud/bigquery": "^8.0.0",

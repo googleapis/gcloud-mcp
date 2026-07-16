@@ -38,6 +38,10 @@ export const default_deny: string[] = [
   'cloud-shell ssh',
   'workstations ssh',
   'app instances ssh',
+  'auth print-access-token',
+  'auth print-identity-token',
+  'auth application-default print-access-token',
+  'config config-helper',
   'interactive',
   'meta',
 ];

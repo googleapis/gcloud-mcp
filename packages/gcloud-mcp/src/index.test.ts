@@ -102,6 +102,22 @@ test('should start the McpServer if gcloud is available', async () => {
   expect(serverInstance?.connect).toHaveBeenCalledWith(expect.any(StdioServerTransport));
 });
 
+test('default denylist includes local credential-printing commands', async () => {
+  process.argv = ['node', 'index.js'];
+  vi.stubGlobal('process', { ...process, exit: vi.fn(), on: vi.fn() });
+
+  const { default_deny } = await import('./index.js');
+
+  expect(default_deny).toEqual(
+    expect.arrayContaining([
+      'auth print-access-token',
+      'auth print-identity-token',
+      'auth application-default print-access-token',
+      'config config-helper',
+    ]),
+  );
+});
+
 test('should exit if load deny and allow from config file', async () => {
   process.argv = ['node', 'index.js', '--config', 'test-config.json'];
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

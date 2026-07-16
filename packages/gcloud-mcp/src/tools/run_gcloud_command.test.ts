@@ -117,6 +117,19 @@ describe('createRunGcloudCommand', () => {
       expect(result.isError).toBe(true);
     });
 
+    test('does not return stdout for denylisted credential-printing commands', async () => {
+      const tool = createTool({ deny: ['auth print-access-token'] });
+      const inputArgs = ['auth', 'print-access-token'];
+      mockGcloudInvoke('FAKE_ACCESS_TOKEN_SHOULD_NOT_BE_RETURNED');
+
+      const result = await tool({ args: inputArgs });
+
+      expect(mockedGcloud.invoke).not.toHaveBeenCalled();
+      expect(result.content[0].text).toContain('Execution denied:');
+      expect(result.content[0].text).not.toContain('FAKE_ACCESS_TOKEN_SHOULD_NOT_BE_RETURNED');
+      expect(result.isError).toBe(true);
+    });
+
     test('invokes gcloud for non-denylisted command', async () => {
       const tool = createTool({ deny: ['compute list'] });
       const inputArgs = ['compute', 'create'];

@@ -3,6 +3,8 @@
 
 # gcloud MCP Server ☁️
 
+[![MCP Toplist](https://mcptoplist.com/badge/pulsemcp%2Fgcloud.svg)](https://mcptoplist.com/server/pulsemcp%2Fgcloud)
+
 The gcloud
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro)
 server enables AI assistants to easily interact with the Google Cloud

@@ -16,6 +16,7 @@
 
 import { AccessControlList, PRERELEASE_TRACKS_PRIORITIZED } from './denylist.js';
 import * as gcloud from './gcloud.js';
+import { toCommandString } from './utility/command_string.js';
 
 export const parseReleaseTrack = (cmd: string): string => {
   for (const releaseTrack of PRERELEASE_TRACKS_PRIORITIZED) {
@@ -31,7 +32,7 @@ export async function findSuggestedAlternativeCommand(
   acl: AccessControlList,
   gcloud: gcloud.GcloudExecutable,
 ): Promise<string | null> {
-  const lintResult = await gcloud.lint(originalArgs.join(' '));
+  const lintResult = await gcloud.lint(toCommandString(originalArgs));
   if (!lintResult.success) {
     return null;
   }
@@ -53,7 +54,7 @@ export async function findSuggestedAlternativeCommand(
       altArgs.unshift(releaseTrack);
     }
 
-    const lintResult = await gcloud.lint(altArgs.join(' '));
+    const lintResult = await gcloud.lint(toCommandString(altArgs));
     if (!lintResult.success) {
       continue; // Argument set not valid for this release track.
     }
@@ -62,7 +63,7 @@ export async function findSuggestedAlternativeCommand(
       continue; // ACL does not permit this release track + command.
     }
 
-    return `gcloud ${altArgs.join(' ')}`; // Suggestion found.
+    return `gcloud ${toCommandString(altArgs)}`; // Suggestion found.
   }
   return null;
 }

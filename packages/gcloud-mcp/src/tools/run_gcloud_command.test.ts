@@ -354,4 +354,31 @@ describe('createRunGcloudCommand', () => {
       expect(result.isError).toBe(true);
     });
   });
+
+  describe('with argument values containing spaces', () => {
+    test('quotes an arg with an embedded space before linting, so it is not split apart', async () => {
+      const tool = createTool();
+      const inputArgs = [
+        'spanner',
+        'databases',
+        'execute-sql',
+        'my-db',
+        '--instance=my-instance',
+        '--project=my-project',
+        '--sql=SELECT 1',
+      ];
+      mockGcloudLint();
+      mockGcloudInvoke('output');
+
+      const result = await tool({ args: inputArgs });
+
+      expect(mockedGcloud.lint).toHaveBeenCalledWith(
+        'spanner databases execute-sql my-db --instance=my-instance --project=my-project ' +
+          '"--sql=SELECT 1"',
+      );
+      // The un-quoted, original argv array is still what actually gets executed.
+      expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
+      expect(result.content[0].text).toContain('output');
+    });
+  });
 });

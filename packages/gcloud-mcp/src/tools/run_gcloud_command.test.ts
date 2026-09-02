@@ -354,4 +354,49 @@ describe('createRunGcloudCommand', () => {
       expect(result.isError).toBe(true);
     });
   });
+
+  describe('with argument values containing spaces', () => {
+    // command_string.ts builds the lint string differently depending on
+    // `process.platform`, since gcloud's own linter tokenizes its
+    // `--command-string` differently per-platform. Pin the platform here so
+    // this test's expectation is deterministic regardless of which OS it
+    // actually runs on; see command_string.test.ts for coverage of both
+    // platforms' quoting behavior.
+    const withPlatform = async (platform: string, fn: () => Promise<void>) => {
+      const original = process.platform;
+      Object.defineProperty(process, 'platform', { value: platform, configurable: true });
+      try {
+        await fn();
+      } finally {
+        Object.defineProperty(process, 'platform', { value: original, configurable: true });
+      }
+    };
+
+    test('quotes an arg with an embedded space before linting, so it is not split apart', async () => {
+      await withPlatform('linux', async () => {
+        const tool = createTool();
+        const inputArgs = [
+          'spanner',
+          'databases',
+          'execute-sql',
+          'my-db',
+          '--instance=my-instance',
+          '--project=my-project',
+          '--sql=SELECT 1',
+        ];
+        mockGcloudLint();
+        mockGcloudInvoke('output');
+
+        const result = await tool({ args: inputArgs });
+
+        expect(mockedGcloud.lint).toHaveBeenCalledWith(
+          'spanner databases execute-sql my-db --instance=my-instance --project=my-project ' +
+            '"--sql=SELECT 1"',
+        );
+        // The un-quoted, original argv array is still what actually gets executed.
+        expect(mockedGcloud.invoke).toHaveBeenCalledWith(inputArgs);
+        expect(result.content[0].text).toContain('output');
+      });
+    });
+  });
 });

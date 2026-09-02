@@ -16,6 +16,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { GcloudExecutable } from '../gcloud.js';
+import { toCommandString } from '../utility/command_string.js';
 import { AccessControlList } from '../denylist.js';
 import { findSuggestedAlternativeCommand } from '../suggest.js';
 import { z } from 'zod';
@@ -77,7 +78,7 @@ export const createRunGcloudCommand = (gcloud: GcloudExecutable, acl: AccessCont
           // Example
           //   Given: gcloud compute --log-http=true instance list
           //   Desired command string is: compute instances list
-          const parsedLintResult = await gcloud.lint(args.join(' '));
+          const parsedLintResult = await gcloud.lint(toCommandString(args));
           if (!parsedLintResult.success) {
             return errorTextResult(parsedLintResult.error);
           }

@@ -52,6 +52,22 @@ describe('on POSIX (gcloud tokenizes with shlex.split(s))', () => {
     });
   });
 
+  test('quotes a compound logging filter passed as a single positional arg (#385)', () => {
+    withPlatform('linux', () => {
+      expect(
+        toCommandString([
+          'logging',
+          'read',
+          'resource.type=cloud_run_revision AND resource.labels.service_name=temporal-ui AND severity>=WARNING',
+          '--project=my-project',
+          '--limit=30',
+        ]),
+      ).toBe(
+        'logging read "resource.type=cloud_run_revision AND resource.labels.service_name=temporal-ui AND severity>=WARNING" --project=my-project --limit=30',
+      );
+    });
+  });
+
   test('single-quotes an arg containing a double quote', () => {
     withPlatform('linux', () => {
       expect(toCommandString(['--sql=SELECT "a" 1'])).toBe(`'--sql=SELECT "a" 1'`);

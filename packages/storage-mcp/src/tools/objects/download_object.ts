@@ -19,6 +19,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { logger } from '../../utility/logger.js';
+import { validateLocalPath, getPathBaseDir } from '../../utility/path_validation.js';
 
 const inputSchema = {
   bucket_name: z.string().describe('The name of the GCS bucket.'),
@@ -30,18 +31,40 @@ type DownloadObjectParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function downloadObject(params: DownloadObjectParams): Promise<CallToolResult> {
   try {
+    let resolvedPath = params.file_path;
+    const baseDir = getPathBaseDir();
+    if (baseDir) {
+      try {
+        resolvedPath = validateLocalPath(params.file_path, baseDir);
+      } catch (e) {
+        const error = e as Error;
+        logger.error(error.message);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                success: false,
+                error: error.message,
+              }),
+            },
+          ],
+        };
+      }
+    }
+
     const storage = apiClientFactory.getStorageClient();
     await storage
       .bucket(params.bucket_name)
       .file(params.object_name)
-      .download({ destination: params.file_path });
+      .download({ destination: resolvedPath });
     return {
       content: [
         {
           type: 'text',
           text: JSON.stringify({
             success: true,
-            message: `Object ${params.object_name} from bucket ${params.bucket_name} downloaded to ${params.file_path}.`,
+            message: `Object ${params.object_name} from bucket ${params.bucket_name} downloaded to ${resolvedPath}.`,
           }),
         },
       ],

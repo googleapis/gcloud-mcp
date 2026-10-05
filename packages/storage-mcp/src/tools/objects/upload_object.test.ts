@@ -15,9 +15,10 @@
  */
 
 /// <reference types="vitest/globals" />
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { uploadObject, registerUploadObjectTool } from './upload_object.js';
 import { apiClientFactory } from '../../utility/index.js';
+import { setPathBaseDir } from '../../utility/path_validation.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 vi.mock('../../utility/index.js');
@@ -32,6 +33,10 @@ vi.mock('../../utility/index.js');
 vi.mock('@modelcontextprotocol/sdk/server/mcp.js');
 
 describe('uploadObject', () => {
+  afterEach(() => {
+    setPathBaseDir(undefined);
+  });
+
   it('should upload an object and return a success message', async () => {
     const mockUpload = vi.fn().mockResolvedValue([
       {
@@ -98,6 +103,26 @@ describe('uploadObject', () => {
         text: JSON.stringify({
           error: 'File not found at path: /path/to/file',
           error_type: 'FileNotFound',
+        }),
+      },
+    ]);
+  });
+
+  it('should return an "InvalidPath" error if file_path escapes --base-dir', async () => {
+    setPathBaseDir('/allowed');
+
+    const result = await uploadObject({
+      bucket_name: 'test-bucket',
+      file_path: '../etc/passwd',
+      object_name: 'test-object',
+    });
+
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({
+          error: 'path escapes base dir: /etc/passwd',
+          error_type: 'InvalidPath',
         }),
       },
     ]);

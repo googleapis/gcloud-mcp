@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { getContentType } from '../../utility/gcs_helpers.js';
 import { logger } from '../../utility/logger.js';
+import { validateLocalPath, getPathBaseDir } from '../../utility/path_validation.js';
 
 const inputSchema = {
   bucket_name: z.string().describe('The name of the GCS bucket.'),
@@ -39,10 +40,32 @@ type UploadObjectSafeParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function uploadObjectSafe(params: UploadObjectSafeParams): Promise<CallToolResult> {
   try {
-    logger.info(`Uploading safe file: ${params.file_path} to bucket: ${params.bucket_name}`);
+    let resolvedPath = params.file_path;
+    const baseDir = getPathBaseDir();
+    if (baseDir) {
+      try {
+        resolvedPath = validateLocalPath(params.file_path, baseDir);
+      } catch (e) {
+        const errorMsg = (e as Error).message;
+        logger.error(errorMsg);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                error: errorMsg,
+                error_type: 'InvalidPath',
+              }),
+            },
+          ],
+        };
+      }
+    }
 
-    if (!fs.existsSync(params.file_path)) {
-      const errorMsg = `File not found at path: ${params.file_path}`;
+    logger.info(`Uploading safe file: ${resolvedPath} to bucket: ${params.bucket_name}`);
+
+    if (!fs.existsSync(resolvedPath)) {
+      const errorMsg = `File not found at path: ${resolvedPath}`;
       logger.error(errorMsg);
       return {
         content: [
@@ -59,15 +82,15 @@ export async function uploadObjectSafe(params: UploadObjectSafeParams): Promise<
 
     const storage = apiClientFactory.getStorageClient();
     const bucket = storage.bucket(params.bucket_name);
-    const objectName = params.object_name || params.file_path.split('/').pop();
+    const objectName = params.object_name || resolvedPath.split('/').pop();
     if (!objectName) {
-      throw new Error(`Could not determine object name from file path: ${params.file_path}`);
+      throw new Error(`Could not determine object name from file path: ${resolvedPath}`);
     }
     const file = bucket.file(objectName, { generation: 0 });
 
-    const contentType = params.content_type || getContentType(params.file_path);
+    const contentType = params.content_type || getContentType(resolvedPath);
 
-    await file.save(fs.readFileSync(params.file_path), {
+    await file.save(fs.readFileSync(resolvedPath), {
       contentType,
     });
 
@@ -75,14 +98,14 @@ export async function uploadObjectSafe(params: UploadObjectSafeParams): Promise<
 
     const result = {
       success: true,
-      message: `File ${params.file_path} uploaded successfully to gs://${params.bucket_name}/${objectName}`,
+      message: `File ${resolvedPath} uploaded successfully to gs://${params.bucket_name}/${objectName}`,
       bucket: params.bucket_name,
       object: objectName,
       size: metadata.size,
       content_type: metadata.contentType,
     };
     logger.info(
-      `Successfully uploaded file ${params.file_path} to gs://${params.bucket_name}/${objectName}`,
+      `Successfully uploaded file ${resolvedPath} to gs://${params.bucket_name}/${objectName}`,
     );
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],

@@ -73,6 +73,20 @@ tools that can modify or delete existing data, use the
 npx @google-cloud/storage-mcp init --agent=gemini-cli --enable-destructive-tools
 ```
 
+The `upload_object`, `upload_object_safe`, and `download_object` tools read and
+write local files at whatever `file_path` the agent passes. To limit them to a
+single directory, start the server with `--base-dir`:
+
+```json
+"gcs": {
+  "command": "npx",
+  "args": ["-y", "@google-cloud/storage-mcp", "--base-dir=/path/to/allowed/dir"]
+}
+```
+
+Paths outside that directory (including symlinks that resolve outside it) are
+rejected. Without the flag, paths are not restricted.
+
 ### For other AI clients
 
 To use the Storage MCP server with other clients, add the following snippet to their

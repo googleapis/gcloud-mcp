@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { apiClientFactory } from '../../utility/index.js';
 import { getContentType } from '../../utility/gcs_helpers.js';
 import { logger } from '../../utility/logger.js';
+import { validateLocalPath, getPathBaseDir } from '../../utility/path_validation.js';
 
 const inputSchema = {
   bucket_name: z.string().describe('The name of the GCS bucket.'),
@@ -39,15 +40,37 @@ type UploadObjectParams = z.infer<z.ZodObject<typeof inputSchema>>;
 
 export async function uploadObject(params: UploadObjectParams): Promise<CallToolResult> {
   try {
-    logger.info(`Uploading file: ${params.file_path} to bucket: ${params.bucket_name}`);
+    let resolvedPath = params.file_path;
+    const baseDir = getPathBaseDir();
+    if (baseDir) {
+      try {
+        resolvedPath = validateLocalPath(params.file_path, baseDir);
+      } catch (e) {
+        const errorMsg = (e as Error).message;
+        logger.error(errorMsg);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                error: errorMsg,
+                error_type: 'InvalidPath',
+              }),
+            },
+          ],
+        };
+      }
+    }
 
-    if (!fs.existsSync(params.file_path)) {
+    logger.info(`Uploading file: ${resolvedPath} to bucket: ${params.bucket_name}`);
+
+    if (!fs.existsSync(resolvedPath)) {
       return {
         content: [
           {
             type: 'text',
             text: JSON.stringify({
-              error: `File not found at path: ${params.file_path}`,
+              error: `File not found at path: ${resolvedPath}`,
               error_type: 'FileNotFound',
             }),
           },
@@ -55,12 +78,12 @@ export async function uploadObject(params: UploadObjectParams): Promise<CallTool
       };
     }
 
-    const objectName = params.object_name || path.basename(params.file_path);
+    const objectName = params.object_name || path.basename(resolvedPath);
     const final_content_type = params.content_type || getContentType(objectName);
 
     const storage = apiClientFactory.getStorageClient();
 
-    const [file] = await storage.bucket(params.bucket_name).upload(params.file_path, {
+    const [file] = await storage.bucket(params.bucket_name).upload(resolvedPath, {
       destination: objectName,
       metadata: { contentType: final_content_type },
     });
@@ -69,14 +92,14 @@ export async function uploadObject(params: UploadObjectParams): Promise<CallTool
 
     const result = {
       success: true,
-      message: `File ${params.file_path} uploaded successfully to gs://${params.bucket_name}/${objectName}`,
+      message: `File ${resolvedPath} uploaded successfully to gs://${params.bucket_name}/${objectName}`,
       bucket: params.bucket_name,
       object: objectName,
       size: metadata.size,
       content_type: metadata.contentType,
     };
     logger.info(
-      `Successfully uploaded file ${params.file_path} to bucket ${params.bucket_name} as ${objectName} (${metadata.size} bytes)`,
+      `Successfully uploaded file ${resolvedPath} to bucket ${params.bucket_name} as ${objectName} (${metadata.size} bytes)`,
     );
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],

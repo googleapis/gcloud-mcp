@@ -29,6 +29,7 @@ import yargs, { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './commands/init.js';
 import { log } from './utility/logger.js';
+import { setPathBaseDir } from './utility/path_validation.js';
 
 const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> => ({
   ...cmd,
@@ -41,11 +42,16 @@ const exitProcessAfter = <T, U>(cmd: CommandModule<T, U>): CommandModule<T, U> =
 const main = async () => {
   const argv = await yargs(hideBin(process.argv))
     .command('$0', 'Run the storage mcp server', (yargs) => {
-      yargs.option('enable-destructive-tools', {
-        describe: 'Enable tools that can modify or delete existing GCS content.',
-        type: 'boolean',
-        default: false,
-      });
+      yargs
+        .option('enable-destructive-tools', {
+          describe: 'Enable tools that can modify or delete existing GCS content.',
+          type: 'boolean',
+          default: false,
+        })
+        .option('base-dir', {
+          describe: 'Restrict local file paths to this directory.',
+          type: 'string',
+        });
     })
     .command(exitProcessAfter(init))
     .version(pkg.version)
@@ -59,6 +65,11 @@ const main = async () => {
     },
     { capabilities: { tools: {} } },
   );
+
+  if (argv['base-dir']) {
+    setPathBaseDir(argv['base-dir'] as string);
+    log.info(`Local file paths restricted to: ${argv['base-dir']}`);
+  }
 
   // Start with the common tools that are always safe and registered.
   const allTools = [...commonSafeTools];

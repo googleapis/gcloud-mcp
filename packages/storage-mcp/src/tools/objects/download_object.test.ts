@@ -17,6 +17,7 @@
 import { vi, describe, it, expect, afterEach } from 'vitest';
 import { downloadObject, registerDownloadObjectTool } from './download_object';
 import { apiClientFactory } from '../../utility/index.js';
+import { setPathBaseDir } from '../../utility/path_validation.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 vi.mock('../../utility/index.js');
@@ -25,6 +26,7 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js');
 describe('downloadObject', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    setPathBaseDir(undefined);
   });
 
   it('should download an object and return success', async () => {
@@ -80,6 +82,21 @@ describe('downloadObject', () => {
     const resultText = JSON.parse(result.content[0].text as string);
     expect(resultText.success).toBe(false);
     expect(resultText.error).toBe('Download failed');
+  });
+
+  it('should return an error if file_path escapes --base-dir', async () => {
+    setPathBaseDir('/allowed');
+
+    const result = await downloadObject({
+      bucket_name: 'test-bucket',
+      object_name: 'test-object.txt',
+      file_path: '../etc/passwd',
+    });
+
+    expect(apiClientFactory.getStorageClient).not.toHaveBeenCalled();
+    const resultText = JSON.parse(result.content[0].text as string);
+    expect(resultText.success).toBe(false);
+    expect(resultText.error).toBe('path escapes base dir: /etc/passwd');
   });
 });
 

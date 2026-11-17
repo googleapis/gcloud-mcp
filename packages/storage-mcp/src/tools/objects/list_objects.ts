@@ -75,9 +75,13 @@ export async function listObjects(params: ListObjectsParams): Promise<CallToolRe
     if (params.versions) {
       options.versions = params.versions;
     }
-    const [files, nextQuery] = await storage.bucket(params.bucket_name).getFiles(options);
+    const bucket = storage.bucket(params.bucket_name);
+    const [files, nextQuery, apiResponse] = await bucket.getFiles(options);
 
     const objectList = files.map((file: File) => file.name);
+    // With a delimiter, the "folders" at this level come back as prefixes in
+    // the raw API response, not as files.
+    const prefixes = (apiResponse as { prefixes?: string[] } | undefined)?.prefixes ?? [];
 
     const result = {
       bucket: params.bucket_name,
@@ -85,6 +89,7 @@ export async function listObjects(params: ListObjectsParams): Promise<CallToolRe
       delimiter: params.delimiter,
       object_count: objectList.length,
       objects: objectList,
+      prefixes,
       next_page_token: nextQuery?.pageToken ?? null,
     };
 

@@ -50,6 +50,7 @@ describe('listObjects', () => {
       delimiter: undefined,
       object_count: 2,
       objects: ['object-1', 'object-2'],
+      prefixes: [],
       next_page_token: null,
     };
     expect(result.content).toEqual([
@@ -97,7 +98,40 @@ describe('listObjects', () => {
       delimiter: '/',
       object_count: 2,
       objects: ['object-1', 'object-2'],
+      prefixes: [],
       next_page_token: 'next-page-token',
+    };
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify(expectedJson, null, 2),
+      },
+    ]);
+  });
+
+  it('should return the prefixes of a delimited listing', async () => {
+    const apiResponse = { prefixes: ['dir-a/', 'dir-b/'] };
+    const mockGetFiles = vi.fn().mockResolvedValue([[{ name: 'root.txt' }], null, apiResponse]);
+    const mockBucket = {
+      getFiles: mockGetFiles,
+    };
+
+    const mockStorageClient = {
+      bucket: vi.fn().mockReturnValue(mockBucket),
+    };
+
+    (apiClientFactory.getStorageClient as vi.Mock).mockReturnValue(mockStorageClient);
+
+    const result = await listObjects({ bucket_name: 'test-bucket', delimiter: '/' });
+
+    const expectedJson = {
+      bucket: 'test-bucket',
+      prefix: undefined,
+      delimiter: '/',
+      object_count: 1,
+      objects: ['root.txt'],
+      prefixes: ['dir-a/', 'dir-b/'],
+      next_page_token: null,
     };
     expect(result.content).toEqual([
       {
@@ -127,6 +161,7 @@ describe('listObjects', () => {
       delimiter: undefined,
       object_count: 0,
       objects: [],
+      prefixes: [],
       next_page_token: null,
     };
     expect(result.content).toEqual([

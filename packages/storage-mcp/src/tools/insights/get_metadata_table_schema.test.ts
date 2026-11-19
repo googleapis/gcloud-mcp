@@ -30,6 +30,8 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js');
 describe('getMetadataTableSchema', () => {
   const mockGetDatasetConfig = vi.fn();
   const mockListServices = vi.fn();
+  const mockServiceUsageInitialize = vi.fn();
+  const mockStorageInsightsInitialize = vi.fn();
   const mockGetMetadata = vi.fn();
   const mockDataset = vi.fn(() => ({
     table: vi.fn(() => ({
@@ -52,11 +54,15 @@ describe('getMetadataTableSchema', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    mockServiceUsageInitialize.mockResolvedValue(undefined);
+    mockStorageInsightsInitialize.mockResolvedValue(undefined);
     (apiClientFactory.getStorageInsightsClient as Mock).mockReturnValue({
+      initialize: mockStorageInsightsInitialize,
       getDatasetConfig: mockGetDatasetConfig,
     });
     (apiClientFactory.getBigQueryClient as Mock).mockReturnValue(mockBigQueryClient);
     (apiClientFactory.getServiceUsageClient as Mock).mockReturnValue({
+      initialize: mockServiceUsageInitialize,
       listServices: mockListServices,
     });
 
@@ -186,6 +192,21 @@ describe('getMetadataTableSchema', () => {
       'Storage Insights API is not enabled for project insights-test-project. Please enable it to proceed.',
     );
     expect(mockListServices).toHaveBeenCalled();
+    expect(mockGetDatasetConfig).not.toHaveBeenCalled();
+  });
+
+  it('rejects without calling the API when client initialization fails', async () => {
+    // A missing or expired credential surfaces from initialize(). It must reject
+    // the handler (turned into an error result by McpServer) instead of being
+    // rethrown later by the GAPIC stub, which crashes the server process.
+    mockServiceUsageInitialize.mockRejectedValue(
+      new Error('Could not load the default credentials.'),
+    );
+
+    await expect(getMetadataTableSchema(validParams)).rejects.toThrow(
+      'Could not load the default credentials.',
+    );
+    expect(mockListServices).not.toHaveBeenCalled();
     expect(mockGetDatasetConfig).not.toHaveBeenCalled();
   });
 

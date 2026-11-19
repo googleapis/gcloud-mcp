@@ -166,6 +166,25 @@ test('should handle non-zero exit code from lint', async () => {
   }
 });
 
+test('should return stderr when lint fails without printing JSON', async () => {
+  const stderr =
+    'ERROR: gcloud failed to load (gcloud.run.worker-pools.delete): ' +
+    "Problem loading gcloud.run.worker-pools.delete: No module named 'grpc'.";
+  const expectedResult: GcloudInvocationResult = {
+    code: 1,
+    stdout: '',
+    stderr,
+  };
+  mockedGcloudExecutor.execute.mockResolvedValue(expectedResult);
+
+  const result = await gcloudExecutable.lint('run worker-pools delete my-pool');
+
+  expect(result.success).toBe(false);
+  if (!result.success) {
+    expect(result.error).toBe(stderr);
+  }
+});
+
 test('should handle unsuccessful lint command', async () => {
   const expectedResult: GcloudInvocationResult = {
     code: 0,

@@ -35,16 +35,18 @@ export const create = async (): Promise<GcloudExecutable> => {
         `gcloud ${command}`,
       ]);
 
+      // gcloud returned a non-zero response. Check this before parsing stdout,
+      // which is empty when gcloud fails before linting (e.g. a command group
+      // that fails to load).
+      if (code !== 0) {
+        return { success: false, error: stderr };
+      }
+
       const json = JSON.parse(stdout);
       const lintCommands: LintCommandsOutput = LintCommandsSchema.parse(json);
       const lintCommand = lintCommands[0];
       if (!lintCommand) {
         throw new Error('gcloud lint result contained no contents');
-      }
-
-      // gcloud returned a non-zero response
-      if (code !== 0) {
-        return { success: false, error: stderr };
       }
 
       // Command has bad syntax

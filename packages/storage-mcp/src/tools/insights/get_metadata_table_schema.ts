@@ -56,6 +56,13 @@ export async function getMetadataTableSchema(
     );
   }
 
+  // Await initialize() so a credential failure rejects here, where the tool
+  // handler can turn it into an error result. Without it, the generated GAPIC
+  // client rethrows the auth error from inside its stub callback, outside any
+  // promise chain, and the process-wide handler exits the server.
+  await serviceUsageClient.initialize();
+  await storageInsightsClient.initialize();
+
   const [services] = await serviceUsageClient.listServices({
     parent: `projects/${projectId}`,
     filter: 'state:ENABLED',

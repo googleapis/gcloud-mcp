@@ -27,13 +27,18 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js');
 describe('listInsightsConfigs', () => {
   const mockListDatasetConfigsAsync = vi.fn();
   const mockListServices = vi.fn();
+  const mockServiceUsageInitialize = vi.fn();
+  const mockStorageInsightsInitialize = vi.fn();
   const originalEnv = process.env;
 
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...originalEnv };
 
+    mockServiceUsageInitialize.mockResolvedValue(undefined);
+    mockStorageInsightsInitialize.mockResolvedValue(undefined);
     const mockStorageInsightsClient = {
+      initialize: mockStorageInsightsInitialize,
       listDatasetConfigsAsync: mockListDatasetConfigsAsync,
     };
     (apiClientFactory.getStorageInsightsClient as vi.Mock).mockReturnValue(
@@ -41,6 +46,7 @@ describe('listInsightsConfigs', () => {
     );
 
     const mockServiceUsageClient = {
+      initialize: mockServiceUsageInitialize,
       listServices: mockListServices,
     };
     (apiClientFactory.getServiceUsageClient as vi.Mock).mockReturnValue(mockServiceUsageClient);
@@ -169,6 +175,21 @@ describe('listInsightsConfigs', () => {
       },
     ]);
     expect(logger.error).toHaveBeenCalledWith('Error listing dataset configs:', undefined);
+  });
+
+  it('should reject without calling the API when client initialization fails', async () => {
+    // A missing or expired credential surfaces from initialize(). It must reject
+    // the handler (turned into an error result by McpServer) instead of being
+    // rethrown later by the GAPIC stub, which crashes the server process.
+    mockStorageInsightsInitialize.mockRejectedValue(
+      new Error('Could not load the default credentials.'),
+    );
+
+    await expect(listInsightsConfigs({ projectId: 'test-project' })).rejects.toThrow(
+      'Could not load the default credentials.',
+    );
+    expect(mockListServices).not.toHaveBeenCalled();
+    expect(mockListDatasetConfigsAsync).not.toHaveBeenCalled();
   });
 
   it('should throw an error if projectId is not provided', async () => {
